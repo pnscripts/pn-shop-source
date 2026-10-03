@@ -85,9 +85,15 @@ export default function CartIndex({ cart, suggestions }: { cart: CartSummary; su
                         <CouponForm coupon={cart.coupon} />
                         <TotalsBreakdown totals={cart.totals} />
                         <Slot name="cart.after_totals" props={{ cart }} />
-                        <Button className="w-full" asChild>
-                            <Link href={route('checkout.create')}>{t('Checkout')}</Link>
-                        </Button>
+                        {cart.minimum_order ? (
+                            <p className="text-muted-foreground text-sm" role="status">
+                                {t('The minimum order is :amount. Please add more products.', { amount: cart.minimum_order.formatted })}
+                            </p>
+                        ) : (
+                            <Button className="w-full" asChild>
+                                <Link href={route('checkout.create')}>{t('Checkout')}</Link>
+                            </Button>
+                        )}
                     </aside>
                 </div>
             )}

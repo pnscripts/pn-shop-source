@@ -29,6 +29,7 @@ use PnShop\Sales\Models\Order;
  * @property Money|null $min_total
  * @property Money|null $max_total
  * @property list<string>|null $countries ISO codes; empty means everywhere
+ * @property list<int>|null $customer_group_ids groups it is offered to; empty means every customer
  */
 class PaymentMethod extends Model implements TranslatableModel
 {
@@ -36,7 +37,7 @@ class PaymentMethod extends Model implements TranslatableModel
     use HasFactory, SoftDeletes, Translatable;
 
     /** @var list<string> */
-    protected $fillable = ['name', 'description', 'gateway', 'settings', 'is_active', 'position', 'min_total', 'max_total', 'countries'];
+    protected $fillable = ['name', 'description', 'gateway', 'settings', 'is_active', 'position', 'min_total', 'max_total', 'countries', 'customer_group_ids'];
 
     /** @var list<string> */
     protected array $translatable = ['name', 'description'];
@@ -53,6 +54,7 @@ class PaymentMethod extends Model implements TranslatableModel
             'min_total' => MoneyCast::class,
             'max_total' => MoneyCast::class,
             'countries' => 'array',
+            'customer_group_ids' => 'array',
         ];
     }
 

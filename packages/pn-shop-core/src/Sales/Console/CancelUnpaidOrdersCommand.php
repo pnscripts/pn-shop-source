@@ -3,6 +3,7 @@
 namespace PnShop\Sales\Console;
 
 use Illuminate\Console\Command;
+use PnShop\Payment\Gateways\Invoice;
 use PnShop\Sales\Exceptions\OrderException;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\OrderWorkflow;
@@ -18,6 +19,7 @@ use PnShop\Settings\Settings;
  *
  * Only orders that have not shipped at all are cancelled: a cash-on-delivery order is unpaid
  * until the courier collects the money, and must never be cancelled (and restocked) on the way.
+ * Orders paid by invoice wait for their payment terms and are never cancelled here.
  * The state is checked again under the order's lock, so a payment that arrives in between wins.
  */
 class CancelUnpaidOrdersCommand extends Command
@@ -40,6 +42,8 @@ class CancelUnpaidOrdersCommand extends Command
             ->where('status', OrderStatus::Pending)
             ->whereIn('payment_status', [PaymentStatus::Unpaid, PaymentStatus::Failed])
             ->where('fulfillment_status', FulfillmentStatus::Unfulfilled)
+            // Invoice orders are paid on their terms, weeks later.
+            ->whereDoesntHave('paymentMethod', fn ($method) => $method->where('gateway', Invoice::CODE))
             ->where('created_at', '<', now()->subHours($hours))
             ->orderBy('id')
             ->lazyById(100);

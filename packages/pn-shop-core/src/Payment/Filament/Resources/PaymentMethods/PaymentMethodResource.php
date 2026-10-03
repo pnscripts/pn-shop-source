@@ -19,6 +19,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use PnShop\Customer\Models\CustomerGroup;
 use PnShop\Localization\Filament\TranslationsSection;
 use PnShop\Localization\Localization;
 use PnShop\Localization\Models\Country;
@@ -75,6 +76,12 @@ class PaymentMethodResource extends Resource
                     ->searchable()
                     ->options(fn () => Country::query()->where('is_active', true)->get()->mapWithKeys(fn (Country $country) => [$country->code => $country->name()])->sort()->all())
                     ->helperText('Shipping country. Leave empty for all countries.'),
+                Select::make('customer_group_ids')
+                    ->label('Only for these customer groups')
+                    ->multiple()
+                    ->options(fn () => CustomerGroup::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->dehydrateStateUsing(fn (?array $state) => $state === null || $state === [] ? null : array_values(array_map('intval', $state)))
+                    ->helperText('Guests count as the default group. Leave empty for every customer.'),
             ]),
             Section::make('Gateway settings')
                 ->columnSpan(2)

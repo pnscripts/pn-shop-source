@@ -10,6 +10,7 @@ use PnShop\Catalog\Models\Category;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Presenters\ProductCardPresenter;
+use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Cms\Models\Page;
 use PnShop\Localization\Localization;
 use PnShop\Localization\Models\Language;
@@ -59,7 +60,8 @@ final class CatalogSeo
             ->languageLinks($alternates)
             ->canonical($url);
 
-        if ($prices->isNotEmpty()) {
+        // Search engines see what guests see: no offer when prices are for signed-in customers.
+        if ($prices->isNotEmpty() && app(PriceDisplay::class)->visible()) {
             $this->seo->jsonLd(Schema::product(
                 $product->title,
                 $product->description,

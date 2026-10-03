@@ -49,4 +49,25 @@ class CustomerAdminTest extends AdminTestCase
         $this->get('/admin/customers')->assertOk();
         $this->get('/admin/customers/'.User::factory()->create()->id.'/edit')->assertForbidden();
     }
+
+    public function test_groups_get_business_options(): void
+    {
+        $this->actingAsAdministrator();
+        $group = CustomerGroup::query()->create(['code' => 'wholesale', 'name' => 'Wholesale']);
+
+        Livewire::test(ManageCustomerGroups::class)
+            ->callTableAction('edit', $group, data: ['prices_include_tax' => '0', 'min_order_total' => '250'])
+            ->assertHasNoTableActionErrors();
+
+        $group->refresh();
+        $this->assertFalse($group->prices_include_tax);
+        $this->assertSame('250.00', (string) $group->min_order_total?->getAmount());
+
+        Livewire::test(ManageCustomerGroups::class)
+            ->callTableAction('edit', $group, data: ['prices_include_tax' => null, 'min_order_total' => null])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertNull($group->refresh()->prices_include_tax);
+        $this->assertNull($group->min_order_total);
+    }
 }

@@ -39,6 +39,9 @@ class PriceResolver
 
     private ?bool $hasPriceLists = null;
 
+    /** @var array<int, CustomerGroup|null> */
+    private array $groups = [];
+
     public function __construct(private PipelineRegistry $pipelines, private Localization $localization) {}
 
     public function context(): PriceContext
@@ -94,6 +97,24 @@ class PriceResolver
         }
 
         return new PriceContext(is_numeric($groupId) ? (int) $groupId : null, $currency, $customer);
+    }
+
+    /**
+     * The current customer's group (the default group for guests): its B2B options.
+     */
+    public function customerGroup(): ?CustomerGroup
+    {
+        $id = $this->context()->customerGroupId;
+
+        if ($id === null) {
+            return null;
+        }
+
+        if (! array_key_exists($id, $this->groups)) {
+            $this->groups[$id] = CustomerGroup::query()->find($id);
+        }
+
+        return $this->groups[$id];
     }
 
     /**

@@ -9,6 +9,7 @@ use PnShop\Foundation\Extension\Permission;
 use PnShop\Foundation\ModuleServiceProvider;
 use PnShop\Payment\Gateways\BankTransfer;
 use PnShop\Payment\Gateways\CashOnDelivery;
+use PnShop\Payment\Gateways\Invoice;
 use PnShop\Payment\Listeners\SyncPaymentsWithOrder;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentMethod;
@@ -27,6 +28,7 @@ class PaymentServiceProvider extends ModuleServiceProvider
             $manager = new PaymentGatewayManager($app);
             $manager->register(CashOnDelivery::class);
             $manager->register(BankTransfer::class);
+            $manager->register(Invoice::class);
 
             return $manager;
         });

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use Livewire\Livewire;
+use PnShop\Customer\Models\CustomerGroup;
 use PnShop\Payment\Filament\RelationManagers\PaymentsRelationManager;
 use PnShop\Payment\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use PnShop\Payment\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
@@ -71,5 +72,22 @@ class PaymentMethodResourceTest extends AdminTestCase
             ->assertSee('REF-1')
             ->assertSee('$12.00')
             ->assertSee('Pending');
+    }
+
+    public function test_an_invoice_method_is_limited_to_customer_groups(): void
+    {
+        $this->actingAsAdministrator();
+        $wholesale = CustomerGroup::query()->create(['code' => 'wholesale', 'name' => 'Wholesale']);
+
+        Livewire::test(CreatePaymentMethod::class)
+            ->fillForm(['name' => 'Invoice', 'gateway' => 'invoice'])
+            ->assertSchemaComponentExists('settings.terms_days', 'form')
+            ->fillForm(['customer_group_ids' => [(string) $wholesale->id]])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $method = PaymentMethod::query()->sole();
+        $this->assertSame([$wholesale->id], $method->customer_group_ids);
+        $this->assertSame(30, $method->setting('terms_days'));
     }
 }

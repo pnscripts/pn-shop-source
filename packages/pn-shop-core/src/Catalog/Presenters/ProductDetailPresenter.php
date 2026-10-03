@@ -7,10 +7,10 @@ use PnShop\Catalog\Models\Option;
 use PnShop\Catalog\Models\OptionValue;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Media\MediaPresenter;
 use PnShop\Media\Models\Media;
-use PnShop\Money\MoneyPresenter;
 
 /**
  * The product page shape (storefront product page and Store API): gallery, options,
@@ -55,6 +55,7 @@ final class ProductDetailPresenter
      */
     public static function present(Product $product, array $trail): array
     {
+        $display = app(PriceDisplay::class);
         $usedValueIds = $product->variants->flatMap(fn (ProductVariant $variant) => $variant->optionValues->modelKeys())->unique();
 
         return [
@@ -85,14 +86,17 @@ final class ProductDetailPresenter
                 'id' => $variant->id,
                 'sku' => $variant->sku,
                 'option_value_ids' => $variant->optionValues->modelKeys(),
-                'price' => MoneyPresenter::present($variant->price),
+                // As this customer sees prices: null when hidden from guests, with or without tax.
+                'price' => $display->present($variant->price, $product->tax_class_id),
                 // What this customer pays for one (sale price, or their group's price).
-                'sale_price' => $variant->isOnSale() ? MoneyPresenter::present($variant->unitPrice()) : null,
+                'sale_price' => $variant->isOnSale() ? $display->present($variant->unitPrice(), $product->tax_class_id) : null,
                 'tiers' => self::tiers($variant),
                 'stock' => $variant->available(),
                 'can_backorder' => $variant->allow_backorder,
             ])->values(),
             'default_variant_id' => $product->defaultVariant()?->id,
+            'price_includes_tax' => $display->includesTax(),
+            'prices_visible' => $display->visible(),
         ];
     }
 
@@ -103,6 +107,12 @@ final class ProductDetailPresenter
      */
     public static function tiers(ProductVariant $variant): array
     {
+        $display = app(PriceDisplay::class);
+
+        if (! $display->visible()) {
+            return [];
+        }
+
         $tiers = [];
         $previous = $variant->unitPrice();
         $quantities = collect(app(PriceResolver::class)->entriesFor($variant->id))->pluck('min_quantity')->filter(fn (int $quantity) => $quantity > 1)->unique()->sort()->values();
@@ -111,7 +121,7 @@ final class ProductDetailPresenter
             $price = $variant->unitPrice($quantity);
 
             if ($price->isLessThan($previous)) {
-                $tiers[] = ['min_quantity' => $quantity, 'price' => MoneyPresenter::present($price)];
+                $tiers[] = ['min_quantity' => $quantity, 'price' => $display->present($price, $variant->product?->tax_class_id)];
                 $previous = $price;
             }
         }

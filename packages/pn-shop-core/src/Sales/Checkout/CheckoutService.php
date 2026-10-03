@@ -10,6 +10,7 @@ use PnShop\Cart\ShoppingCartService;
 use PnShop\Cart\Totals\CartCalculator;
 use PnShop\Cart\Totals\TotalLine;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Customer\Models\CustomerAddress;
 use PnShop\Customer\Models\User;
@@ -76,6 +77,10 @@ class CheckoutService
 
         // Prices are those of the customer placing the order (their group), or a guest's.
         app(PriceResolver::class)->forCustomer($user);
+
+        if (! app(PriceDisplay::class)->visible()) {
+            throw new CheckoutException(__('Please sign in to see prices and order.'));
+        }
 
         $order = DB::transaction(function () use ($data, $user, $shipping, $billing) {
             // The cart is locked and emptied in this transaction: a double submit cannot place
@@ -161,6 +166,12 @@ class CheckoutService
                 'user' => $user,
                 'email' => $data['email'],
             ]));
+
+            $minimum = app(PriceResolver::class)->customerGroup()?->minimumOrderShortfall($totals->subtotal);
+
+            if ($minimum !== null) {
+                throw new CheckoutException(__('The minimum order is :amount. Please add more products.', ['amount' => $minimum->formatToLocale(app()->getLocale())]));
+            }
 
             $method = PaymentMethod::query()->find((int) $data['payment_method_id']);
 

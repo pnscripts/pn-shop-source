@@ -48,6 +48,7 @@ class CustomerServiceProvider extends ModuleServiceProvider
             'customers',
             'Customers',
             new SettingDefinition('require_email_verification', SettingType::Boolean, 'Require a verified email address', default: false, help: 'New customers get a link by email and must open it before using their account pages or ordering through the Store API. Turning this on also asks existing customers to verify.'),
+            new SettingDefinition('show_prices_to_guests', SettingType::Boolean, 'Show prices to guests', default: true, help: 'Off: only signed-in customers see prices and can add to the cart (a trade-only shop).'),
         ));
     }
 }

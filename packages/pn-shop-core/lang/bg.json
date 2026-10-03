@@ -329,5 +329,10 @@
     "Price: low to high": "Цена: възходяща",
     "Price: high to low": "Цена: низходяща",
     "Available to order": "Може да се поръча",
-    ":count or more: :price each": ":count или повече: по :price"
+    ":count or more: :price each": ":count или повече: по :price",
+    "excl. tax": "без ДДС",
+    "Sign in to see prices": "Влезте, за да видите цените",
+    "Please sign in to see prices and order.": "Моля, влезте в профила си, за да видите цените и да поръчате.",
+    "The minimum order is :amount. Please add more products.": "Минималната поръчка е :amount. Моля, добавете още продукти.",
+    "Pay :amount within :days days of the invoice date, quoting :order.": "Платете :amount в срок от :days дни от датата на фактурата, с основание :order."
 }

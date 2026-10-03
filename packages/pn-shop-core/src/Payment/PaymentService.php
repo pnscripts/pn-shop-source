@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Payment\Models\PaymentTransaction;
@@ -47,6 +48,7 @@ class PaymentService
             && ! ($sameCurrency($method->min_total) && $total->isLessThan($method->min_total))
             && ! ($sameCurrency($method->max_total) && $total->isGreaterThan($method->max_total))
             && ($method->countries === null || $method->countries === [] || $context->countryCode === null || in_array($context->countryCode, $method->countries, true))
+            && ($method->customer_group_ids === null || $method->customer_group_ids === [] || in_array(app(PriceResolver::class)->contextFor($context->customer)->customerGroupId, array_map('intval', $method->customer_group_ids), true))
             && $gateway->isAvailable($context, $method);
     }
 

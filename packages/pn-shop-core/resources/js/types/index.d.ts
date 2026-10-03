@@ -85,9 +85,12 @@ export interface ProductCard {
     id: number;
     title: string;
     slug: string;
+    /** Null when the shop shows prices to signed-in customers only. */
     price: Money | null;
     sale_price: Money | null;
     price_from: boolean;
+    /** Whether the prices shown include tax (customer groups can see net prices). */
+    price_includes_tax?: boolean;
     image: ProductImage | null;
     stock: number | null;
     /** True when the product can still be ordered with no stock left. */
@@ -149,6 +152,8 @@ export interface CartSummary {
     final_price: Money;
     totals: Totals;
     coupon: CartCoupon | null;
+    /** The customer group's minimum order, while the products fall short of it. */
+    minimum_order?: Money | null;
 }
 
 export interface CartCoupon {

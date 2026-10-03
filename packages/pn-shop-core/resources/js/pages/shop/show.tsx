@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import { ProductCard } from '@/components/product-card';
 import { Slot } from '@/components/slot';
+import TextLink from '@/components/text-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,8 @@ type Variant = {
     id: number;
     sku: string | null;
     option_value_ids: number[];
-    price: Money;
+    /** Null when the shop shows prices to signed-in customers only. */
+    price: Money | null;
     sale_price: Money | null;
     /** Lower prices from a quantity on, for this customer. */
     tiers?: { min_quantity: number; price: Money }[];
@@ -40,6 +42,8 @@ type ProductShow = {
     brand: { name: string; slug: string } | null;
     breadcrumbs: { title: string; slug: string }[];
     attributes: { attribute: string | null; value: string | null }[];
+    price_includes_tax?: boolean;
+    prices_visible?: boolean;
 };
 
 export default function ShopShow({ product, related }: { product: ProductShow; related: ProductCardType[] }) {
@@ -131,10 +135,15 @@ export default function ShopShow({ product, related }: { product: ProductShow; r
                         )}
                     </div>
                     <h1 className="mt-3 mb-4 text-3xl font-semibold tracking-tight">{product.title}</h1>
-                    {variant ? (
+                    {variant && !variant.price ? (
+                        <p className="mb-6">
+                            <TextLink href={route('login')}>{t('Sign in to see prices')}</TextLink>
+                        </p>
+                    ) : variant?.price ? (
                         <div className="mb-6 flex items-baseline gap-3">
                             <span className="text-2xl font-semibold">{(variant.sale_price ?? variant.price).formatted}</span>
                             {variant.sale_price && <span className="text-muted-foreground line-through">{variant.price.formatted}</span>}
+                            {product.price_includes_tax === false && <span className="text-muted-foreground text-sm">{t('excl. tax')}</span>}
                         </div>
                     ) : (
                         <p className="text-muted-foreground mb-6">{t('This combination is not available.')}</p>
@@ -190,27 +199,29 @@ export default function ShopShow({ product, related }: { product: ProductShow; r
                         </dl>
                     )}
 
-                    <form onSubmit={submit} className="grid max-w-sm gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="quantity">{t('Quantity')}</Label>
-                            <Input
-                                id="quantity"
-                                type="number"
-                                min={1}
-                                max={variant?.stock !== null && !variant?.can_backorder ? variant?.stock : undefined}
-                                value={data.quantity}
-                                onChange={(event) => setData('quantity', Number(event.target.value))}
-                                disabled={!purchasable}
-                            />
-                            <InputError message={errors.quantity ?? errors.variant_id} />
-                        </div>
-                        <Button type="submit" disabled={processing || !purchasable}>
-                            {variant && !purchasable ? t('Out of stock') : t('Add to cart')}
-                        </Button>
-                        {variant && variant.stock !== null && variant.stock > 0 && (
-                            <p className="text-muted-foreground text-sm">{t(':count in stock', { count: variant.stock })}</p>
-                        )}
-                    </form>
+                    {product.prices_visible !== false && (
+                        <form onSubmit={submit} className="grid max-w-sm gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="quantity">{t('Quantity')}</Label>
+                                <Input
+                                    id="quantity"
+                                    type="number"
+                                    min={1}
+                                    max={variant?.stock !== null && !variant?.can_backorder ? variant?.stock : undefined}
+                                    value={data.quantity}
+                                    onChange={(event) => setData('quantity', Number(event.target.value))}
+                                    disabled={!purchasable}
+                                />
+                                <InputError message={errors.quantity ?? errors.variant_id} />
+                            </div>
+                            <Button type="submit" disabled={processing || !purchasable}>
+                                {variant && !purchasable ? t('Out of stock') : t('Add to cart')}
+                            </Button>
+                            {variant && variant.stock !== null && variant.stock > 0 && (
+                                <p className="text-muted-foreground text-sm">{t(':count in stock', { count: variant.stock })}</p>
+                            )}
+                        </form>
+                    )}
                 </div>
             </div>
             {related.length > 0 && (
