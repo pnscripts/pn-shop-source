@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\Models\StockLevel;
 use PnShop\Money\MoneyCast;
-use PnShop\Money\Prices;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -96,16 +96,20 @@ class ProductVariant extends Model
     }
 
     /**
-     * The price charged for one unit: the sale price when set, otherwise the price.
+     * What the current customer pays for one unit at this quantity: the lowest of the price,
+     * the sale price and the price lists of their group (see PriceResolver).
      */
-    public function unitPrice(): Money
+    public function unitPrice(int $quantity = 1): Money
     {
-        return Prices::effective($this->price, $this->sale_price);
+        return app(PriceResolver::class)->quote($this, $quantity)->unit;
     }
 
-    public function isOnSale(): bool
+    /**
+     * Whether the current customer pays less than the regular price (shown struck through).
+     */
+    public function isOnSale(int $quantity = 1): bool
     {
-        return Prices::isSale($this->price, $this->sale_price);
+        return app(PriceResolver::class)->quote($this, $quantity)->isReduced();
     }
 
     /**

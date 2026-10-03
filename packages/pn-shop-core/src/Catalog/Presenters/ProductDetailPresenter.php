@@ -7,6 +7,7 @@ use PnShop\Catalog\Models\Option;
 use PnShop\Catalog\Models\OptionValue;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Media\MediaPresenter;
 use PnShop\Media\Models\Media;
 use PnShop\Money\MoneyPresenter;
@@ -22,7 +23,7 @@ final class ProductDetailPresenter
      */
     public static function load(Product $product): Product
     {
-        return $product->load([
+        $product->load([
             'category:id,title,slug,parent_id,_lft,_rgt',
             'brand:id,name,slug',
             'selectedAttributeValues.productAttribute',
@@ -30,6 +31,10 @@ final class ProductDetailPresenter
             'options.values',
             'variants' => fn ($variants) => $variants->where('is_active', true)->with(['optionValues', 'stockLevels']),
         ]);
+
+        app(PriceResolver::class)->primeProducts([$product]);
+
+        return $product;
     }
 
     /**
@@ -81,12 +86,37 @@ final class ProductDetailPresenter
                 'sku' => $variant->sku,
                 'option_value_ids' => $variant->optionValues->modelKeys(),
                 'price' => MoneyPresenter::present($variant->price),
-                'sale_price' => $variant->isOnSale() ? MoneyPresenter::present($variant->sale_price) : null,
+                // What this customer pays for one (sale price, or their group's price).
+                'sale_price' => $variant->isOnSale() ? MoneyPresenter::present($variant->unitPrice()) : null,
+                'tiers' => self::tiers($variant),
                 'stock' => $variant->available(),
                 'can_backorder' => $variant->allow_backorder,
             ])->values(),
             'default_variant_id' => $product->defaultVariant()?->id,
         ];
+    }
+
+    /**
+     * Lower prices from a quantity on, for this customer: [{min_quantity, price}], cheapest last.
+     *
+     * @return list<array{min_quantity: int, price: array<string, mixed>|null}>
+     */
+    public static function tiers(ProductVariant $variant): array
+    {
+        $tiers = [];
+        $previous = $variant->unitPrice();
+        $quantities = collect(app(PriceResolver::class)->entriesFor($variant->id))->pluck('min_quantity')->filter(fn (int $quantity) => $quantity > 1)->unique()->sort()->values();
+
+        foreach ($quantities as $quantity) {
+            $price = $variant->unitPrice($quantity);
+
+            if ($price->isLessThan($previous)) {
+                $tiers[] = ['min_quantity' => $quantity, 'price' => MoneyPresenter::present($price)];
+                $previous = $price;
+            }
+        }
+
+        return $tiers;
     }
 
     /**
@@ -100,11 +130,9 @@ final class ProductDetailPresenter
 
         $product->load(['upsellProducts' => $load, 'relatedProducts' => $load]);
 
-        return array_values($product->upsellProducts
+        return ProductCardPresenter::presentMany($product->upsellProducts
             ->concat($product->relatedProducts)
             ->unique('id')
-            ->take($limit)
-            ->map(fn (Product $related) => ProductCardPresenter::present($related))
-            ->all());
+            ->take($limit));
     }
 }

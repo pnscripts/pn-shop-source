@@ -81,7 +81,7 @@ final class ProductGridBlock extends BlockType
 
         return [
             'heading' => $this->text($data['heading'] ?? null),
-            'products' => $products->map(fn (Product $product) => ProductCardPresenter::present($product))->values()->all(),
+            'products' => ProductCardPresenter::presentMany($products),
             'more_url' => $this->localUrl($data['more_url'] ?? null),
         ];
     }

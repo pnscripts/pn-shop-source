@@ -17,6 +17,8 @@ type Variant = {
     option_value_ids: number[];
     price: Money;
     sale_price: Money | null;
+    /** Lower prices from a quantity on, for this customer. */
+    tiers?: { min_quantity: number; price: Money }[];
     stock: number | null;
     can_backorder: boolean;
 };
@@ -136,6 +138,15 @@ export default function ShopShow({ product, related }: { product: ProductShow; r
                         </div>
                     ) : (
                         <p className="text-muted-foreground mb-6">{t('This combination is not available.')}</p>
+                    )}
+                    {variant && variant.tiers && variant.tiers.length > 0 && (
+                        <ul className="text-muted-foreground -mt-4 mb-6 space-y-1 text-sm">
+                            {variant.tiers.map((tier) => (
+                                <li key={tier.min_quantity}>
+                                    {t(':count or more: :price each', { count: tier.min_quantity, price: tier.price.formatted })}
+                                </li>
+                            ))}
+                        </ul>
                     )}
                     <Slot name="product.after_price" props={{ product, variant }} />
                     {product.description && <p className="text-muted-foreground mb-6 whitespace-pre-line">{product.description}</p>}

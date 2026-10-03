@@ -328,5 +328,6 @@
     "Newest": "Най-нови",
     "Price: low to high": "Цена: възходяща",
     "Price: high to low": "Цена: низходяща",
-    "Available to order": "Може да се поръча"
+    "Available to order": "Може да се поръча",
+    ":count or more: :price each": ":count или повече: по :price"
 }

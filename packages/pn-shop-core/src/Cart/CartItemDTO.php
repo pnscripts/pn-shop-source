@@ -5,6 +5,7 @@ namespace PnShop\Cart;
 use Brick\Money\Money;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Presenters\ProductCardPresenter;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Money\Prices;
 
 /**
@@ -37,6 +38,8 @@ final readonly class CartItemDTO
     public static function fromVariant(ProductVariant $variant, int $quantity): self
     {
         $product = $variant->product;
+        // What this customer pays at this quantity (group prices and quantity tiers included).
+        $quote = app(PriceResolver::class)->quote($variant, $quantity);
 
         return new self(
             $variant->id,
@@ -45,8 +48,8 @@ final readonly class CartItemDTO
             $product->slug,
             $variant->label(),
             $variant->sku,
-            $variant->price,
-            $variant->sale_price,
+            $quote->regular,
+            $quote->isReduced() ? $quote->unit : null,
             ProductCardPresenter::mainImage($product),
             $variant->available(),
             $quantity,
@@ -56,7 +59,8 @@ final readonly class CartItemDTO
     }
 
     /**
-     * The price of one unit: the sale price when it applies, otherwise the regular price.
+     * The price of one unit: the reduced price (sale, group price, quantity tier) when there
+     * is one, otherwise the regular price.
      */
     public function getUnitPrice(): Money
     {

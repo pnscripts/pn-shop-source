@@ -17,7 +17,11 @@ use PnShop\Catalog\Policies\BrandPolicy;
 use PnShop\Catalog\Policies\CategoryPolicy;
 use PnShop\Catalog\Policies\OptionPolicy;
 use PnShop\Catalog\Policies\ProductPolicy;
+use PnShop\Catalog\Pricing\PriceResolver;
+use PnShop\Catalog\Pricing\Stages\PriceListPrice;
+use PnShop\Catalog\Pricing\Stages\SalePrice;
 use PnShop\Foundation\Extension\Permission;
+use PnShop\Foundation\Extension\PipelineRegistry;
 use PnShop\Foundation\ModuleServiceProvider;
 
 /**
@@ -41,6 +45,9 @@ class CatalogServiceProvider extends ModuleServiceProvider
 
     public function register(): void
     {
+        // One per request or queued job: it knows the customer and keeps their quotes.
+        $this->app->scoped(PriceResolver::class);
+
         Relation::morphMap([
             'product' => Product::class,
             'category' => Category::class,
@@ -55,6 +62,10 @@ class CatalogServiceProvider extends ModuleServiceProvider
 
     protected function bootModule(): void
     {
+        $pipelines = $this->app->make(PipelineRegistry::class);
+        $pipelines->stage(PriceResolver::PIPELINE, SalePrice::class, 100);
+        $pipelines->stage(PriceResolver::PIPELINE, PriceListPrice::class, 200);
+
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Brand::class, BrandPolicy::class);

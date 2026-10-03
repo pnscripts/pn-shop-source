@@ -8,6 +8,7 @@ use PnShop\Api\Http\Controllers\ApiController;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Presenters\ProductCardPresenter;
 use PnShop\Catalog\Presenters\ProductDetailPresenter;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Catalog\ProductBrowser;
 
 class ProductController extends ApiController
@@ -36,6 +37,8 @@ class ProductController extends ApiController
             ->orderBy('products.id', $direction)
             ->cursorPaginate($this->perPage($request))
             ->withQueryString();
+
+        app(PriceResolver::class)->primeProducts($products->items());
 
         return $this->paginated($products, fn (Product $product) => ProductCardPresenter::present($product));
     }

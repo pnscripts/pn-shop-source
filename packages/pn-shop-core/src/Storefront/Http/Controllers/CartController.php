@@ -33,7 +33,7 @@ class CartController extends Controller
 
         return Inertia::render('cart/index', [
             'cart' => $this->cart->toArray(),
-            'suggestions' => $suggestions->map(fn (Product $product) => ProductCardPresenter::present($product))->values(),
+            'suggestions' => ProductCardPresenter::presentMany($suggestions),
         ]);
     }
 

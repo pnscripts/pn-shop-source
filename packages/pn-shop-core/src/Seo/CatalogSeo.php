@@ -13,7 +13,6 @@ use PnShop\Catalog\Presenters\ProductCardPresenter;
 use PnShop\Cms\Models\Page;
 use PnShop\Localization\Localization;
 use PnShop\Localization\Models\Language;
-use PnShop\Money\Prices;
 
 /**
  * Fills the SEO data for the storefront's standard pages.
@@ -49,7 +48,7 @@ final class CatalogSeo
 
         /** @var Collection<int, ProductVariant> $variants */
         $variants = $product->variants;
-        $prices = $variants->map(fn (ProductVariant $variant) => Prices::effective($variant->price, $variant->sale_price))->sortBy(fn ($price) => $price->getMinorAmount()->toInt())->values();
+        $prices = $variants->map(fn (ProductVariant $variant) => $variant->unitPrice())->sortBy(fn ($price) => $price->getMinorAmount()->toInt())->values();
         $default = $product->defaultVariant();
 
         $this->seo->title($product->getAttribute('meta_title') ?: $product->title)

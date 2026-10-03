@@ -14,6 +14,7 @@ use PnShop\Catalog\Models\ProductAttribute;
 use PnShop\Catalog\Models\ProductAttributeValue;
 use PnShop\Catalog\Presenters\ProductCardPresenter;
 use PnShop\Catalog\Presenters\ProductDetailPresenter;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Catalog\ProductBrowser;
 use PnShop\Seo\CatalogSeo;
 
@@ -29,8 +30,9 @@ class ShopController extends Controller
         $products = $browser->sorted()
             ->with(ProductCardPresenter::RELATIONS)
             ->paginate(12)
-            ->withQueryString()
-            ->through(fn (Product $product) => ProductCardPresenter::present($product));
+            ->withQueryString();
+        app(PriceResolver::class)->primeProducts($products->getCollection());
+        $products->through(fn (Product $product) => ProductCardPresenter::present($product));
 
         $trail = $category ? array_values(Category::query()->whereAncestorOf($category, andSelf: true)->defaultOrder()->get()->all()) : [];
         app(CatalogSeo::class)->listing($request, $category, $brand, $trail);

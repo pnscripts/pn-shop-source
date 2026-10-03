@@ -30,8 +30,8 @@ class HomeController extends Controller
             ->orderByDesc('is_featured')
             ->latest()
             ->limit(8)
-            ->get()
-            ->map(fn (Product $product) => ProductCardPresenter::present($product));
+            ->get();
+        $products = ProductCardPresenter::presentMany($products);
 
         return Inertia::render('home', [
             'products' => $products,
