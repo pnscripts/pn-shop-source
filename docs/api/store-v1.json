@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "PN Shop Store API",
-        "version": "1.1.1",
+        "version": "1.3.0",
         "description": "Catalog, content, cart, checkout and customer accounts for headless storefronts and apps.\n\n* **Authentication:** optional. Customers sign in with `POST /auth/login` and send `Authorization: Bearer <token>`.\n* **Guest carts:** send the cart `token` from cart responses as the `X-Cart-Token` header.\n* **Language:** set with `?locale=` or `Accept-Language`.\n* **Errors:** `application/problem+json` with a stable `code`.\n* **Retries:** send `Idempotency-Key` when placing orders."
     },
     "servers": [
@@ -1277,6 +1277,33 @@
                                                 },
                                                 "coupon": {
                                                     "description": "{code, valid, applied, message} when a coupon code was entered."
+                                                },
+                                                "minimum_order": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "description": "The customer group's minimum order, while the products fall short of it.",
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -1286,7 +1313,8 @@
                                                 "total_price",
                                                 "final_price",
                                                 "totals",
-                                                "coupon"
+                                                "coupon",
+                                                "minimum_order"
                                             ]
                                         }
                                     },
@@ -1703,6 +1731,33 @@
                                                 },
                                                 "coupon": {
                                                     "description": "{code, valid, applied, message} when a coupon code was entered."
+                                                },
+                                                "minimum_order": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "description": "The customer group's minimum order, while the products fall short of it.",
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -1712,7 +1767,8 @@
                                                 "total_price",
                                                 "final_price",
                                                 "totals",
-                                                "coupon"
+                                                "coupon",
+                                                "minimum_order"
                                             ]
                                         }
                                     },
@@ -2127,6 +2183,33 @@
                                                 },
                                                 "coupon": {
                                                     "description": "{code, valid, applied, message} when a coupon code was entered."
+                                                },
+                                                "minimum_order": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "description": "The customer group's minimum order, while the products fall short of it.",
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -2136,7 +2219,8 @@
                                                 "total_price",
                                                 "final_price",
                                                 "totals",
-                                                "coupon"
+                                                "coupon",
+                                                "minimum_order"
                                             ]
                                         }
                                     },
@@ -2529,6 +2613,33 @@
                                                 },
                                                 "coupon": {
                                                     "description": "{code, valid, applied, message} when a coupon code was entered."
+                                                },
+                                                "minimum_order": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "description": "The customer group's minimum order, while the products fall short of it.",
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -2538,7 +2649,8 @@
                                                 "total_price",
                                                 "final_price",
                                                 "totals",
-                                                "coupon"
+                                                "coupon",
+                                                "minimum_order"
                                             ]
                                         }
                                     },
@@ -2942,6 +3054,33 @@
                                                 },
                                                 "coupon": {
                                                     "description": "{code, valid, applied, message} when a coupon code was entered."
+                                                },
+                                                "minimum_order": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "description": "The customer group's minimum order, while the products fall short of it.",
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -2951,7 +3090,8 @@
                                                 "total_price",
                                                 "final_price",
                                                 "totals",
-                                                "coupon"
+                                                "coupon",
+                                                "minimum_order"
                                             ]
                                         }
                                     },
@@ -3336,6 +3476,33 @@
                                                 },
                                                 "coupon": {
                                                     "description": "{code, valid, applied, message} when a coupon code was entered."
+                                                },
+                                                "minimum_order": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "description": "The customer group's minimum order, while the products fall short of it.",
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -3345,7 +3512,8 @@
                                                 "total_price",
                                                 "final_price",
                                                 "totals",
-                                                "coupon"
+                                                "coupon",
+                                                "minimum_order"
                                             ]
                                         }
                                     },
@@ -3568,55 +3736,7 @@
                                                 },
                                                 "options": {
                                                     "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "description": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "price": {
-                                                                "type": [
-                                                                    "object",
-                                                                    "null"
-                                                                ],
-                                                                "properties": {
-                                                                    "amount": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "minor": {
-                                                                        "type": "integer"
-                                                                    },
-                                                                    "currency": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "formatted": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "amount",
-                                                                    "minor",
-                                                                    "currency",
-                                                                    "formatted"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "description",
-                                                            "price"
-                                                        ]
-                                                    }
+                                                    "items": {}
                                                 },
                                                 "selected": {
                                                     "type": [
@@ -5519,37 +5639,26 @@
                                                     "items": {}
                                                 },
                                                 "attributes": {
-                                                    "anyOf": [
-                                                        {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "attribute": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "value": {
-                                                                        "type": [
-                                                                            "string",
-                                                                            "null"
-                                                                        ]
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "relations": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string",
+                                                                        "const": "selectedAttributeValues.productAttribute"
                                                                     }
-                                                                },
-                                                                "required": [
-                                                                    "attribute",
-                                                                    "value"
-                                                                ]
+                                                                ],
+                                                                "minItems": 1,
+                                                                "maxItems": 1
                                                             }
                                                         },
-                                                        {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "string"
-                                                            },
-                                                            "minItems": 0,
-                                                            "maxItems": 0
-                                                        }
-                                                    ]
+                                                        "required": [
+                                                            "relations"
+                                                        ]
+                                                    }
                                                 },
                                                 "options": {
                                                     "type": "array",
@@ -5568,6 +5677,12 @@
                                                         "integer",
                                                         "null"
                                                     ]
+                                                },
+                                                "price_includes_tax": {
+                                                    "type": "string"
+                                                },
+                                                "prices_visible": {
+                                                    "type": "string"
                                                 },
                                                 "related": {
                                                     "type": "array",
@@ -5589,6 +5704,8 @@
                                                 "options",
                                                 "variants",
                                                 "default_variant_id",
+                                                "price_includes_tax",
+                                                "prices_visible",
                                                 "related"
                                             ]
                                         }

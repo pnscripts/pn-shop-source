@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "PN Shop Admin API",
-        "version": "1.1.1",
+        "version": "1.3.0",
         "description": "Integrations (ERP, accounting, PIM) with staff tokens created under System \u2192 API tokens or with `php artisan pnshop:api-token`.\n\n* **Permissions:** a token's abilities are permission keys, so a call needs the token ability and the owner's permission.\n* **Errors:** `application/problem+json` with a stable `code`.\n* **Lists:** cursor-paginated, with `filter[updated_since]` for incremental sync."
     },
     "servers": [
@@ -6267,10 +6267,740 @@
                 }
             }
         },
+        "/price-lists": {
+            "get": {
+                "operationId": "admin.price-lists.index",
+                "summary": "List price lists",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "next",
+                                                "prev"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "per_page",
+                                                "next_cursor",
+                                                "prev_cursor"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "admin.price-lists.store",
+                "description": "Leave `customer_group_id` empty for prices that apply to everyone (quantity discounts).",
+                "summary": "Create a price list",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "customer_group_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "starts_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "ends_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "customer_group_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "currency": {
+                                                    "type": "string"
+                                                },
+                                                "starts_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "prices_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "customer_group_id",
+                                                "currency",
+                                                "starts_at",
+                                                "ends_at",
+                                                "is_active",
+                                                "prices_count"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/price-lists/{priceList}": {
+            "get": {
+                "operationId": "admin.price-lists.show",
+                "summary": "Show a price list",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "priceList",
+                        "in": "path",
+                        "required": true,
+                        "description": "The price list ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "customer_group_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "currency": {
+                                                    "type": "string"
+                                                },
+                                                "starts_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "prices_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "customer_group_id",
+                                                "currency",
+                                                "starts_at",
+                                                "ends_at",
+                                                "is_active",
+                                                "prices_count"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "admin.price-lists.update",
+                "summary": "Update a price list",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "priceList",
+                        "in": "path",
+                        "required": true,
+                        "description": "The price list ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "customer_group_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "starts_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "ends_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "customer_group_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "currency": {
+                                                    "type": "string"
+                                                },
+                                                "starts_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "prices_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "customer_group_id",
+                                                "currency",
+                                                "starts_at",
+                                                "ends_at",
+                                                "is_active",
+                                                "prices_count"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "admin.price-lists.destroy",
+                "summary": "Delete a price list",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "priceList",
+                        "in": "path",
+                        "required": true,
+                        "description": "The price list ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/price-lists/{priceList}/prices": {
+            "get": {
+                "operationId": "admin.price-lists.prices.index",
+                "summary": "List a price list's prices",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "priceList",
+                        "in": "path",
+                        "required": true,
+                        "description": "The price list ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "next",
+                                                "prev"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "per_page",
+                                                "next_cursor",
+                                                "prev_cursor"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "admin.price-lists.prices.update",
+                "description": "`prices`: up to 1000 rows of `{sku, min_quantity (default 1), price}`. Existing prices\nfor the same SKU and quantity are replaced; an empty `price` removes one. Rows that\ncannot be used are reported in `errors` and the others are saved.",
+                "summary": "Set prices",
+                "tags": [
+                    "PriceList"
+                ],
+                "parameters": [
+                    {
+                        "name": "priceList",
+                        "in": "path",
+                        "required": true,
+                        "description": "The price list ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "Unique key (e.g. a UUID) that makes retries safe: a repeat within 24 hours returns the first response.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "prices": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "sku": {
+                                                    "type": "string",
+                                                    "maxLength": 64
+                                                },
+                                                "min_quantity": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "price": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "sku"
+                                            ]
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 1000
+                                    }
+                                },
+                                "required": [
+                                    "prices"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "saved": {
+                                                    "type": "integer"
+                                                },
+                                                "removed": {
+                                                    "type": "integer"
+                                                },
+                                                "errors": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "minItems": 0,
+                                                    "maxItems": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "saved",
+                                                "removed",
+                                                "errors"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
         "/products": {
             "get": {
                 "operationId": "admin.products.index",
-                "description": "Filters: `filter[is_active]`, `filter[category_id]`, `filter[brand_id]`, `filter[sku]`\n(any variant), `filter[updated_since]` (ISO 8601) and `q` (title). Sort: `id`, `updated_at`\n(prefix `-` for descending).",
+                "description": "Filters: `filter[is_active]`, `filter[is_featured]`, `filter[category_id]`, `filter[brand_id]`, `filter[sku]`\n(any variant), `filter[updated_since]` (ISO 8601) and `q` (title). Sort: `id`, `updated_at`\n(prefix `-` for descending).",
                 "summary": "List products",
                 "tags": [
                     "Product"
@@ -6435,6 +7165,9 @@
                                     "is_active": {
                                         "type": "boolean"
                                     },
+                                    "is_featured": {
+                                        "type": "boolean"
+                                    },
                                     "category_id": {
                                         "type": "integer"
                                     },
@@ -6582,328 +7315,7 @@
                                                 "is_active": {
                                                     "type": "boolean"
                                                 },
-                                                "title": {},
-                                                "slug": {},
-                                                "description": {},
-                                                "meta_title": {},
-                                                "meta_description": {},
-                                                "translations": {
-                                                    "type": "string"
-                                                },
-                                                "category_id": {
-                                                    "type": "integer"
-                                                },
-                                                "category_ids": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": [
-                                                            "integer",
-                                                            "string"
-                                                        ]
-                                                    }
-                                                },
-                                                "brand_id": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "tax_class_id": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "option_ids": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": [
-                                                            "integer",
-                                                            "string"
-                                                        ]
-                                                    }
-                                                },
-                                                "gallery": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "url": {
-                                                                "type": "string"
-                                                            },
-                                                            "thumb": {
-                                                                "type": "string"
-                                                            },
-                                                            "srcset": {
-                                                                "type": "string"
-                                                            },
-                                                            "alt": {
-                                                                "type": "string"
-                                                            },
-                                                            "width": {
-                                                                "type": [
-                                                                    "integer",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "height": {
-                                                                "type": [
-                                                                    "integer",
-                                                                    "null"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "url",
-                                                            "thumb",
-                                                            "srcset",
-                                                            "alt",
-                                                            "width",
-                                                            "height"
-                                                        ]
-                                                    }
-                                                },
-                                                "variants": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "product_id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "sku": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "barcode": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "price": {
-                                                                "type": [
-                                                                    "object",
-                                                                    "null"
-                                                                ],
-                                                                "properties": {
-                                                                    "amount": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "minor": {
-                                                                        "type": "integer"
-                                                                    },
-                                                                    "currency": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "formatted": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "amount",
-                                                                    "minor",
-                                                                    "currency",
-                                                                    "formatted"
-                                                                ]
-                                                            },
-                                                            "sale_price": {
-                                                                "type": [
-                                                                    "object",
-                                                                    "null"
-                                                                ],
-                                                                "properties": {
-                                                                    "amount": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "minor": {
-                                                                        "type": "integer"
-                                                                    },
-                                                                    "currency": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "formatted": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "amount",
-                                                                    "minor",
-                                                                    "currency",
-                                                                    "formatted"
-                                                                ]
-                                                            },
-                                                            "weight": {
-                                                                "type": [
-                                                                    "integer",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "track_inventory": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "allow_backorder": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "is_default": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "is_active": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "position": {
-                                                                "type": "integer"
-                                                            },
-                                                            "option_value_ids": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
-                                                                }
-                                                            },
-                                                            "on_hand": {
-                                                                "type": "integer"
-                                                            },
-                                                            "reserved": {
-                                                                "type": "integer"
-                                                            },
-                                                            "available": {
-                                                                "type": "string"
-                                                            },
-                                                            "updated_at": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "product_id",
-                                                            "sku",
-                                                            "barcode",
-                                                            "price",
-                                                            "sale_price",
-                                                            "weight",
-                                                            "track_inventory",
-                                                            "allow_backorder",
-                                                            "is_default",
-                                                            "is_active",
-                                                            "position",
-                                                            "option_value_ids",
-                                                            "on_hand",
-                                                            "reserved",
-                                                            "available",
-                                                            "updated_at"
-                                                        ]
-                                                    }
-                                                },
-                                                "created_at": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "updated_at": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "type",
-                                                "is_active",
-                                                "title",
-                                                "slug",
-                                                "description",
-                                                "meta_title",
-                                                "meta_description",
-                                                "translations",
-                                                "category_id",
-                                                "category_ids",
-                                                "brand_id",
-                                                "tax_class_id",
-                                                "option_ids",
-                                                "gallery",
-                                                "variants",
-                                                "created_at",
-                                                "updated_at"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    }
-                }
-            }
-        },
-        "/products/{product}": {
-            "get": {
-                "operationId": "admin.products.show",
-                "summary": "Show a product",
-                "tags": [
-                    "Product"
-                ],
-                "parameters": [
-                    {
-                        "name": "product",
-                        "in": "path",
-                        "required": true,
-                        "description": "The product ID",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "locale",
-                        "in": "query",
-                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer"
-                                                },
-                                                "type": {
-                                                    "type": "string"
-                                                },
-                                                "is_active": {
+                                                "is_featured": {
                                                     "type": "boolean"
                                                 },
                                                 "title": {},
@@ -7084,6 +7496,12 @@
                                                             "is_active": {
                                                                 "type": "boolean"
                                                             },
+                                                            "low_stock_threshold": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
                                                             "position": {
                                                                 "type": "integer"
                                                             },
@@ -7124,6 +7542,7 @@
                                                             "allow_backorder",
                                                             "is_default",
                                                             "is_active",
+                                                            "low_stock_threshold",
                                                             "position",
                                                             "option_value_ids",
                                                             "on_hand",
@@ -7150,6 +7569,342 @@
                                                 "id",
                                                 "type",
                                                 "is_active",
+                                                "is_featured",
+                                                "title",
+                                                "slug",
+                                                "description",
+                                                "meta_title",
+                                                "meta_description",
+                                                "translations",
+                                                "category_id",
+                                                "category_ids",
+                                                "brand_id",
+                                                "tax_class_id",
+                                                "option_ids",
+                                                "gallery",
+                                                "variants",
+                                                "created_at",
+                                                "updated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/products/{product}": {
+            "get": {
+                "operationId": "admin.products.show",
+                "summary": "Show a product",
+                "tags": [
+                    "Product"
+                ],
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "required": true,
+                        "description": "The product ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_featured": {
+                                                    "type": "boolean"
+                                                },
+                                                "title": {},
+                                                "slug": {},
+                                                "description": {},
+                                                "meta_title": {},
+                                                "meta_description": {},
+                                                "translations": {
+                                                    "type": "string"
+                                                },
+                                                "category_id": {
+                                                    "type": "integer"
+                                                },
+                                                "category_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": [
+                                                            "integer",
+                                                            "string"
+                                                        ]
+                                                    }
+                                                },
+                                                "brand_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "tax_class_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "option_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": [
+                                                            "integer",
+                                                            "string"
+                                                        ]
+                                                    }
+                                                },
+                                                "gallery": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "url": {
+                                                                "type": "string"
+                                                            },
+                                                            "thumb": {
+                                                                "type": "string"
+                                                            },
+                                                            "srcset": {
+                                                                "type": "string"
+                                                            },
+                                                            "alt": {
+                                                                "type": "string"
+                                                            },
+                                                            "width": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "height": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "url",
+                                                            "thumb",
+                                                            "srcset",
+                                                            "alt",
+                                                            "width",
+                                                            "height"
+                                                        ]
+                                                    }
+                                                },
+                                                "variants": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "product_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "sku": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "barcode": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "price": {
+                                                                "type": [
+                                                                    "object",
+                                                                    "null"
+                                                                ],
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "minor": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "formatted": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "minor",
+                                                                    "currency",
+                                                                    "formatted"
+                                                                ]
+                                                            },
+                                                            "sale_price": {
+                                                                "type": [
+                                                                    "object",
+                                                                    "null"
+                                                                ],
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "minor": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "formatted": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "minor",
+                                                                    "currency",
+                                                                    "formatted"
+                                                                ]
+                                                            },
+                                                            "weight": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "track_inventory": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "allow_backorder": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "is_default": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "is_active": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "low_stock_threshold": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "position": {
+                                                                "type": "integer"
+                                                            },
+                                                            "option_value_ids": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "on_hand": {
+                                                                "type": "integer"
+                                                            },
+                                                            "reserved": {
+                                                                "type": "integer"
+                                                            },
+                                                            "available": {
+                                                                "type": "string"
+                                                            },
+                                                            "updated_at": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "product_id",
+                                                            "sku",
+                                                            "barcode",
+                                                            "price",
+                                                            "sale_price",
+                                                            "weight",
+                                                            "track_inventory",
+                                                            "allow_backorder",
+                                                            "is_default",
+                                                            "is_active",
+                                                            "low_stock_threshold",
+                                                            "position",
+                                                            "option_value_ids",
+                                                            "on_hand",
+                                                            "reserved",
+                                                            "available",
+                                                            "updated_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "created_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "updated_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "is_active",
+                                                "is_featured",
                                                 "title",
                                                 "slug",
                                                 "description",
@@ -7250,6 +8005,9 @@
                                         "maxLength": 500
                                     },
                                     "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "is_featured": {
                                         "type": "boolean"
                                     },
                                     "category_id": {
@@ -7372,6 +8130,9 @@
                                                 "is_active": {
                                                     "type": "boolean"
                                                 },
+                                                "is_featured": {
+                                                    "type": "boolean"
+                                                },
                                                 "title": {},
                                                 "slug": {},
                                                 "description": {},
@@ -7550,6 +8311,12 @@
                                                             "is_active": {
                                                                 "type": "boolean"
                                                             },
+                                                            "low_stock_threshold": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
                                                             "position": {
                                                                 "type": "integer"
                                                             },
@@ -7590,6 +8357,7 @@
                                                             "allow_backorder",
                                                             "is_default",
                                                             "is_active",
+                                                            "low_stock_threshold",
                                                             "position",
                                                             "option_value_ids",
                                                             "on_hand",
@@ -7616,6 +8384,7 @@
                                                 "id",
                                                 "type",
                                                 "is_active",
+                                                "is_featured",
                                                 "title",
                                                 "slug",
                                                 "description",
@@ -9450,7 +10219,7 @@
                                             "properties": {
                                                 "pnshop_version": {
                                                     "type": "string",
-                                                    "const": "1.1.1"
+                                                    "const": "1.3.0"
                                                 }
                                             },
                                             "required": [
@@ -9503,22 +10272,25 @@
                                                 "type": "object",
                                                 "properties": {
                                                     "id": {
-                                                        "type": "string",
-                                                        "const": "pnshop/default"
+                                                        "type": "string"
                                                     },
                                                     "name": {
-                                                        "type": "string",
-                                                        "const": "PN Shop Default"
+                                                        "type": "string"
                                                     },
                                                     "description": {
-                                                        "type": "null"
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
                                                     },
                                                     "version": {
-                                                        "type": "string",
-                                                        "const": "1.1.1"
+                                                        "type": "string"
                                                     },
                                                     "parent": {
-                                                        "type": "null"
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
                                                     },
                                                     "builtin": {
                                                         "type": "boolean"
@@ -9743,6 +10515,14 @@
                                     "allow_backorder": {
                                         "type": "boolean"
                                     },
+                                    "low_stock_threshold": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 0,
+                                        "maximum": 10000000
+                                    },
                                     "position": {
                                         "type": "integer",
                                         "minimum": 0
@@ -9865,6 +10645,12 @@
                                                 "is_active": {
                                                     "type": "boolean"
                                                 },
+                                                "low_stock_threshold": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "position": {
                                                     "type": "integer"
                                                 },
@@ -9905,6 +10691,7 @@
                                                 "allow_backorder",
                                                 "is_default",
                                                 "is_active",
+                                                "low_stock_threshold",
                                                 "position",
                                                 "option_value_ids",
                                                 "on_hand",
@@ -10007,6 +10794,14 @@
                                     },
                                     "allow_backorder": {
                                         "type": "boolean"
+                                    },
+                                    "low_stock_threshold": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 0,
+                                        "maximum": 10000000
                                     },
                                     "position": {
                                         "type": "integer",
@@ -10127,6 +10922,12 @@
                                                 "is_active": {
                                                     "type": "boolean"
                                                 },
+                                                "low_stock_threshold": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "position": {
                                                     "type": "integer"
                                                 },
@@ -10167,6 +10968,7 @@
                                                 "allow_backorder",
                                                 "is_default",
                                                 "is_active",
+                                                "low_stock_threshold",
                                                 "position",
                                                 "option_value_ids",
                                                 "on_hand",
@@ -10387,6 +11189,12 @@
                                                 "is_active": {
                                                     "type": "boolean"
                                                 },
+                                                "low_stock_threshold": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "position": {
                                                     "type": "integer"
                                                 },
@@ -10427,6 +11235,7 @@
                                                 "allow_backorder",
                                                 "is_default",
                                                 "is_active",
+                                                "low_stock_threshold",
                                                 "position",
                                                 "option_value_ids",
                                                 "on_hand",

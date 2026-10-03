@@ -24,13 +24,14 @@ Languages, currencies and countries have their own screens under Admin → Store
 | Setting | Default | Notes |
 |---|---|---|
 | Require a verified email address | off | New customers get a link by email and must open it before using their account pages or ordering through the Store API. Turning it on also asks existing customers to verify. |
+| Show prices to guests | on | Off: only signed-in customers see prices and can add to the cart. See [Pricing](../ecommerce/pricing.md#prices-for-signed-in-customers-only). |
 
 ## Orders
 
 | Setting | Default | Notes |
 |---|---|---|
 | Order number prefix, digits | `ORD-`, 6 | Applies to new orders, e.g. ORD-000042. |
-| Cancel unpaid orders after (hours) | 168 | Pending, unpaid orders that have not shipped are cancelled and their stock released. Allow enough time for bank transfers; 0 turns this off. Cash-on-delivery orders that have shipped are never cancelled. |
+| Cancel unpaid orders after (hours) | 168 | Pending, unpaid orders that have not shipped are cancelled and their stock released. Allow enough time for bank transfers; 0 turns this off. Cash-on-delivery orders that have shipped, and orders paid by invoice, are never cancelled. |
 | Issue invoices | when paid | Or when placed, or only when staff issue them. |
 | Invoice number prefix, digits | `INV-`, 6 | |
 | Legal name, tax / VAT number, footer | — | Printed on invoices; the legal name defaults to the store name. |

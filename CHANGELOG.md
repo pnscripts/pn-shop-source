@@ -2,6 +2,25 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## 1.3.0 (2026-10-03)
+
+Pricing and business customers. See [Pricing and business customers](docs/ecommerce/pricing.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.3.md).
+
+### Added
+
+- **Price lists:** prices per customer group (or for everyone) with optional dates, and quantity tiers. CSV import and export in the admin; Admin API `/price-lists` and `/price-lists/{id}/prices` (permission `catalog.prices.manage`).
+- **One price pipeline:** `catalog.price` decides what each customer pays on every surface: cards, product page, cart, order, invoice, structured data and the Store API. Plugins can add stages.
+- **Business customer groups:**
+  - prices shown with or without tax;
+  - a minimum order, checked at checkout and shown in the cart.
+- **Payment methods:** can be limited to customer groups.
+- **Invoice (pay later):** a gateway with payment terms, for signed-in customers. Unpaid invoice orders are not cancelled automatically.
+- **Prices for signed-in customers only:** setting *Customers → Show prices to guests*.
+
+### Performance
+
+- Price lists are read once per page for all its products. Shops without active price lists run no extra queries.
+
 ## 1.2.0 (2026-10-03)
 
 Catalog and storefront gaps found by the audit of 1.1. See the [upgrade notes](docs/upgrades/2026-10-release-1.2.md). The pricing and B2B release moves to 1.3; the [roadmap](docs/architecture/03-post-1.0-roadmap.md) keeps its order.

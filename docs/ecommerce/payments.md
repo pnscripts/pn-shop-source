@@ -10,6 +10,7 @@ A **gateway** is code that knows how to take a payment. A **payment method** is 
 |---|---|
 | Cash on delivery (`cash_on_delivery`) | The order waits as *unpaid* until staff record the payment. Instructions can mention `:amount` and `:order`. |
 | Bank transfer (`bank_transfer`) | The same, and the order page shows the account holder, IBAN, BIC and bank with the amount and order number as the reference. |
+| Invoice (`invoice`) | Pay later on payment terms (days, also `:days` in the instructions). Offered to signed-in customers only, and the order is never cancelled as unpaid. See [Pricing and business customers](pricing.md#paying-by-invoice). |
 
 Card and wallet providers (Stripe, PayPal, …) are added as gateways by extensions (Phase 8).
 
@@ -21,7 +22,8 @@ Each method has:
   - offered or not;
   - display position;
   - minimum and maximum order total;
-  - shipping countries.
+  - shipping countries;
+  - customer groups (guests count as the default group).
 
 Checkout lists only the methods that pass their rules and whose gateway is installed. It checks the choice again when the order is placed. A method whose gateway is not installed is marked *not installed* in the admin and never offered.
 

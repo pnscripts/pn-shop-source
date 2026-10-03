@@ -13,6 +13,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 | [security/security.md](security/security.md) | Security model, hardening, production checklist |
 | [administration/staff-and-roles.md](administration/staff-and-roles.md) | Admin panel, staff accounts, roles and the activity log |
 | [ecommerce/catalog-and-inventory.md](ecommerce/catalog-and-inventory.md) | Products, variants, options, categories, brands, attributes, images, inventory |
+| [ecommerce/pricing.md](ecommerce/pricing.md) | Price lists, quantity tiers, business customer groups (net prices, minimum order, invoice payment), prices for signed-in customers only |
 | [ecommerce/customers-cart-and-checkout.md](ecommerce/customers-cart-and-checkout.md) | Customer accounts and groups, address books, carts, the totals pipeline, checkout, reservations, spam protection |
 | [ecommerce/orders.md](ecommerce/orders.md) | Order numbers, status/payment/fulfillment states, history, invoices, emails |
 | [ecommerce/payments.md](ecommerce/payments.md) | Payment methods, gateways, payments and transactions |
@@ -41,6 +42,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 
 | Release | Notes |
 |---|---|
+| 1.3.0 | [upgrades/2026-10-release-1.3.md](upgrades/2026-10-release-1.3.md): price lists and quantity tiers, business customer groups, invoice payment, prices for signed-in customers only |
 | 1.2.0 | [upgrades/2026-10-release-1.2.md](upgrades/2026-10-release-1.2.md): search and sorting, featured products, low-stock thresholds, stock history |
 | 1.1.2 | [upgrades/2026-10-release-1.1.2.md](upgrades/2026-10-release-1.1.2.md): the payment ledger, shared services, performance, documentation |
 | 1.1.1 | [upgrades/2026-10-release-1.1.1.md](upgrades/2026-10-release-1.1.1.md): fixes from the 1.1 audit |
