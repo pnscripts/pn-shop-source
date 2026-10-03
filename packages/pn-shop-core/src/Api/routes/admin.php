@@ -8,6 +8,7 @@ use PnShop\Api\Http\Controllers\Admin\MeController;
 use PnShop\Api\Http\Controllers\Admin\MediaController;
 use PnShop\Api\Http\Controllers\Admin\OrderController;
 use PnShop\Api\Http\Controllers\Admin\PageController;
+use PnShop\Api\Http\Controllers\Admin\PriceListController;
 use PnShop\Api\Http\Controllers\Admin\ProductController;
 use PnShop\Api\Http\Controllers\Admin\PromotionController;
 use PnShop\Api\Http\Controllers\Admin\ReturnController;
@@ -31,6 +32,9 @@ Route::post('variants/{variant}/stock', [VariantController::class, 'stock'])->wh
 
 Route::apiResource('categories', CategoryController::class)->whereNumber('category');
 Route::apiResource('brands', BrandController::class)->whereNumber('brand');
+Route::apiResource('price-lists', PriceListController::class)->parameters(['price-lists' => 'priceList'])->whereNumber('priceList');
+Route::get('price-lists/{priceList}/prices', [PriceListController::class, 'entries'])->whereNumber('priceList')->name('price-lists.prices.index');
+Route::put('price-lists/{priceList}/prices', [PriceListController::class, 'setEntries'])->whereNumber('priceList')->middleware('pnshop.idempotent')->name('price-lists.prices.update');
 Route::post('media', [MediaController::class, 'store'])->name('media.store');
 
 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use PnShop\Customer\Models\CustomerGroup;
+use PnShop\Localization\Localization;
 
 /**
  * Prices for one customer group (or for every customer when the group is empty), in one
@@ -32,6 +33,14 @@ class PriceList extends Model
     protected function casts(): array
     {
         return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'is_active' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        // Prices are kept in the shop's default currency.
+        static::creating(function (PriceList $list): void {
+            $list->currency = $list->currency ?: app(Localization::class)->defaultCurrency()->code;
+        });
     }
 
     /**

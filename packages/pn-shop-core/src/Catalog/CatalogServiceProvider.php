@@ -16,7 +16,9 @@ use PnShop\Catalog\Policies\AttributePolicy;
 use PnShop\Catalog\Policies\BrandPolicy;
 use PnShop\Catalog\Policies\CategoryPolicy;
 use PnShop\Catalog\Policies\OptionPolicy;
+use PnShop\Catalog\Policies\PriceListPolicy;
 use PnShop\Catalog\Policies\ProductPolicy;
+use PnShop\Catalog\Pricing\Models\PriceList;
 use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Catalog\Pricing\Stages\PriceListPrice;
 use PnShop\Catalog\Pricing\Stages\SalePrice;
@@ -40,6 +42,7 @@ class CatalogServiceProvider extends ModuleServiceProvider
             new Permission('catalog.brands.manage', 'Manage brands', 'Catalog'),
             new Permission('catalog.options.manage', 'Manage variant options', 'Catalog'),
             new Permission('catalog.attributes.manage', 'Manage attributes', 'Catalog'),
+            new Permission('catalog.prices.manage', 'Manage price lists', 'Catalog'),
         ];
     }
 
@@ -69,6 +72,7 @@ class CatalogServiceProvider extends ModuleServiceProvider
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Brand::class, BrandPolicy::class);
+        Gate::policy(PriceList::class, PriceListPolicy::class);
         Gate::policy(Option::class, OptionPolicy::class);
         Gate::policy(ProductAttribute::class, AttributePolicy::class);
     }
