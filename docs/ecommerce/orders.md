@@ -61,7 +61,7 @@ Customers and the store are emailed about orders. Each email can be switched off
 
 - **Language and branding:** customer emails are written in the language the order was placed in and carry the store name.
 - **Order link:** customer emails link to the order with a signed link, so guests can open it from their mail client. Anyone with the link sees the order, like a parcel tracking link.
-- **Delivery:** emails are queued and sent after the order change is saved. Run a queue worker (`php artisan queue:work`) and configure mail in `.env`.
+- **Delivery:** emails are queued and sent after the order change is saved, by the scheduler's cron entry (within a minute) or a queue worker (`php artisan queue:work`). Configure mail in `.env`. An email the mail server refuses is retried after 1, 5, 15 and 60 minutes, then kept in `failed_jobs` (`php artisan queue:failed`, `queue:retry all`).
 - **Templates:** emails use Laravel's notification layout. Publish it with `php artisan vendor:publish --tag=laravel-notifications` to change the look. Theme-provided templates follow in Phase 9.
 
 ## For developers

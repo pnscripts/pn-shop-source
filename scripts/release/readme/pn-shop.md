@@ -22,7 +22,7 @@ php artisan pnshop:update         # --dry-run first shows what will happen
 ## Go live
 
 - Set `APP_URL` to the shop's HTTPS address. Behind a load balancer or Cloudflare, also set `TRUSTED_PROXIES`.
-- Run the scheduler (`* * * * * php artisan schedule:run`) and a queue worker (`php artisan queue:work`).
+- Run the scheduler (`* * * * * php artisan schedule:run`): it also sends the queued emails, so shared hosting needs nothing more. On a server, add a queue worker (`php artisan queue:work`) so emails go out at once.
 
 ## Documentation
 

@@ -46,7 +46,7 @@ To update, run `composer update pnscripts/pn-shop-core --with-all-dependencies` 
 
 - PHP 8.4 or newer, with the usual extensions (the installer lists anything missing).
 - MySQL 8, MariaDB 10.6+, PostgreSQL 14+ or SQLite 3.
-- A cron entry for the scheduler and a queue worker.
+- A cron entry for the scheduler (it also sends the queued emails); on a server, a queue worker as well.
 - Node 22.12+ (24 recommended) only for building themes or developing the storefront.
 
 ## Developing PN Shop

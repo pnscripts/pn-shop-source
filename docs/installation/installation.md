@@ -6,7 +6,7 @@
 - **Database:** MySQL 8, MariaDB 10.6+, PostgreSQL 14+ or SQLite 3.
 - **Writable folders:** `storage/`, `bootstrap/cache/` and `public/` (for themes, plugin assets and the storage link), plus the project folder or `.env` for the installer.
 - **Node:** only for building themes from source. The default storefront ships prebuilt in releases.
-- **Background tasks:** a cron entry for the scheduler and a queue worker (see the end of this page).
+- **Background tasks:** a cron entry for the scheduler; on a server, also a queue worker (see the end of this page).
 
 The installer checks all of this before it starts. There are **no default accounts**: you create the first administrator while installing.
 
@@ -72,8 +72,8 @@ A shop that already has staff accounts counts as installed. Its first `php artis
 
 ## After installing
 
-- **Scheduler:** add `* * * * * cd /path/to/shop && php artisan schedule:run >> /dev/null 2>&1` to cron. It cancels orders left unpaid (hourly) and removes abandoned carts (daily). Scheduled pages and sitemaps need no job.
-- **Queue worker:** run `php artisan queue:work`, kept running by Supervisor or systemd. It sends emails and makes image sizes.
+- **Scheduler:** add `* * * * * cd /path/to/shop && php artisan schedule:run >> /dev/null 2>&1` to cron. It cancels orders left unpaid (hourly), removes abandoned carts (daily) and works through the queue every minute, so emails and image sizes are sent even without a queue worker. Scheduled pages and sitemaps need no job.
+- **Queue worker (optional, recommended on a server):** run `php artisan queue:work --tries=3`, kept running by Supervisor or systemd, so emails go out at once. You can then turn off the scheduler's queue pass with `PNSHOP_QUEUE_FROM_SCHEDULER=false`. See [deployment](deployment.md#background-jobs).
 - **Mail:** set `MAIL_*` in `.env`, then the store email under Admin → Settings.
 - **Payment, shipping and tax:** set them up under Admin → Store.
 - **Production `.env`:** use `APP_ENV=production` and `APP_DEBUG=false`. After every deploy, run `php artisan optimize`.
