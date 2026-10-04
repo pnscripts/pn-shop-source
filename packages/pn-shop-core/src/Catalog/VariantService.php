@@ -44,7 +44,7 @@ class VariantService
             }
 
             // Only a real change is written, so saving a form does not fill the stock history.
-            if ($stock !== null && $stock !== (int) $variant->stockLevels()->sum('on_hand')) {
+            if ($stock !== null && $stock !== $this->inventory->onHandAt($variant->unsetRelation('stockLevels'))) {
                 $this->inventory->setOnHand($variant, $stock, $actor);
             }
 

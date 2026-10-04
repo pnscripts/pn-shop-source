@@ -11,6 +11,7 @@ enum StockMovementReason: string
     case OrderCancelled = 'order_cancelled';
     case OrderReopened = 'order_reopened';
     case Return = 'return';
+    case Transfer = 'transfer';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum StockMovementReason: string
             self::OrderCancelled => 'Order cancelled',
             self::OrderReopened => 'Order reopened',
             self::Return => 'Return',
+            self::Transfer => 'Transfer',
         };
     }
 }

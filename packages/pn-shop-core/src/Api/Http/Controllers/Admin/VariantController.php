@@ -15,7 +15,9 @@ use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\ProductType;
 use PnShop\Catalog\VariantService;
+use PnShop\Inventory\Exceptions\InsufficientStock;
 use PnShop\Inventory\InventoryService;
+use PnShop\Inventory\Models\StockLocation;
 use PnShop\Inventory\StockMovementReason;
 
 /**
@@ -40,7 +42,7 @@ class VariantController extends AdminController
         $filter = (array) $request->input('filter', []);
 
         $variants = $this->updatedSince(ProductVariant::query(), $request)
-            ->with(['optionValues', 'stockLevels'])
+            ->with(['optionValues', 'stockLevels.location'])
             ->when(isset($filter['sku']), fn (Builder $query) => $query->where('sku', (string) $filter['sku']))
             ->when(isset($filter['product_id']), fn (Builder $query) => $query->where('product_id', (int) $filter['product_id']))
             ->orderBy('id')
@@ -117,6 +119,7 @@ class VariantController extends AdminController
      *
      * Either `on_hand` (a count: the quantity on the shelf now) or `adjust` (a difference,
      * e.g. -2 for damaged goods). Recorded in the stock history with the optional `note`.
+     * `location` is a stock location code; without it the default location is used.
      *
      * @return array<string, mixed>
      */
@@ -128,17 +131,50 @@ class VariantController extends AdminController
             'on_hand' => ['required_without:adjust', 'prohibits:adjust', 'integer', 'min:0', 'max:10000000'],
             'adjust' => ['required_without:on_hand', 'integer', 'min:-10000000', 'max:10000000', 'not_in:0'],
             'note' => ['nullable', 'string', 'max:500'],
+            'location' => ['nullable', 'string', Rule::exists('stock_locations', 'code')],
         ]);
 
         $admin = $this->admin($request);
+        $location = isset($data['location']) ? StockLocation::query()->where('code', $data['location'])->firstOrFail() : null;
 
         if (isset($data['on_hand'])) {
-            $this->inventory->setOnHand($variant, (int) $data['on_hand'], $admin, $data['note'] ?? null);
+            $this->inventory->setOnHand($variant, (int) $data['on_hand'], $admin, $data['note'] ?? null, $location);
         } else {
-            $this->inventory->adjust($variant, (int) $data['adjust'], StockMovementReason::Adjustment, admin: $admin, note: $data['note'] ?? null, enforceAvailability: false);
+            $this->inventory->adjust($variant, (int) $data['adjust'], StockMovementReason::Adjustment, admin: $admin, note: $data['note'] ?? null, location: $location, enforceAvailability: false);
         }
 
-        return ['data' => AdminCatalogPresenter::variant($variant->refresh()->load(['optionValues', 'stockLevels']))];
+        return ['data' => AdminCatalogPresenter::variant($variant->refresh()->load(['optionValues', 'stockLevels.location']))];
+    }
+
+    /**
+     * Transfer stock
+     *
+     * Moves `quantity` available units from the location `from` to `to` (location codes),
+     * recorded in the stock history at both. Reserved units cannot be moved (422).
+     *
+     * @return array<string, mixed>
+     */
+    public function transfer(Request $request, ProductVariant $variant): array
+    {
+        Gate::authorize('catalog.inventory.manage');
+
+        $data = $request->validate([
+            'from' => ['required', 'string', Rule::exists('stock_locations', 'code')],
+            'to' => ['required', 'string', 'different:from', Rule::exists('stock_locations', 'code')],
+            'quantity' => ['required', 'integer', 'min:1', 'max:10000000'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $from = StockLocation::query()->where('code', $data['from'])->firstOrFail();
+        $to = StockLocation::query()->where('code', $data['to'])->firstOrFail();
+
+        try {
+            $this->inventory->transfer($variant, $from, $to, (int) $data['quantity'], $this->admin($request), $data['note'] ?? null);
+        } catch (InsufficientStock) {
+            throw ValidationException::withMessages(['quantity' => __('Not enough stock available at :location.', ['location' => $from->name])]);
+        }
+
+        return ['data' => AdminCatalogPresenter::variant($variant->refresh()->load(['optionValues', 'stockLevels.location']))];
     }
 
     /**

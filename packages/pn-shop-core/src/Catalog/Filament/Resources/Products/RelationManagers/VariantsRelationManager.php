@@ -28,7 +28,8 @@ use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\ProductType;
 use PnShop\Catalog\VariantService;
-use PnShop\Inventory\Models\StockLevel;
+use PnShop\Inventory\Filament\StockActions;
+use PnShop\Inventory\InventoryService;
 
 /**
  * Variants of a product with options: one per combination of option values.
@@ -68,7 +69,7 @@ class VariantsRelationManager extends RelationManager
                 ->unique('product_variants', 'sku', ignoreRecord: true),
             TextInput::make('barcode')->maxLength(255),
             TextInput::make('weight')->label('Weight (grams)')->integer()->minValue(0),
-            TextInput::make('stock')->label('Stock on hand')->integer()->minValue(0)->default(0)
+            TextInput::make('stock')->label(fn () => InventoryService::stockFieldLabel())->integer()->minValue(0)->default(0)
                 ->disabled(fn () => ! ProductForm::canManageStock())
                 ->dehydrated(fn () => ProductForm::canManageStock())
                 ->helperText('Changes are recorded in the stock history.'),
@@ -122,6 +123,8 @@ class VariantsRelationManager extends RelationManager
                     ->using(fn (array $data) => $this->saveVariant(new ProductVariant(['product_id' => $this->getOwnerRecord()->getKey()]), $data)),
             ])
             ->recordActions([
+                StockActions::byLocation(fn (mixed $record) => $record instanceof ProductVariant ? $record : null),
+                StockActions::transfer(fn (mixed $record) => $record instanceof ProductVariant ? $record : null),
                 EditAction::make()
                     ->mutateRecordDataUsing(fn (array $data, ProductVariant $record) => $this->fillVariantData($data, $record))
                     ->using(fn (ProductVariant $record, array $data) => $this->saveVariant($record, $data)),
@@ -151,7 +154,7 @@ class VariantsRelationManager extends RelationManager
 
         $data['price'] = (string) $record->price->getAmount();
         $data['sale_price'] = $record->sale_price !== null ? (string) $record->sale_price->getAmount() : null;
-        $data['stock'] = (int) $record->stockLevels->sum(fn (StockLevel $level) => $level->on_hand);
+        $data['stock'] = app(InventoryService::class)->onHandAt($record);
 
         return $data;
     }

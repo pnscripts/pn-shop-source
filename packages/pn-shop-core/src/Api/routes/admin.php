@@ -13,6 +13,7 @@ use PnShop\Api\Http\Controllers\Admin\ProductController;
 use PnShop\Api\Http\Controllers\Admin\PromotionController;
 use PnShop\Api\Http\Controllers\Admin\ReturnController;
 use PnShop\Api\Http\Controllers\Admin\SettingsController;
+use PnShop\Api\Http\Controllers\Admin\StockLocationController;
 use PnShop\Api\Http\Controllers\Admin\SystemController;
 use PnShop\Api\Http\Controllers\Admin\VariantController;
 
@@ -29,6 +30,8 @@ Route::post('products/{product}/variants', [VariantController::class, 'store'])-
 Route::patch('variants/{variant}', [VariantController::class, 'update'])->whereNumber('variant')->name('variants.update');
 Route::delete('variants/{variant}', [VariantController::class, 'destroy'])->whereNumber('variant')->name('variants.destroy');
 Route::post('variants/{variant}/stock', [VariantController::class, 'stock'])->whereNumber('variant')->name('variants.stock');
+Route::post('variants/{variant}/stock/transfers', [VariantController::class, 'transfer'])->whereNumber('variant')->middleware('pnshop.idempotent')->name('variants.stock.transfers');
+Route::apiResource('stock-locations', StockLocationController::class)->parameters(['stock-locations' => 'stockLocation'])->whereNumber('stockLocation');
 
 Route::apiResource('categories', CategoryController::class)->whereNumber('category');
 Route::apiResource('brands', BrandController::class)->whereNumber('brand');

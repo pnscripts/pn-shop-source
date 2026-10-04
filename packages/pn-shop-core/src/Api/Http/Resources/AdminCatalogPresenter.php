@@ -7,6 +7,7 @@ use PnShop\Catalog\Models\Category;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Inventory\InventoryService;
+use PnShop\Inventory\Models\StockLevel;
 use PnShop\Media\MediaPresenter;
 use PnShop\Media\Models\Media;
 use PnShop\Money\MoneyPresenter;
@@ -18,7 +19,7 @@ use PnShop\Money\MoneyPresenter;
 final class AdminCatalogPresenter
 {
     /** @var list<string> */
-    public const PRODUCT_RELATIONS = ['variants.optionValues', 'variants.stockLevels', 'categories:id', 'options:id', 'media', 'allTranslations'];
+    public const PRODUCT_RELATIONS = ['variants.optionValues', 'variants.stockLevels.location', 'categories:id', 'options:id', 'media', 'allTranslations'];
 
     /**
      * @return array<string, mixed>
@@ -73,6 +74,15 @@ final class AdminCatalogPresenter
             'on_hand' => (int) $variant->stockLevels->sum('on_hand'),
             'reserved' => (int) $variant->stockLevels->sum('reserved'),
             'available' => $inventory->available($variant),
+            // Per location: what is on the shelf, reserved for orders, and available.
+            'locations' => array_values($variant->stockLevels
+                ->sortBy('stock_location_id')
+                ->map(fn (StockLevel $level) => [
+                    'location' => $level->location?->code,
+                    'on_hand' => $level->on_hand,
+                    'reserved' => $level->reserved,
+                    'available' => max(0, $level->available()),
+                ])->all()),
             'updated_at' => $variant->updated_at?->toIso8601String(),
         ];
     }

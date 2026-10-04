@@ -19,6 +19,7 @@ use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductAttribute;
 use PnShop\Catalog\ProductRelationType;
 use PnShop\Catalog\ProductType;
+use PnShop\Inventory\InventoryService;
 use PnShop\Localization\Filament\TranslationsSection;
 use PnShop\Media\MediaLibrary;
 use PnShop\Media\Models\Media;
@@ -132,7 +133,7 @@ class ProductForm
                             ->lt('price')
                             ->helperText('Leave empty when the product is not on sale.')),
                         TextInput::make('stock')
-                            ->label('Stock on hand')
+                            ->label(fn () => InventoryService::stockFieldLabel())
                             ->integer()
                             ->minValue(0)
                             ->default(0)
@@ -141,7 +142,7 @@ class ProductForm
                             // `stock` reads as *available*; the form edits what is on the shelf,
                             // which includes units reserved for open orders.
                             ->afterStateHydrated(fn (TextInput $component, ?Product $record) => $record === null ? null : $component->state(
-                                (int) $record->defaultVariant()?->stockLevels()->sum('on_hand'),
+                                ($variant = $record->defaultVariant()) === null ? 0 : app(InventoryService::class)->onHandAt($variant),
                             ))
                             ->helperText(fn (?Product $record) => self::stockHelp($record)),
                         self::shortcut(TextInput::make('sku')
@@ -201,7 +202,8 @@ class ProductForm
 
     private static function stockHelp(?Product $record): string
     {
-        $reserved = (int) $record?->defaultVariant()?->stockLevels()->sum('reserved');
+        $variant = $record?->defaultVariant();
+        $reserved = $variant === null ? 0 : app(InventoryService::class)->reservedAt($variant);
 
         return $reserved > 0
             ? "Includes {$reserved} reserved for open orders. Changes are recorded in the stock history."

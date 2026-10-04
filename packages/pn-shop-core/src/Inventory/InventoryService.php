@@ -2,6 +2,7 @@
 
 namespace PnShop\Inventory;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use PnShop\Acl\Models\AdminUser;
@@ -14,11 +15,17 @@ use PnShop\Inventory\Models\StockMovement;
 /**
  * Every stock change goes through here: levels are updated with a conditional statement
  * (never below zero unless the variant allows backorders) and recorded in the ledger.
+ *
+ * Stock is kept per location. What the storefront can sell is the stock of the active
+ * locations that sell online.
  */
 final class InventoryService
 {
+    /** @var list<int>|null ids of the active locations that sell online */
+    private ?array $onlineLocationIds = null;
+
     /**
-     * Units that can be sold now, or null when the variant does not track inventory.
+     * Units that can be sold online now, or null when the variant does not track inventory.
      * Uses the variant's loaded `stockLevels` when available.
      */
     public function available(ProductVariant $variant): ?int
@@ -27,9 +34,98 @@ final class InventoryService
             return null;
         }
 
-        $levels = $variant->relationLoaded('stockLevels') ? $variant->getRelation('stockLevels') : $variant->stockLevels()->get();
+        $online = $this->onlineLocationIds();
 
-        return max(0, (int) $levels->sum(fn (StockLevel $level) => $level->available()));
+        return max(0, (int) $this->levels($variant)
+            ->filter(fn (StockLevel $level) => in_array($level->stock_location_id, $online, true))
+            ->sum(fn (StockLevel $level) => max(0, $level->available())));
+    }
+
+    /**
+     * Units available at one location, or null when the variant does not track inventory.
+     */
+    public function availableAt(ProductVariant $variant, StockLocation $location): ?int
+    {
+        if (! $variant->track_inventory) {
+            return null;
+        }
+
+        $level = $this->levels($variant)->firstWhere('stock_location_id', $location->id);
+
+        return max(0, $level?->available() ?? 0);
+    }
+
+    /**
+     * Units on the shelf at a location (the default one when null), reserved ones included.
+     */
+    public function onHandAt(ProductVariant $variant, ?StockLocation $location = null): int
+    {
+        $location ??= StockLocation::default();
+
+        return (int) $this->levels($variant)->firstWhere('stock_location_id', $location->id)?->on_hand;
+    }
+
+    /**
+     * Units reserved at a location (the default one when null).
+     */
+    public function reservedAt(ProductVariant $variant, ?StockLocation $location = null): int
+    {
+        $location ??= StockLocation::default();
+
+        return (int) $this->levels($variant)->firstWhere('stock_location_id', $location->id)?->reserved;
+    }
+
+    /**
+     * The label of the single stock field in product and variant forms: it edits the
+     * default location, so the location is named once there are several.
+     */
+    public static function stockFieldLabel(): string
+    {
+        if (StockLocation::query()->count() <= 1) {
+            return __('Stock on hand');
+        }
+
+        return __('Stock on hand at :location', ['location' => StockLocation::default()->name]);
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function onlineLocationIds(): array
+    {
+        return $this->onlineLocationIds ??= array_values(array_map('intval', StockLocation::query()->sellingOnline()->pluck('id')->all()));
+    }
+
+    /** Called when locations change. */
+    public function forgetLocations(): void
+    {
+        $this->onlineLocationIds = null;
+    }
+
+    /**
+     * Move units from one location to another, recorded in the ledger at both.
+     *
+     * @throws InsufficientStock when the source has fewer units available.
+     */
+    public function transfer(ProductVariant $variant, StockLocation $from, StockLocation $to, int $quantity, ?AdminUser $admin = null, ?string $note = null): void
+    {
+        if ($quantity <= 0 || $from->is($to)) {
+            throw new \InvalidArgumentException('A transfer needs a positive quantity and two different locations.');
+        }
+
+        DB::transaction(function () use ($variant, $from, $to, $quantity, $admin, $note) {
+            // Reserved units stay: only what is available can leave.
+            $this->adjust($variant, -$quantity, StockMovementReason::Transfer, $to, $admin, $note, $from, enforceAvailability: true, enforceForAll: true);
+            $this->adjust($variant, $quantity, StockMovementReason::Transfer, $from, $admin, $note, $to);
+        });
+    }
+
+    /**
+     * @return Collection<int, StockLevel>
+     */
+    private function levels(ProductVariant $variant): Collection
+    {
+        return $variant->relationLoaded('stockLevels') ? $variant->getRelation('stockLevels') : $variant->stockLevels()->get();
     }
 
     public function canSell(ProductVariant $variant, int $quantity): bool
@@ -53,15 +149,17 @@ final class InventoryService
         ?string $note = null,
         ?StockLocation $location = null,
         bool $enforceAvailability = true,
+        bool $enforceForAll = false,
     ): StockMovement {
         $location ??= StockLocation::default();
 
-        return DB::transaction(function () use ($variant, $quantity, $reason, $reference, $admin, $note, $location, $enforceAvailability) {
+        return DB::transaction(function () use ($variant, $quantity, $reason, $reference, $admin, $note, $location, $enforceAvailability, $enforceForAll) {
             $level = $this->level($variant, $location);
 
             $update = StockLevel::query()->whereKey($level->id);
 
-            if ($enforceAvailability && $quantity < 0 && $variant->track_inventory && ! $variant->allow_backorder) {
+            // $enforceForAll: also for variants sold on backorder (a transfer cannot move units that are not there).
+            if ($enforceAvailability && $quantity < 0 && (($variant->track_inventory && ! $variant->allow_backorder) || $enforceForAll)) {
                 $update->whereRaw('on_hand - reserved >= ?', [-$quantity]);
             }
 
