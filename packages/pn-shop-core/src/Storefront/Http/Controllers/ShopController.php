@@ -58,7 +58,7 @@ class ShopController extends Controller
 
     public function show(Request $request, Product $product): Response
     {
-        abort_unless($product->is_active, 404);
+        abort_unless($product->is_active && $product->isVisibleInChannel(), 404);
 
         ProductDetailPresenter::load($product);
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PnShop\Catalog\Pricing\PriceResolver;
+use PnShop\Channel\Channels;
 use PnShop\Localization\CurrencyConverter;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentMethod;
@@ -49,6 +50,7 @@ class PaymentService
 
         return $method->is_active
             && $gateway !== null
+            && app(Channels::class)->allows('payment_method_ids', $method->id)
             && ! ($min !== null && $total->isLessThan($min))
             && ! ($max !== null && $total->isGreaterThan($max))
             && ($method->countries === null || $method->countries === [] || $context->countryCode === null || in_array($context->countryCode, $method->countries, true))

@@ -134,7 +134,7 @@ class CheckoutService
             foreach ($lines as $variantId => $quantity) {
                 $variant = $variants->get($variantId);
 
-                if (! $variant || ! $variant->is_active || ! $variant->product->is_active) {
+                if (! $variant || ! $variant->is_active || ! $variant->product->is_active || ! $variant->product->isVisibleInChannel()) {
                     throw new CheckoutException(__('A product in your cart is no longer available. Please review your cart.'));
                 }
 

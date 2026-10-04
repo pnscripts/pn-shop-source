@@ -19,7 +19,7 @@ use PnShop\Money\MoneyPresenter;
 final class AdminCatalogPresenter
 {
     /** @var list<string> */
-    public const PRODUCT_RELATIONS = ['variants.optionValues', 'variants.stockLevels.location', 'categories:id', 'options:id', 'media', 'allTranslations'];
+    public const PRODUCT_RELATIONS = ['variants.optionValues', 'variants.stockLevels.location', 'categories:id', 'channels:id', 'options:id', 'media', 'allTranslations'];
 
     /**
      * @return array<string, mixed>
@@ -39,6 +39,7 @@ final class AdminCatalogPresenter
             'translations' => (object) $product->translationsInput(),
             'category_id' => $product->product_category_id,
             'category_ids' => $product->categories->modelKeys(),
+            'channel_ids' => $product->channels->modelKeys(),
             'brand_id' => $product->brand_id,
             'tax_class_id' => $product->tax_class_id,
             'option_ids' => $product->options->modelKeys(),

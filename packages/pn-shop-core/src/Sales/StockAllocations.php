@@ -4,6 +4,8 @@ namespace PnShop\Sales;
 
 use Illuminate\Database\Eloquent\Collection;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Channel\Channels;
+use PnShop\Channel\Models\Channel;
 use PnShop\Inventory\Exceptions\InsufficientStock;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\Models\StockLocation;
@@ -34,9 +36,9 @@ final class StockAllocations
      *
      * @return list<array{0: StockLocation, 1: int}>
      */
-    public function plan(ProductVariant $variant, int $quantity, ?string $countryCode = null, ?StockLocation $only = null): array
+    public function plan(ProductVariant $variant, int $quantity, ?string $countryCode = null, ?StockLocation $only = null, ?Channel $channel = null): array
     {
-        $candidates = $only !== null ? [$only] : $this->candidates($countryCode);
+        $candidates = $only !== null ? [$only] : $this->candidates($countryCode, $channel);
 
         if (! $variant->track_inventory) {
             return [[$candidates[0], $quantity]];
@@ -242,7 +244,7 @@ final class StockAllocations
             return;
         }
 
-        foreach ($this->plan($variant, $kept, $order->shippingAddress?->country_code) as [$location, $take]) {
+        foreach ($this->plan($variant, $kept, $order->shippingAddress?->country_code, channel: $order->channel) as [$location, $take]) {
             if ($shipped) {
                 $this->inventory->adjust($variant, -$take, StockMovementReason::OrderReopened, $order, location: $location);
             } else {
@@ -293,11 +295,14 @@ final class StockAllocations
     /**
      * @return non-empty-list<StockLocation>
      */
-    private function candidates(?string $countryCode): array
+    private function candidates(?string $countryCode, ?Channel $channel = null): array
     {
         $country = $countryCode === null ? null : strtoupper($countryCode);
+        $channels = app(Channels::class);
 
+        // The channel's own locations (the order's, or the storefront's at checkout).
         $locations = StockLocation::query()->sellingOnline()->ordered()->get()
+            ->filter(fn (StockLocation $location) => $channels->allows('stock_location_ids', $location->id, $channel))
             ->sortBy(fn (StockLocation $location) => [
                 $country !== null && $location->country_code === $country ? 0 : 1,
                 $location->is_default ? 0 : 1,

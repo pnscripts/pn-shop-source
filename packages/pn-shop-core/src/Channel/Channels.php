@@ -109,6 +109,19 @@ class Channels
     }
 
     /**
+     * Whether the active channel uses a stock location, payment or shipping method (any,
+     * when its list is empty or no channel is active).
+     *
+     * @param  'stock_location_ids'|'payment_method_ids'|'shipping_method_ids'  $list
+     */
+    public function allows(string $list, int $id, ?Channel $channel = null): bool
+    {
+        $channel ??= $this->active;
+
+        return $channel === null || $channel->allows($list, $id);
+    }
+
+    /**
      * The value a channel overrides for a setting, or null.
      */
     public function override(string $path): mixed

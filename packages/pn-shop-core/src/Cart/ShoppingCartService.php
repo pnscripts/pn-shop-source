@@ -272,7 +272,7 @@ class ShoppingCartService
     {
         return ProductVariant::query()
             ->where('is_active', true)
-            ->whereHas('product', fn (Builder $product) => $product->where('is_active', true));
+            ->whereHas('product', fn (Builder $product) => $product->where('is_active', true)->inChannel());
     }
 
     private function assertQuantityAvailable(int $variantId, int $quantity): void

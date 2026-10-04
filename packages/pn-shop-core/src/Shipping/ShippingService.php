@@ -4,6 +4,7 @@ namespace PnShop\Shipping;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use PnShop\Channel\Channels;
 use PnShop\Localization\CurrencyConverter;
 use PnShop\Localization\Localization;
 use PnShop\Shipping\Models\ShippingMethod;
@@ -20,7 +21,9 @@ class ShippingService
      */
     public function isRequired(): bool
     {
-        return ShippingMethod::query()->active()->exists();
+        $channels = app(Channels::class);
+
+        return ShippingMethod::query()->active()->pluck('id')->contains(fn (int $id) => $channels->allows('shipping_method_ids', $id));
     }
 
     public function zoneFor(string $countryCode, ?string $postcode): ?ShippingZone
@@ -42,7 +45,10 @@ class ShippingService
             return collect();
         }
 
+        $channels = app(Channels::class);
+
         return $zone->methods()->active()->get()
+            ->filter(fn (ShippingMethod $method) => $channels->allows('shipping_method_ids', $method->id))
             ->map(fn (ShippingMethod $method) => $this->quoteFor($method, $request, $zone))
             ->filter()
             ->sortBy(fn (ShippingQuote $quote) => $quote->price->getMinorAmount()->toInt())
@@ -57,7 +63,7 @@ class ShippingService
     {
         $zone = $this->zoneFor($request->countryCode, $request->postcode);
 
-        return $zone !== null && $method->is_active ? $this->quoteFor($method, $request, $zone) : null;
+        return $zone !== null && $method->is_active && app(Channels::class)->allows('shipping_method_ids', $method->id) ? $this->quoteFor($method, $request, $zone) : null;
     }
 
     private function quoteFor(ShippingMethod $method, ShippingRequest $request, ShippingZone $zone): ?ShippingQuote

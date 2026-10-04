@@ -19,6 +19,7 @@ use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Models\ProductAttribute;
 use PnShop\Catalog\ProductRelationType;
 use PnShop\Catalog\ProductType;
+use PnShop\Channel\Filament\ChannelsField;
 use PnShop\Inventory\InventoryService;
 use PnShop\Localization\Filament\TranslationsSection;
 use PnShop\Media\MediaLibrary;
@@ -114,6 +115,7 @@ class ProductForm
                         Toggle::make('is_featured')
                             ->label('Featured on the home page')
                             ->helperText('Featured products come first in the home page\'s product list.'),
+                        ChannelsField::make(),
                         Select::make('tax_class_id')
                             ->label('Tax class')
                             ->relationship('taxClass', 'name')

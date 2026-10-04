@@ -17,6 +17,7 @@ use PnShop\Acl\Models\AdminUser;
 use PnShop\Catalog\Factories\ProductFactory;
 use PnShop\Catalog\ProductRelationType;
 use PnShop\Catalog\ProductType;
+use PnShop\Channel\Concerns\LimitedToChannels;
 use PnShop\Foundation\Concerns\HasSlug;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\Models\StockMovement;
@@ -55,7 +56,10 @@ use Spatie\Activitylog\Support\LogOptions;
 class Product extends Model implements TranslatableModel
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, HasMedia, HasSlug, LogsActivity, SoftDeletes, Translatable;
+    use HasFactory, HasMedia, HasSlug, LimitedToChannels, LogsActivity, SoftDeletes, Translatable;
+
+    /** Pivot table and key for LimitedToChannels. */
+    public const CHANNEL_PIVOT = ['channel_product', 'product_id'];
 
     /** Attributes that belong to the default variant. */
     public const VARIANT_SHORTCUTS = ['price', 'sale_price', 'sku', 'barcode', 'weight'];
@@ -103,13 +107,13 @@ class Product extends Model implements TranslatableModel
     }
 
     /**
-     * Visible in the store and has at least one active variant.
+     * Visible in the store (and the current channel) and has at least one active variant.
      *
      * @param  Builder<self>  $query
      */
     public function scopeActive(Builder $query): void
     {
-        $query->where('is_active', true)->whereHas('variants', fn (Builder $variants) => $variants->where('is_active', true));
+        $query->where('is_active', true)->whereHas('variants', fn (Builder $variants) => $variants->where('is_active', true))->inChannel();
     }
 
     /**

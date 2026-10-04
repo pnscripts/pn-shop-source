@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Kalnoy\Nestedset\NodeTrait;
 use Kalnoy\Nestedset\QueryBuilder;
 use PnShop\Catalog\Factories\CategoryFactory;
+use PnShop\Channel\Concerns\LimitedToChannels;
 use PnShop\Foundation\Concerns\HasSlug;
 use PnShop\Localization\Concerns\Translatable;
 use PnShop\Localization\Contracts\TranslatableModel;
@@ -29,7 +30,10 @@ use PnShop\Localization\Contracts\TranslatableModel;
 class Category extends Model implements TranslatableModel
 {
     /** @use HasFactory<CategoryFactory> */
-    use HasFactory, HasSlug, NodeTrait, SoftDeletes, Translatable;
+    use HasFactory, HasSlug, LimitedToChannels, NodeTrait, SoftDeletes, Translatable;
+
+    /** Pivot table and key for LimitedToChannels. */
+    public const CHANNEL_PIVOT = ['category_channel', 'category_id'];
 
     protected $table = 'product_categories';
 
@@ -69,7 +73,7 @@ class Category extends Model implements TranslatableModel
      */
     public function scopeActive(Builder $query): void
     {
-        $query->where('is_active', true);
+        $query->where('is_active', true)->inChannel();
     }
 
     /**

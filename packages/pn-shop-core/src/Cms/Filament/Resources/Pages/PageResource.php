@@ -21,6 +21,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use PnShop\Channel\Filament\ChannelsField;
 use PnShop\Cms\Filament\ContentEditor;
 use PnShop\Cms\Filament\Resources\Pages\Pages\CreatePage;
 use PnShop\Cms\Filament\Resources\Pages\Pages\EditPage;
@@ -64,6 +65,7 @@ class PageResource extends Resource
                 DateTimePicker::make('published_at')->label('Publish from')->helperText('Leave empty to publish right away; a future date schedules the page.'),
                 DateTimePicker::make('unpublished_at')->label('Unpublish at')->after('published_at'),
                 Toggle::make('is_home')->label('Use as the homepage'),
+                ChannelsField::make(),
             ]),
             ContentEditor::make()->columnSpanFull(),
             Section::make('Search engines')->columnSpanFull()->columns(2)->collapsible()->schema([

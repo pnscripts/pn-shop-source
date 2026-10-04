@@ -132,6 +132,9 @@ class ProductController extends AdminController
             'is_featured' => ['sometimes', 'boolean'],
             'category_id' => [...$sometimes, 'required', 'integer', Rule::exists('product_categories', 'id')->whereNull('deleted_at')],
             'category_ids' => ['sometimes', 'array'],
+            // Channels the product is shown in; empty: every channel.
+            'channel_ids' => ['sometimes', 'array'],
+            'channel_ids.*' => ['integer', Rule::exists('channels', 'id')],
             'category_ids.*' => ['integer', Rule::exists('product_categories', 'id')->whereNull('deleted_at')],
             'brand_id' => ['sometimes', 'nullable', 'integer', Rule::exists('brands', 'id')->whereNull('deleted_at')],
             'tax_class_id' => ['sometimes', 'nullable', 'integer', Rule::exists('tax_classes', 'id')],
@@ -166,7 +169,11 @@ class ProductController extends AdminController
             $data['product_category_id'] = $data['category_id'];
         }
 
-        $this->fillTranslatable($product, Arr::except($data, ['category_id', 'category_ids', 'gallery', 'option_ids']))->save();
+        $this->fillTranslatable($product, Arr::except($data, ['category_id', 'category_ids', 'channel_ids', 'gallery', 'option_ids']))->save();
+
+        if (array_key_exists('channel_ids', $data)) {
+            $product->channels()->sync(array_values(array_unique(array_map('intval', $data['channel_ids']))));
+        }
 
         if (array_key_exists('option_ids', $data)) {
             $positions = [];

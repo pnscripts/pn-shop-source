@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use PnShop\Acl\Models\AdminUser;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Channel\Channels;
 use PnShop\Inventory\Exceptions\InsufficientStock;
 use PnShop\Inventory\Models\StockLevel;
 use PnShop\Inventory\Models\StockLocation;
@@ -21,8 +22,8 @@ use PnShop\Inventory\Models\StockMovement;
  */
 final class InventoryService
 {
-    /** @var list<int>|null ids of the active locations that sell online */
-    private ?array $onlineLocationIds = null;
+    /** @var array<int, list<int>> channel id => ids of the active locations that sell online there */
+    private array $onlineLocationIds = [];
 
     /**
      * Units that can be sold online now, or null when the variant does not track inventory.
@@ -93,13 +94,20 @@ final class InventoryService
      */
     public function onlineLocationIds(): array
     {
-        return $this->onlineLocationIds ??= array_values(array_map('intval', StockLocation::query()->sellingOnline()->pluck('id')->all()));
+        // A channel can sell the stock of some locations only.
+        $channels = app(Channels::class);
+        $key = $channels->isActive() ? $channels->current()->id : 0;
+
+        return $this->onlineLocationIds[$key] ??= array_values(array_filter(
+            array_map('intval', StockLocation::query()->sellingOnline()->pluck('id')->all()),
+            fn (int $id) => $channels->allows('stock_location_ids', $id),
+        ));
     }
 
     /** Called when locations change. */
     public function forgetLocations(): void
     {
-        $this->onlineLocationIds = null;
+        $this->onlineLocationIds = [];
     }
 
     /**

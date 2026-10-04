@@ -23,6 +23,7 @@ use PnShop\Catalog\Filament\Resources\Categories\Pages\CreateCategory;
 use PnShop\Catalog\Filament\Resources\Categories\Pages\EditCategory;
 use PnShop\Catalog\Filament\Resources\Categories\Pages\ListCategories;
 use PnShop\Catalog\Models\Category;
+use PnShop\Channel\Filament\ChannelsField;
 use PnShop\Localization\Filament\TranslationsSection;
 use PnShop\Seo\Filament\SeoFields;
 use UnitEnum;
@@ -53,6 +54,7 @@ class CategoryResource extends Resource
                     ->maxLength(255)
                     ->helperText('Generated from the title when empty.'),
                 Toggle::make('is_active')->label('Visible in the store')->default(true),
+                ChannelsField::make(),
                 Textarea::make('description')->rows(4)->columnSpanFull(),
             ]),
             SeoFields::section(),

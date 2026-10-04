@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use PnShop\Acl\Models\AdminUser;
+use PnShop\Channel\Concerns\LimitedToChannels;
 use PnShop\Cms\Concerns\HasContentBlocks;
 use PnShop\Cms\Factories\PageFactory;
 use PnShop\Cms\PageStatus;
@@ -42,7 +43,10 @@ use Spatie\Activitylog\Support\LogOptions;
 class Page extends Model implements TranslatableModel
 {
     /** @use HasFactory<PageFactory> */
-    use HasContentBlocks, HasFactory, LogsActivity, SoftDeletes, Translatable;
+    use HasContentBlocks, HasFactory, LimitedToChannels, LogsActivity, SoftDeletes, Translatable;
+
+    /** Pivot table and key for LimitedToChannels. */
+    public const CHANNEL_PIVOT = ['channel_page', 'page_id'];
 
     public const BODY = 'body';
 
@@ -96,7 +100,8 @@ class Page extends Model implements TranslatableModel
     {
         $query->where('status', PageStatus::Published)
             ->where(fn (Builder $query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
-            ->where(fn (Builder $query) => $query->whereNull('unpublished_at')->orWhere('unpublished_at', '>', now()));
+            ->where(fn (Builder $query) => $query->whereNull('unpublished_at')->orWhere('unpublished_at', '>', now()))
+            ->inChannel();
     }
 
     public function isLive(): bool
