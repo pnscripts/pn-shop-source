@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use PnShop\Api\Http\Controllers\Admin\BrandController;
 use PnShop\Api\Http\Controllers\Admin\CategoryController;
 use PnShop\Api\Http\Controllers\Admin\CustomerController;
+use PnShop\Api\Http\Controllers\Admin\GiftCardController;
 use PnShop\Api\Http\Controllers\Admin\MeController;
 use PnShop\Api\Http\Controllers\Admin\MediaController;
 use PnShop\Api\Http\Controllers\Admin\OrderController;
@@ -35,6 +36,13 @@ Route::apiResource('stock-locations', StockLocationController::class)->parameter
 
 Route::apiResource('categories', CategoryController::class)->whereNumber('category');
 Route::apiResource('brands', BrandController::class)->whereNumber('brand');
+Route::get('gift-cards', [GiftCardController::class, 'index'])->name('gift-cards.index');
+Route::post('gift-cards', [GiftCardController::class, 'store'])->middleware('pnshop.idempotent')->name('gift-cards.store');
+Route::post('gift-cards/lookup', [GiftCardController::class, 'lookup'])->name('gift-cards.lookup');
+Route::patch('gift-cards/{giftCard}', [GiftCardController::class, 'update'])->whereNumber('giftCard')->name('gift-cards.update');
+Route::post('gift-cards/{giftCard}/adjustments', [GiftCardController::class, 'adjust'])->whereNumber('giftCard')->middleware('pnshop.idempotent')->name('gift-cards.adjust');
+Route::get('customers/{customer}/credit', [GiftCardController::class, 'credit'])->whereNumber('customer')->name('customers.credit');
+Route::post('customers/{customer}/credit', [GiftCardController::class, 'adjustCredit'])->whereNumber('customer')->middleware('pnshop.idempotent')->name('customers.credit.adjust');
 Route::apiResource('price-lists', PriceListController::class)->parameters(['price-lists' => 'priceList'])->whereNumber('priceList');
 Route::get('price-lists/{priceList}/prices', [PriceListController::class, 'entries'])->whereNumber('priceList')->name('price-lists.prices.index');
 Route::put('price-lists/{priceList}/prices', [PriceListController::class, 'setEntries'])->whereNumber('priceList')->middleware('pnshop.idempotent')->name('price-lists.prices.update');

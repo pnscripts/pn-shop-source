@@ -9,6 +9,7 @@ use PnShop\Cart\CartServiceProvider;
 use PnShop\Catalog\CatalogServiceProvider;
 use PnShop\Channel\ChannelServiceProvider;
 use PnShop\Cms\CmsServiceProvider;
+use PnShop\Credit\CreditServiceProvider;
 use PnShop\Customer\CustomerServiceProvider;
 use PnShop\Extension\ExtensionServiceProvider;
 use PnShop\Installer\InstallerServiceProvider;
@@ -58,6 +59,7 @@ final class PnShop
         SecurityServiceProvider::class,
         SalesServiceProvider::class,
         PaymentServiceProvider::class,
+        CreditServiceProvider::class,
         ShippingServiceProvider::class,
         TaxServiceProvider::class,
         PromotionServiceProvider::class,

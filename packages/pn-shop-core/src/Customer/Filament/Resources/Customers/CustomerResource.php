@@ -13,6 +13,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use PnShop\Credit\Filament\RelationManagers\StoreCreditHistoryRelationManager;
+use PnShop\Credit\Filament\RelationManagers\StoreCreditRelationManager;
 use PnShop\Customer\Filament\Resources\Customers\Pages\EditCustomer;
 use PnShop\Customer\Filament\Resources\Customers\Pages\ListCustomers;
 use PnShop\Customer\Filament\Resources\Customers\RelationManagers\AddressesRelationManager;
@@ -67,7 +69,7 @@ class CustomerResource extends Resource
 
     public static function getRelations(): array
     {
-        return [OrdersRelationManager::class, AddressesRelationManager::class];
+        return [OrdersRelationManager::class, AddressesRelationManager::class, StoreCreditRelationManager::class, StoreCreditHistoryRelationManager::class];
     }
 
     public static function getPages(): array
