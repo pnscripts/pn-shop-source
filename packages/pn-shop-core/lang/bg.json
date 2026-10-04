@@ -334,5 +334,8 @@
     "Sign in to see prices": "Влезте, за да видите цените",
     "Please sign in to see prices and order.": "Моля, влезте в профила си, за да видите цените и да поръчате.",
     "The minimum order is :amount. Please add more products.": "Минималната поръчка е :amount. Моля, добавете още продукти.",
-    "Pay :amount within :days days of the invoice date, quoting :order.": "Платете :amount в срок от :days дни от датата на фактурата, с основание :order."
+    "Pay :amount within :days days of the invoice date, quoting :order.": "Платете :amount в срок от :days дни от датата на фактурата, с основание :order.",
+    "Everything is in stock here": "Всичко е налично тук",
+    "Not everything is in stock here": "Не всичко е налично тук",
+    "Only :stock of :product are available for pickup at :location.": "Само :stock от :product са налични за вземане от :location."
 }

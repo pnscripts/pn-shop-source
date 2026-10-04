@@ -202,6 +202,21 @@ export default function Checkout({
                                                     {option.description && (
                                                         <span className="text-muted-foreground block whitespace-pre-line">{option.description}</span>
                                                     )}
+                                                    {option.pickup && (
+                                                        <span className="text-muted-foreground block">
+                                                            {[option.pickup.location, option.pickup.address].filter(Boolean).join(', ')}
+                                                            {' · '}
+                                                            <span
+                                                                className={
+                                                                    option.pickup.in_stock ? 'text-green-700 dark:text-green-400' : 'text-destructive'
+                                                                }
+                                                            >
+                                                                {option.pickup.in_stock
+                                                                    ? t('Everything is in stock here')
+                                                                    : t('Not everything is in stock here')}
+                                                            </span>
+                                                        </span>
+                                                    )}
                                                 </span>
                                             </span>
                                             <span className="font-medium">{option.price.minor === 0 ? t('Free') : option.price.formatted}</span>

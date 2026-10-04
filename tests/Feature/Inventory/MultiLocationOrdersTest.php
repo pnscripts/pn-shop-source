@@ -20,6 +20,8 @@ use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\FulfillmentStatus;
 use PnShop\Sales\States\OrderStatus;
 use PnShop\Sales\StockAllocations;
+use PnShop\Shipping\Models\ShippingMethod;
+use PnShop\Shipping\Models\ShippingZone;
 use PnShop\Shipping\ShipmentService;
 use Tests\Feature\Admin\AdminTestCase;
 
@@ -226,5 +228,31 @@ class MultiLocationOrdersTest extends AdminTestCase
         $this->assertSame(['sofia' => 2], $this->allocations($order));
         $this->assertSame([3, 0], $this->level($this->main));
         $this->assertSame([4, 2], $this->level($this->sofia));
+    }
+
+    public function test_pickup_reserves_at_its_location_and_shows_availability(): void
+    {
+        $zone = ShippingZone::factory()->create();
+        $pickup = ShippingMethod::factory()->for($zone, 'zone')
+            ->create(['name' => 'Pick up in Sofia', 'carrier' => 'pickup', 'settings' => ['cost' => '0', 'stock_location' => 'sofia']]);
+        ShippingMethod::factory()->for($zone, 'zone')->create(['name' => 'Courier', 'settings' => ['cost' => '5.00']]);
+
+        $this->post(route('cart.store'), ['product_id' => $this->lamp->id, 'quantity' => 3]);
+        $options = collect($this->postJson(route('checkout.quote'), ['country_code' => 'DE'])->assertOk()->json('options'))->keyBy('name');
+
+        $this->assertSame(['location' => 'Sofia shop', 'address' => '', 'in_stock' => true], $options['Pick up in Sofia']['pickup']);
+        $this->assertNull($options['Courier']['pickup']);
+
+        // Abroad, a courier order would come from the default location; pickup is served from Sofia.
+        $this->post(route('checkout.store'), $this->checkoutData(PaymentMethod::factory()->create(['gateway' => 'bank_transfer'])->id, ['shipping' => ['country_code' => 'DE'], 'shipping_method_id' => $pickup->id]))
+            ->assertSessionMissing('error');
+        $order = Order::query()->latest('id')->firstOrFail();
+        $this->assertSame(['sofia' => 3], $this->allocations($order));
+
+        // Sofia has one left: not enough for two more.
+        $this->post(route('cart.store'), ['product_id' => $this->lamp->id, 'quantity' => 2]);
+        $this->assertFalse(collect($this->postJson(route('checkout.quote'), ['country_code' => 'BG'])->json('options'))->firstWhere('name', 'Pick up in Sofia')['pickup']['in_stock']);
+        $this->post(route('checkout.store'), $this->checkoutData(PaymentMethod::query()->firstOrFail()->id, ['shipping_method_id' => $pickup->id]))
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'pickup at Sofia shop'));
     }
 }

@@ -1,7 +1,14 @@
 import { type Money, type Totals } from '@/types';
 import { useEffect, useState } from 'react';
 
-export type ShippingOption = { id: number; name: string; description: string | null; price: Money };
+export type ShippingOption = {
+    id: number;
+    name: string;
+    description: string | null;
+    price: Money;
+    /** Pickup at a stock location: where, and whether everything in the cart is in stock there. */
+    pickup?: { location: string; address: string; in_stock: boolean } | null;
+};
 
 type Quote = { options: ShippingOption[]; selected: number | null; totals: Totals };
 

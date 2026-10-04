@@ -16,6 +16,7 @@ use PnShop\Customer\Models\CustomerAddress;
 use PnShop\Customer\Models\User;
 use PnShop\Customer\PostalAddress;
 use PnShop\Inventory\Exceptions\InsufficientStock;
+use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\OrderStockStatus;
 use PnShop\Localization\Localization;
 use PnShop\Payment\Models\PaymentMethod;
@@ -32,6 +33,7 @@ use PnShop\Sales\States\FulfillmentStatus;
 use PnShop\Sales\States\OrderStatus;
 use PnShop\Sales\States\PaymentStatus;
 use PnShop\Sales\StockAllocations;
+use PnShop\Shipping\Carriers\StorePickup;
 use PnShop\Shipping\Models\ShippingMethod;
 use PnShop\Shipping\ShippingRequest;
 use PnShop\Shipping\ShippingService;
@@ -42,6 +44,7 @@ class CheckoutService
     public function __construct(
         private ShoppingCartService $cart,
         private StockAllocations $allocations,
+        private InventoryService $inventory,
         private CartCalculator $calculator,
         private OrderWorkflow $workflow,
         private PaymentService $payments,
@@ -151,15 +154,17 @@ class CheckoutService
 
             $shippingMethod = $this->shippingMethod($data, $items, $currency, $shipping, $user);
 
-            // Reserve the units at the locations that will ship them (StockAllocations).
+            // Reserve the units at the locations that will ship them (StockAllocations); for
+            // pickup at a stock location, there.
+            $pickup = StorePickup::stockLocation($shippingMethod);
+
             foreach ($orderItems as [$orderItem, $variant, $quantity]) {
                 try {
-                    $this->allocations->reserve($orderItem, $variant, $quantity, $shipping->country_code);
+                    $this->allocations->reserve($orderItem, $variant, $quantity, $shipping->country_code, $pickup);
                 } catch (InsufficientStock) {
-                    throw new CheckoutException(__('Not enough stock for :product. Available: :stock.', [
-                        'product' => $variant->product->title,
-                        'stock' => (int) $variant->available(),
-                    ]));
+                    throw new CheckoutException($pickup !== null
+                        ? __('Only :stock of :product are available for pickup at :location.', ['product' => $variant->product->title, 'stock' => (int) $this->inventory->availableAt($variant, $pickup), 'location' => $pickup->name])
+                        : __('Not enough stock for :product. Available: :stock.', ['product' => $variant->product->title, 'stock' => (int) $variant->available()]));
                 }
             }
 
