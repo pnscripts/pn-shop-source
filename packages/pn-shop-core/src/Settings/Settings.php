@@ -19,6 +19,9 @@ final class Settings
     /** @var array<string, array<string, mixed>>|null */
     private ?array $values = null;
 
+    /** @var (\Closure(string): mixed)|null returns a value overriding a setting (a channel's), or null */
+    private ?\Closure $override = null;
+
     public function __construct(
         private SettingsRegistry $registry,
         private Cache $cache,
@@ -27,6 +30,14 @@ final class Settings
     public function get(string $path): mixed
     {
         [$schema, $definition] = $this->registry->resolve($path);
+
+        if ($this->override !== null && $definition->type !== SettingType::Secret) {
+            $overridden = ($this->override)($schema->namespace.'.'.$definition->key);
+
+            if ($overridden !== null) {
+                return $definition->type->cast($overridden);
+            }
+        }
 
         $stored = $this->values()[$schema->namespace][$definition->key] ?? null;
 
@@ -115,6 +126,16 @@ final class Settings
         } catch (DecryptException) {
             return null;
         }
+    }
+
+    /**
+     * Let the active channel override some settings (store name, theme, ...).
+     *
+     * @param  \Closure(string): mixed  $resolver  setting path => value, or null to keep the stored one
+     */
+    public function overrideUsing(\Closure $resolver): void
+    {
+        $this->override = $resolver;
     }
 
     public function flush(): void

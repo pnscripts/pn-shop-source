@@ -7,6 +7,7 @@ use PnShop\Admin\AdminServiceProvider;
 use PnShop\Api\ApiServiceProvider;
 use PnShop\Cart\CartServiceProvider;
 use PnShop\Catalog\CatalogServiceProvider;
+use PnShop\Channel\ChannelServiceProvider;
 use PnShop\Cms\CmsServiceProvider;
 use PnShop\Customer\CustomerServiceProvider;
 use PnShop\Extension\ExtensionServiceProvider;
@@ -46,6 +47,7 @@ final class PnShop
     public const MODULES = [
         SettingsServiceProvider::class,
         LocalizationServiceProvider::class,
+        ChannelServiceProvider::class,
         MediaServiceProvider::class,
         AclServiceProvider::class,
         SystemServiceProvider::class,

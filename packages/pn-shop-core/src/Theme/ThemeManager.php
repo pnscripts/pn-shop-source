@@ -80,7 +80,8 @@ class ThemeManager
 
     public function active(): ThemeManifest
     {
-        if ($this->active !== null) {
+        // Channels can use other themes: the cached one must still be the one asked for.
+        if ($this->active !== null && $this->active->id === $this->activeId()) {
             return $this->active;
         }
 

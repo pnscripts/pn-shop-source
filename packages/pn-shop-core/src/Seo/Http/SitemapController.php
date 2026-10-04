@@ -9,6 +9,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use PnShop\Catalog\Models\Category;
 use PnShop\Catalog\Models\Product;
+use PnShop\Channel\Channels;
 use PnShop\Cms\Models\Page;
 use PnShop\Localization\Localization;
 use PnShop\Localization\Models\Language;
@@ -33,7 +34,7 @@ class SitemapController
     {
         abort_unless((bool) $this->settings->get('seo.allow_indexing'), 404);
 
-        $xml = Cache::remember('pnshop.sitemap.index', now()->addHour(), function () {
+        $xml = Cache::remember('pnshop.sitemap.'.app(Channels::class)->current()->code.'.index', now()->addHour(), function () {
             $files = [];
             $productFiles = max(1, (int) ceil(Product::query()->active()->count() / self::PER_FILE));
 
@@ -69,7 +70,7 @@ class SitemapController
         $files = $kind === 'products' ? max(1, (int) ceil(Product::query()->active()->count() / self::PER_FILE)) : 1;
         abort_if($chunk > $files, 404);
 
-        $xml = Cache::remember("pnshop.sitemap.{$locale}-{$kind}-{$chunk}", now()->addHour(), function () use ($request, $locale, $kind, $chunk) {
+        $xml = Cache::remember('pnshop.sitemap.'.app(Channels::class)->current()->code.".{$locale}-{$kind}-{$chunk}", now()->addHour(), function () use ($request, $locale, $kind, $chunk) {
             $urls = match ($kind) {
                 'pages' => $this->pages($request, $locale),
                 'categories' => $this->records(Category::query()->active(), fn (Model $category, string $slug) => '/shop?category='.rawurlencode($slug), $request, $locale),

@@ -155,7 +155,7 @@ class AdminApiTest extends TestCase
 
     public function test_stock_needs_the_inventory_permission(): void
     {
-        $product = Product::factory()->active()->create();
+        $product = Product::factory()->active()->create(['stock' => 5]);
         $headers = $this->token(['catalog.products.update']);
 
         $this->withHeaders($headers)->postJson(self::API.'/variants/'.$product->defaultVariant()->id.'/stock', ['on_hand' => 1])->assertForbidden();

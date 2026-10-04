@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use PnShop\Channel\Models\Channel;
 use PnShop\Customer\Models\User;
 use PnShop\Inventory\OrderStockStatus;
 use PnShop\Money\MoneyCast;
@@ -54,6 +55,7 @@ class Order extends Model
      */
     protected $fillable = [
         'user_id',
+        'channel_id',
         'name',
         'address',
         'phone',
@@ -117,6 +119,16 @@ class Order extends Model
     public function addresses(): HasMany
     {
         return $this->hasMany(OrderAddress::class);
+    }
+
+    /**
+     * The storefront it was placed on.
+     *
+     * @return BelongsTo<Channel, $this>
+     */
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(Channel::class);
     }
 
     /**

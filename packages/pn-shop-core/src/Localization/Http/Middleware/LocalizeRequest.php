@@ -70,7 +70,8 @@ class LocalizeRequest
         $localized = $request->duplicate(server: $this->serverWithBase($request, $locale));
         $localized->attributes->set('locale_prefix', '/'.$locale);
 
-        URL::useAssetOrigin($request->root());
+        // A channel on a path already moved the base: assets stay at the real root.
+        URL::useAssetOrigin($request->attributes->get('asset_root', $request->root()));
         app()->instance('request', $localized);
 
         return $next($localized);

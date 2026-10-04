@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PnShop\Cart\Models\Cart;
 use PnShop\Cart\Models\CartLine;
+use PnShop\Channel\Channels;
 use PnShop\Customer\Models\User;
 
 /**
@@ -19,6 +20,10 @@ use PnShop\Customer\Models\User;
  *
  * Store API requests are stateless: the client sends the guest token in the X-Cart-Token
  * header (see useStatelessToken()), and a new cart's token is returned in the response.
+ *
+ * Carts belong to a channel: a customer has one cart per channel, and a guest's token is
+ * kept per channel (other channels than the default one add their code to the cookie and
+ * session key), so storefronts sharing a domain keep separate carts.
  */
 final class CartRepository
 {
@@ -126,14 +131,14 @@ final class CartRepository
             return;
         }
 
-        $guest = Cart::query()->where('token', $guestToken)->whereNull('user_id')->first();
+        $guest = Cart::query()->where('token', $guestToken)->whereNull('user_id')->where('channel_id', $this->channelId())->first();
 
         if ($guest === null) {
             return;
         }
 
         DB::transaction(function () use ($user, $guest) {
-            $cart = Cart::query()->firstOrCreate(['user_id' => $user->id], ['token' => (string) Str::uuid()]);
+            $cart = Cart::query()->firstOrCreate(['user_id' => $user->id, 'channel_id' => $this->channelId()], ['token' => (string) Str::uuid()]);
 
             foreach ($guest->lines as $line) {
                 $existing = $cart->lines()->where('product_variant_id', $line->product_variant_id)->first();
@@ -154,11 +159,11 @@ final class CartRepository
             $cart->touch();
         });
 
-        Cookie::queue(Cookie::forget(self::COOKIE));
-        $this->request()->cookies->remove(self::COOKIE);
+        Cookie::queue(Cookie::forget($this->cookieName()));
+        $this->request()->cookies->remove($this->cookieName());
 
         if ($this->request()->hasSession()) {
-            $this->request()->session()->forget(self::SESSION_TOKEN);
+            $this->request()->session()->forget($this->sessionKey());
         }
 
         if ($this->request()->attributes->has(self::STATELESS_TOKEN)) {
@@ -174,15 +179,15 @@ final class CartRepository
 
         if ($user instanceof User) {
             return $create
-                ? Cart::query()->firstOrCreate(['user_id' => $user->id], ['token' => (string) Str::uuid()])
-                : Cart::query()->where('user_id', $user->id)->first();
+                ? Cart::query()->firstOrCreate(['user_id' => $user->id, 'channel_id' => $this->channelId()], ['token' => (string) Str::uuid()])
+                : Cart::query()->where('user_id', $user->id)->where('channel_id', $this->channelId())->first();
         }
 
         $token = $this->guestToken();
-        $cart = $token !== null ? Cart::query()->where('token', $token)->whereNull('user_id')->first() : null;
+        $cart = $token !== null ? Cart::query()->where('token', $token)->whereNull('user_id')->where('channel_id', $this->channelId())->first() : null;
 
         if ($cart === null && $create) {
-            $cart = Cart::query()->create(['token' => (string) Str::uuid()]);
+            $cart = Cart::query()->create(['token' => (string) Str::uuid(), 'channel_id' => $this->channelId()]);
             $this->rememberGuestToken($cart->token);
         }
 
@@ -207,7 +212,7 @@ final class CartRepository
             return $request->attributes->get(self::STATELESS_TOKEN);
         }
 
-        foreach ([$request->hasSession() ? $request->session()->get(self::SESSION_TOKEN) : null, $request->cookie(self::COOKIE)] as $token) {
+        foreach ([$request->hasSession() ? $request->session()->get($this->sessionKey()) : null, $request->cookie($this->cookieName())] as $token) {
             if (is_string($token) && Str::isUuid($token)) {
                 return $token;
             }
@@ -227,10 +232,10 @@ final class CartRepository
         }
 
         if ($request->hasSession()) {
-            $request->session()->put(self::SESSION_TOKEN, $token);
+            $request->session()->put($this->sessionKey(), $token);
         }
 
-        Cookie::queue(Cookie::make(self::COOKIE, $token, self::COOKIE_DAYS * 24 * 60, httpOnly: true, sameSite: 'lax'));
+        Cookie::queue(Cookie::make($this->cookieName(), $token, self::COOKIE_DAYS * 24 * 60, httpOnly: true, sameSite: 'lax'));
     }
 
     /**
@@ -249,6 +254,26 @@ final class CartRepository
         foreach ($lines as $variantId => $quantity) {
             $this->setQuantity((int) $variantId, (int) $quantity);
         }
+    }
+
+    private function channelId(): int
+    {
+        return app(Channels::class)->current()->id;
+    }
+
+    /** The guest cart cookie: "pnshop_cart" for the default channel, "pnshop_cart_<code>" for others. */
+    private function cookieName(): string
+    {
+        $channel = app(Channels::class)->current();
+
+        return $channel->is_default ? self::COOKIE : self::COOKIE.'_'.$channel->code;
+    }
+
+    private function sessionKey(): string
+    {
+        $channel = app(Channels::class)->current();
+
+        return $channel->is_default ? self::SESSION_TOKEN : self::SESSION_TOKEN.'.'.$channel->code;
     }
 
     private function forgetLines(): void

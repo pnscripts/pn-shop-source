@@ -4,9 +4,13 @@ namespace PnShop\Sales;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Notifications\Events\NotificationFailed;
+use Illuminate\Notifications\Events\NotificationSending;
+use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use PnShop\Catalog\Models\Product;
+use PnShop\Channel\Channels;
 use PnShop\Foundation\Extension\Permission;
 use PnShop\Foundation\ModuleServiceProvider;
 use PnShop\Payment\Events\RefundCompleted;
@@ -19,6 +23,7 @@ use PnShop\Sales\Invoices\IssueInvoiceAutomatically;
 use PnShop\Sales\Models\Invoice;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\Models\OrderItem;
+use PnShop\Sales\Notifications\OrderMail;
 use PnShop\Sales\Notifications\SendOrderNotifications;
 use PnShop\Sales\Policies\OrderPolicy;
 use PnShop\Settings\SettingDefinition;
@@ -51,6 +56,24 @@ class SalesServiceProvider extends ModuleServiceProvider
     protected function bootModule(): void
     {
         Gate::policy(Order::class, OrderPolicy::class);
+
+        // Order emails are written as the order's storefront: its name, address and links.
+        $entered = [];
+        Event::listen(NotificationSending::class, function (NotificationSending $event) use (&$entered): void {
+            if ($event->notification instanceof OrderMail && ($channel = $event->notification->order->channel) !== null) {
+                $entered[spl_object_id($event->notification)] = app(Channels::class)->enter($channel);
+            }
+        });
+        $leave = function (NotificationSent|NotificationFailed $event) use (&$entered): void {
+            $key = spl_object_id($event->notification);
+
+            if (array_key_exists($key, $entered)) {
+                app(Channels::class)->leave($entered[$key]);
+                unset($entered[$key]);
+            }
+        };
+        Event::listen(NotificationSent::class, $leave);
+        Event::listen(NotificationFailed::class, $leave);
 
         $this->app->make(SettingsRegistry::class)->register(new SettingsSchema(
             'sales',

@@ -4,6 +4,7 @@ namespace PnShop\Customer;
 
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;
+use PnShop\Channel\Channels;
 use PnShop\Customer\Models\User;
 
 /**
@@ -19,6 +20,9 @@ class Registration
             'email' => $email,
             'password' => Hash::make($password),
         ]);
+
+        // The storefront the account was opened on (accounts are shared by all channels).
+        $user->forceFill(['channel_id' => app(Channels::class)->current()->id])->save();
 
         event(new Registered($user));
 

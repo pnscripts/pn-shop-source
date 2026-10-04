@@ -12,6 +12,7 @@ use PnShop\Cart\Totals\TotalLine;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
+use PnShop\Channel\Channels;
 use PnShop\Customer\Models\CustomerAddress;
 use PnShop\Customer\Models\User;
 use PnShop\Customer\PostalAddress;
@@ -108,6 +109,7 @@ class CheckoutService
 
             $order = Order::create([
                 'user_id' => $user?->id,
+                'channel_id' => app(Channels::class)->current()->id,
                 'name' => $shipping->fullName(),
                 'email' => $data['email'],
                 'phone' => (string) $shipping->phone,

@@ -27,6 +27,9 @@ final class Localization
     /** @var (\Closure(string): ?string)|null */
     private ?\Closure $alternateResolver = null;
 
+    /** @var (\Closure(): array{0: string|null, 1: list<string>|null})|null */
+    private ?\Closure $restriction = null;
+
     public function __construct(private Cache $cache) {}
 
     /**
@@ -36,8 +39,34 @@ final class Localization
      */
     public function languages(): Collection
     {
-        return collect($this->data()['languages'])
+        $languages = collect($this->data()['languages'])
             ->map(fn (array $attributes) => (new Language)->forceFill($attributes));
+
+        if ($this->restriction === null) {
+            return $languages;
+        }
+
+        // A channel limits the languages and may put another one first.
+        [$default, $allowed] = ($this->restriction)();
+        $kept = $allowed === null ? $languages : $languages->filter(fn (Language $language) => in_array($language->code, $allowed, true));
+
+        if ($kept->isEmpty()) {
+            return $languages;
+        }
+
+        return $default !== null && $kept->contains('code', $default)
+            ? $kept->sortBy(fn (Language $language) => $language->code === $default ? 0 : 1, SORT_NUMERIC, false)->values()
+            : $kept->values();
+    }
+
+    /**
+     * Let the active channel limit the languages.
+     *
+     * @param  \Closure(): array{0: string|null, 1: list<string>|null}  $restriction  [default locale, allowed locales]
+     */
+    public function restrictUsing(\Closure $restriction): void
+    {
+        $this->restriction = $restriction;
     }
 
     public function defaultLocale(): string
