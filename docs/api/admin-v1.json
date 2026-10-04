@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "PN Shop Admin API",
-        "version": "1.4.0",
+        "version": "1.5.0",
         "description": "Integrations (ERP, accounting, PIM) with staff tokens created under System \u2192 API tokens or with `php artisan pnshop:api-token`.\n\n* **Permissions:** a token's abilities are permission keys, so a call needs the token ability and the owner's permission.\n* **Errors:** `application/problem+json` with a stable `code`.\n* **Lists:** cursor-paginated, with `filter[updated_since]` for incremental sync."
     },
     "servers": [
@@ -1703,7 +1703,7 @@
         "/orders": {
             "get": {
                 "operationId": "admin.orders.index",
-                "description": "Newest first unless sorted. Filters: `filter[status]`, `filter[payment_status]`,\n`filter[fulfillment_status]`, `filter[email]`, `filter[customer_id]`,\n`filter[updated_since]`. Sort: `id`, `updated_at`.",
+                "description": "Newest first unless sorted. Filters: `filter[status]`, `filter[payment_status]`,\n`filter[fulfillment_status]`, `filter[email]`, `filter[customer_id]`,\n`filter[updated_since]`, `filter[channel]` (a channel code). Sort: `id`, `updated_at`.",
                 "summary": "List orders",
                 "tags": [
                     "Order"
@@ -2376,6 +2376,12 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "channel": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "stock_status": {
                                                     "type": "string"
                                                 },
@@ -2561,6 +2567,7 @@
                                                 "invoice",
                                                 "allocations",
                                                 "customer_id",
+                                                "channel",
                                                 "stock_status",
                                                 "updated_at",
                                                 "transitions",
@@ -3195,6 +3202,12 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "channel": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "stock_status": {
                                                     "type": "string"
                                                 },
@@ -3380,6 +3393,7 @@
                                                 "invoice",
                                                 "allocations",
                                                 "customer_id",
+                                                "channel",
                                                 "stock_status",
                                                 "updated_at",
                                                 "transitions",
@@ -4002,6 +4016,12 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "channel": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "stock_status": {
                                                     "type": "string"
                                                 },
@@ -4187,6 +4207,7 @@
                                                 "invoice",
                                                 "allocations",
                                                 "customer_id",
+                                                "channel",
                                                 "stock_status",
                                                 "updated_at",
                                                 "transitions",
@@ -4828,6 +4849,12 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "channel": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "stock_status": {
                                                     "type": "string"
                                                 },
@@ -5013,6 +5040,7 @@
                                                 "invoice",
                                                 "allocations",
                                                 "customer_id",
+                                                "channel",
                                                 "stock_status",
                                                 "updated_at",
                                                 "transitions",
@@ -5651,6 +5679,12 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "channel": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
                                                 "stock_status": {
                                                     "type": "string"
                                                 },
@@ -5836,6 +5870,7 @@
                                                 "invoice",
                                                 "allocations",
                                                 "customer_id",
+                                                "channel",
                                                 "stock_status",
                                                 "updated_at",
                                                 "transitions",
@@ -6587,6 +6622,12 @@
                                             "null"
                                         ]
                                     },
+                                    "currency": {
+                                        "type": "string",
+                                        "description": "The default currency when left out; prices of a list in another currency are used by channels selling in it.",
+                                        "minLength": 3,
+                                        "maxLength": 3
+                                    },
                                     "starts_at": {
                                         "type": [
                                             "string",
@@ -6823,6 +6864,10 @@
                                             "integer",
                                             "null"
                                         ]
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "description": "The default currency when left out; prices of a list in another currency are used by channels selling in it."
                                     },
                                     "starts_at": {
                                         "type": [
@@ -7373,6 +7418,13 @@
                                             "type": "integer"
                                         }
                                     },
+                                    "channel_ids": {
+                                        "type": "array",
+                                        "description": "Channels the product is shown in; empty: every channel.",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
                                     "brand_id": {
                                         "type": [
                                             "integer",
@@ -7534,6 +7586,15 @@
                                                         ]
                                                     }
                                                 },
+                                                "channel_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": [
+                                                            "integer",
+                                                            "string"
+                                                        ]
+                                                    }
+                                                },
                                                 "brand_id": {
                                                     "type": [
                                                         "integer",
@@ -7780,6 +7841,7 @@
                                                 "translations",
                                                 "category_id",
                                                 "category_ids",
+                                                "channel_ids",
                                                 "brand_id",
                                                 "tax_class_id",
                                                 "option_ids",
@@ -7875,6 +7937,15 @@
                                                         ]
                                                     }
                                                 },
+                                                "channel_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": [
+                                                            "integer",
+                                                            "string"
+                                                        ]
+                                                    }
+                                                },
                                                 "brand_id": {
                                                     "type": [
                                                         "integer",
@@ -8121,6 +8192,7 @@
                                                 "translations",
                                                 "category_id",
                                                 "category_ids",
+                                                "channel_ids",
                                                 "brand_id",
                                                 "tax_class_id",
                                                 "option_ids",
@@ -8223,6 +8295,13 @@
                                     },
                                     "category_ids": {
                                         "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "channel_ids": {
+                                        "type": "array",
+                                        "description": "Channels the product is shown in; empty: every channel.",
                                         "items": {
                                             "type": "integer"
                                         }
@@ -8361,6 +8440,15 @@
                                                         ]
                                                     }
                                                 },
+                                                "channel_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": [
+                                                            "integer",
+                                                            "string"
+                                                        ]
+                                                    }
+                                                },
                                                 "brand_id": {
                                                     "type": [
                                                         "integer",
@@ -8607,6 +8695,7 @@
                                                 "translations",
                                                 "category_id",
                                                 "category_ids",
+                                                "channel_ids",
                                                 "brand_id",
                                                 "tax_class_id",
                                                 "option_ids",
@@ -11043,7 +11132,7 @@
                                             "properties": {
                                                 "pnshop_version": {
                                                     "type": "string",
-                                                    "const": "1.4.0"
+                                                    "const": "1.5.0"
                                                 }
                                             },
                                             "required": [

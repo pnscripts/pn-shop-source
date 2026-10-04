@@ -205,6 +205,7 @@ Loaded from the plugin folder when present:
   - payment gateways (`PaymentGatewayManager`), shipping carriers (`ShippingCarrierManager`) and the tax provider (`TaxProvider`);
   - CMS blocks (`BlockRegistry`);
   - pipelines `cart.totals`, `catalog.price` (see [Pricing](../ecommerce/pricing.md#for-plugin-authors)) and `seo.meta`;
+  - channels: `Channels::current()`, amounts from settings converted with `CurrencyConverter` (see [Channels](../ecommerce/channels.md#for-plugin-and-theme-authors));
   - the invoice renderer (`InvoiceRenderer`) and the CAPTCHA verifier (`CaptchaVerifier`);
   - events: `OrderPlaced`, `OrderStateChanged`, `ShipmentCreated`, `RefundCompleted`, and `OrderReopening` (inside the reopening transaction; throw an `OrderException` to refuse).
 - **Overriding core:** plugins should use these extension points and never patch or override core classes.

@@ -2,6 +2,8 @@
 
 Staff with **system.settings.manage** change the shop's settings in Admin → System → Settings, one tab per area. The same settings can be read and changed with the Admin API (`GET/PATCH /api/admin/v1/settings/{namespace}`). Values are checked before they are saved, and secret values (payment keys) are stored encrypted and never shown again.
 
+With several [channels](../ecommerce/channels.md), a channel can override the store name, contact details and address, the theme, the tax country and search engine indexing; everything else is shared.
+
 Server settings (database, mail, the shop's address, trusted proxies) live in `.env` instead; see [installation](../installation/installation.md) and [deployment](../installation/deployment.md).
 
 ## Store

@@ -26,7 +26,7 @@ On a product (or on each variant of a variable product):
 - **Stock by location:** the units on the shelf at each location, reserved ones included. Changing a number records the difference in the stock history, like a stock take.
 - **Transfer stock:** moves units from one location to another. Only available units can move, not reserved ones. The stock history records a `transfer` movement at both locations.
 
-The storefront's "in stock" and the quantities customers can order are the sum of the active locations that sell online.
+The storefront's "in stock" and the quantities customers can order are the sum of the active locations that sell online (for a [channel](channels.md) limited to some locations, of those).
 
 ## Where an order's units come from
 

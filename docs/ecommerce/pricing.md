@@ -26,7 +26,7 @@ A price list has:
 - optional *From* and *Until* dates;
 - an *Active* switch.
 
-Prices are in the shop's default currency.
+A price list has a currency: the shop's default one, or the currency of a [channel](channels.md) selling in another one, whose prices then replace the converted catalog prices.
 
 Each price is for one variant from a quantity on (*From quantity*, 1 by default). Several prices for the same variant make **quantity tiers**: for example 90.00 from 10 units and 85.00 from 50. The product page lists the tiers that are lower than the current price as "10 or more: 90.00 each".
 

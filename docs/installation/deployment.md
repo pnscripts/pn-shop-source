@@ -43,7 +43,7 @@ On shared hosting with Apache, the `public/.htaccess` that ships with the projec
 ## .env
 
 - `APP_ENV=production` and `APP_DEBUG=false`.
-- `APP_URL`: the shop's real HTTPS address. Once installed, the shop only answers for this host and its subdomains, plus `PNSHOP_TRUSTED_HOSTS`.
+- `APP_URL`: the shop's real HTTPS address. Once installed, the shop only answers for this host and its subdomains, plus `PNSHOP_TRUSTED_HOSTS` and the domains of active [channels](../ecommerce/channels.md). Each channel domain also needs its DNS, a web server name and an HTTPS certificate.
 - `TRUSTED_PROXIES`: behind a load balancer, Cloudflare or a reverse proxy, the proxies' IPs or ranges (or `*`). Without it, rate limits see every visitor as the proxy.
 - `MAIL_*`: a real mail service, so order emails arrive.
 - `SESSION_SECURE_COOKIE=true` when the shop is HTTPS only.

@@ -13,6 +13,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 | [security/security.md](security/security.md) | Security model, hardening, production checklist |
 | [administration/staff-and-roles.md](administration/staff-and-roles.md) | Admin panel, staff accounts, roles and the activity log |
 | [ecommerce/catalog-and-inventory.md](ecommerce/catalog-and-inventory.md) | Products, variants, options, categories, brands, attributes, images, inventory |
+| [ecommerce/channels.md](ecommerce/channels.md) | Several storefronts on one installation: domains and paths, languages, currency, theme, catalog per channel, reports |
 | [ecommerce/stock-locations.md](ecommerce/stock-locations.md) | Several warehouses and shops: stock per location, transfers, where orders are served and shipped from, store pickup |
 | [ecommerce/pricing.md](ecommerce/pricing.md) | Price lists, quantity tiers, business customer groups (net prices, minimum order, invoice payment), prices for signed-in customers only |
 | [ecommerce/customers-cart-and-checkout.md](ecommerce/customers-cart-and-checkout.md) | Customer accounts and groups, address books, carts, the totals pipeline, checkout, reservations, spam protection |
@@ -43,6 +44,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 
 | Release | Notes |
 |---|---|
+| 1.5.0 | [upgrades/2026-10-release-1.5.md](upgrades/2026-10-release-1.5.md): channels — several storefronts with their own domain, languages, currency, theme and catalog |
 | 1.4.0 | [upgrades/2026-10-release-1.4.md](upgrades/2026-10-release-1.4.md): stock locations, stock per location and transfers, orders shipped per location, pickup at a location |
 | 1.3.0 | [upgrades/2026-10-release-1.3.md](upgrades/2026-10-release-1.3.md): price lists and quantity tiers, business customer groups, invoice payment, prices for signed-in customers only |
 | 1.2.0 | [upgrades/2026-10-release-1.2.md](upgrades/2026-10-release-1.2.md): search and sorting, featured products, low-stock thresholds, stock history |

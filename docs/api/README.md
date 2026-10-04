@@ -18,6 +18,7 @@ The default React storefront does not use these APIs. It shares the same service
   - A customer token works only on the Store API, and a staff token only on the Admin API.
 - **Language:** set it with `?locale=bg` or `Accept-Language`, using one of the store's languages; otherwise the store default is used. The response says which language was used in `Content-Language`.
 - **Money:** amounts are returned as `{"amount": "19.90", "minor": 1990, "currency": "EUR", "formatted": "€19.90"}`. Admin API input takes decimal amounts in the store currency (`"price": "19.90"`).
+- **Channels:** each request is served by the [channel](../ecommerce/channels.md) of its domain or path, also on the APIs: the Store API shows that channel's catalog, in its currency and languages. Admin API orders carry their `channel` (filter with `filter[channel]=<code>`), and products their `channel_ids`.
 - **Prices:** Store API product prices are those of the token's customer (their group's price lists and tax display), or a guest's without a token. `price_includes_tax` says whether they include tax, and prices are `null` for guests when the shop shows prices to signed-in customers only. See [Pricing](../ecommerce/pricing.md).
 - **Dates:** ISO 8601.
 - **Lists:** cursor-paginated.
@@ -117,7 +118,7 @@ php artisan pnshop:api-token ops@example.com --name="ERP" --ability=catalog.prod
 | `GET /customers`, `GET /customers/{id}`, `PATCH /customers/{id}` | `customers.view` / `customers.manage` |
 | `/pages` (CRUD, blocks per language) | `content.pages.manage` (+ `cms.html_block` for HTML blocks) |
 | `GET /returns`, `GET /returns/{id}`, `POST /returns/{id}/transitions` | `sales.returns.manage` |
-| `/price-lists` (CRUD), `GET/PUT /price-lists/{id}/prices` (by SKU, up to 1000 rows) | `catalog.prices.manage` |
+| `/price-lists` (CRUD, `currency` on create), `GET/PUT /price-lists/{id}/prices` (by SKU, up to 1000 rows) | `catalog.prices.manage` |
 | `/promotions` (CRUD), `POST /promotions/{id}/coupons` (generate codes) | `marketing.promotions.manage` |
 | `GET /settings`, `GET/PATCH /settings/{namespace}` | `system.settings.manage` |
 | `GET /extensions`, `GET /themes` | `system.extensions.manage`, `appearance.themes.manage` |

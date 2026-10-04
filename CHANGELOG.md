@@ -2,6 +2,23 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## 1.5.0 (2026-10-04)
+
+Several storefronts (channels) on one installation. See [Channels](docs/ecommerce/channels.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.5.md).
+
+### Added
+
+- **Channels** (Admin → Store → Channels): storefronts on their own domain, path or both. Each has its own:
+  - languages (and default language);
+  - currency;
+  - theme;
+  - store name and contact details, tax country and search engine indexing;
+  - stock locations, payment methods and shipping methods.
+- **Currency per channel:** catalog prices, shipping costs, promotion amounts and limits are converted with the exchange rate. Price lists in the channel's currency set exact prices.
+- **Catalog per channel:** products, categories and pages can be limited to channels (Admin API `channel_ids` on products).
+- **Orders, carts and customers** record their channel. Carts are kept per channel; order emails and links use the order's channel.
+- **Reports per channel:** a dashboard *Channel* filter, a *Sales today* stat per currency, and a channel column and filter on orders (Admin API `filter[channel]`).
+
 ## 1.4.0 (2026-10-04)
 
 Several stock locations. See [Stock locations](docs/ecommerce/stock-locations.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.4.md).
