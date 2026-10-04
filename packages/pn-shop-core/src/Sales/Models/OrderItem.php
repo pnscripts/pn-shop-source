@@ -90,7 +90,7 @@ class OrderItem extends Model
      */
     public function allocations(): HasMany
     {
-        return $this->hasMany(OrderItemAllocation::class);
+        return $this->hasMany(OrderItemAllocation::class)->orderBy('id');
     }
 
     /**

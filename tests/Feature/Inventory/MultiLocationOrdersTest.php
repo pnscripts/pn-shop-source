@@ -208,11 +208,13 @@ class MultiLocationOrdersTest extends AdminTestCase
         $this->assertSame([2, 0], $this->level($this->main));
 
         $headers = ['Authorization' => 'Bearer '.app(StaffTokens::class)->issue(AdminUser::factory()->administrator()->create(), 'erp', ['*'])->plainTextToken];
-        $this->withHeaders($headers)->postJson("/api/admin/v1/orders/{$order->id}/shipments", ['location' => 'sofia'])
+        $detail = $this->withHeaders($headers)->postJson("/api/admin/v1/orders/{$order->id}/shipments", ['location' => 'sofia'])
             ->assertCreated()
-            ->assertJsonPath('data.shipments.1.location', 'sofia')
-            ->assertJsonPath("data.allocations.{$item->id}.1.quantity_shipped", 4)
-            ->assertJsonPath('data.fulfillment_status', 'fulfilled');
+            ->assertJsonPath('data.fulfillment_status', 'fulfilled')
+            ->json('data');
+
+        $this->assertEqualsCanonicalizing(['default', 'sofia'], array_column($detail['shipments'], 'location'));
+        $this->assertSame(['default' => 1, 'sofia' => 4], collect($detail['allocations'][$item->id])->sortBy('location')->pluck('quantity_shipped', 'location')->all());
 
         $this->assertLedgerBalances();
     }
