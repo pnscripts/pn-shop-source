@@ -47,7 +47,7 @@ class OrderController extends AdminController
      *
      * Newest first unless sorted. Filters: `filter[status]`, `filter[payment_status]`,
      * `filter[fulfillment_status]`, `filter[email]`, `filter[customer_id]`,
-     * `filter[updated_since]`. Sort: `id`, `updated_at`.
+     * `filter[updated_since]`, `filter[channel]` (a channel code). Sort: `id`, `updated_at`.
      *
      * @return array<string, mixed>
      */
@@ -59,7 +59,7 @@ class OrderController extends AdminController
         $filter = (array) $request->input('filter', []);
 
         // Lines: orders placed before stored totals compute theirs from the lines.
-        $orders = $this->updatedSince(Order::query()->with('items'), $request)
+        $orders = $this->updatedSince(Order::query()->with(['items', 'channel']), $request)
             ->tap(function (Builder $query) use ($filter): void {
                 foreach (array_keys(self::STATES) as $field) {
                     if (isset($filter[$field])) {
@@ -69,6 +69,7 @@ class OrderController extends AdminController
             })
             ->when(isset($filter['email']), fn (Builder $query) => $query->where('email', (string) $filter['email']))
             ->when(isset($filter['customer_id']), fn (Builder $query) => $query->where('user_id', (int) $filter['customer_id']))
+            ->when(isset($filter['channel']), fn (Builder $query) => $query->whereHas('channel', fn (Builder $channel) => $channel->where('code', (string) $filter['channel'])))
             ->reorder()
             ->orderBy('orders.'.$column, $direction)
             ->when($column !== 'id', fn (Builder $query) => $query->orderBy('orders.id', $direction))
@@ -79,6 +80,7 @@ class OrderController extends AdminController
             ...OrderPresenter::summary($order),
             'email' => $order->email,
             'customer_id' => $order->user_id,
+            'channel' => $order->channel?->code,
             'updated_at' => $order->updated_at?->toIso8601String(),
         ]);
     }
@@ -242,6 +244,7 @@ class OrderController extends AdminController
                 'quantity_shipped' => $allocation->quantity_shipped,
             ])->values()->all()])->all(),
             'customer_id' => $order->user_id,
+            'channel' => $order->channel?->code,
             'stock_status' => $order->stock_status->value,
             'updated_at' => $order->updated_at?->toIso8601String(),
             'transitions' => array_map(

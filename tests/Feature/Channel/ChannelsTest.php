@@ -7,11 +7,15 @@ use Illuminate\Notifications\Events\NotificationSending;
 use Illuminate\Notifications\Events\NotificationSent;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
+use PnShop\Acl\Models\AdminUser;
+use PnShop\Api\StaffTokens;
 use PnShop\Catalog\Models\Product;
 use PnShop\Channel\Channels;
 use PnShop\Channel\Filament\Resources\Channels\Pages\CreateChannel;
 use PnShop\Channel\Models\Channel;
 use PnShop\Payment\Models\PaymentMethod;
+use PnShop\Sales\Filament\Resources\Orders\Pages\ListOrders;
+use PnShop\Sales\Filament\Widgets\StoreStatsOverview;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\Notifications\OrderConfirmation;
 use PnShop\Settings\Settings;
@@ -129,5 +133,32 @@ class ChannelsTest extends AdminTestCase
         $outlet = Channel::query()->where('code', 'outlet')->sole();
         $this->assertSame('PN Outlet', $outlet->setting('store.name'));
         $this->assertContains('outlet.example.test', app(Channels::class)->hostnames());
+    }
+
+    public function test_staff_see_orders_and_sales_per_channel(): void
+    {
+        // Placed today: 20.00 in the main store, 40.00 on the trade channel.
+        Order::factory()->create(['channel_id' => $this->main->id, 'currency' => 'USD', 'total' => '20.00']);
+        Order::factory()->create(['channel_id' => $this->trade->id, 'currency' => 'USD', 'total' => '40.00']);
+
+        $main = Order::query()->where('channel_id', $this->main->id)->sole();
+        $trade = Order::query()->where('channel_id', $this->trade->id)->sole();
+        $this->actingAsAdministrator();
+
+        Livewire::test(StoreStatsOverview::class, ['pageFilters' => ['channel_id' => $this->trade->id]])
+            ->assertSee('$40.00')
+            ->assertDontSee('$60.00');
+        Livewire::test(StoreStatsOverview::class)->assertSee('$60.00');
+
+        Livewire::test(ListOrders::class)
+            ->filterTable('channel_id', $this->trade->id)
+            ->assertCanSeeTableRecords([$trade])
+            ->assertCanNotSeeTableRecords([$main]);
+
+        $headers = ['Authorization' => 'Bearer '.app(StaffTokens::class)->issue(AdminUser::factory()->administrator()->create(), 'erp', ['*'])->plainTextToken];
+        $this->withHeaders($headers)->getJson('http://localhost/api/admin/v1/orders?filter[channel]=trade')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.channel', 'trade');
     }
 }
