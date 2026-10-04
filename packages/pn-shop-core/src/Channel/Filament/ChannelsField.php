@@ -3,6 +3,7 @@
 namespace PnShop\Channel\Filament;
 
 use Filament\Forms\Components\Select;
+use Illuminate\Database\Eloquent\Builder;
 use PnShop\Channel\Models\Channel;
 
 /**
@@ -15,7 +16,9 @@ final class ChannelsField
     {
         return Select::make('channels')
             ->label('Channels')
-            ->relationship('channels', 'name')
+            // Only id and name: PostgreSQL cannot compare the json columns in the DISTINCT
+            // Filament adds for this relationship.
+            ->relationship('channels', 'name', modifyQueryUsing: fn (Builder $query) => $query->select(['channels.id', 'channels.name']))
             ->multiple()
             ->preload()
             ->placeholder('Every channel')
