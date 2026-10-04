@@ -3,7 +3,7 @@
 Status: **approved** (2026-10-02), decisions P1–P5 as recommended.
 - 1.1 was released on 2026-10-02.
 - 1.2, added on 2026-10-03 after the audit of 1.1, closes catalog and storefront gaps.
-- 1.3 (pricing and B2B basics) was released on 2026-10-03.
+- 1.3 (pricing and B2B basics) was released on 2026-10-04.
 - 1.4 (locations) is next.
 - The later releases keep their order, each one number higher.
 
