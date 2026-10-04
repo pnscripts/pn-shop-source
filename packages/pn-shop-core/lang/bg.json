@@ -361,5 +361,8 @@
     "Visit the shop": "Към магазина",
     "We have sent your exchange as order :order.": "Изпратихме замяната ви като поръчка :order.",
     "Exchanged": "Заменено",
-    "Exchanged for order :order": "Заменено с поръчка :order"
+    "Exchanged for order :order": "Заменено с поръчка :order",
+    "Download the return label": "Изтеглете етикета за връщане",
+    "Return label for :number": "Етикет за връщане :number",
+    "Print the return label and attach it to the parcel with the items for return :number.": "Отпечатайте етикета за връщане и го залепете на пратката с артикулите от връщане :number."
 }

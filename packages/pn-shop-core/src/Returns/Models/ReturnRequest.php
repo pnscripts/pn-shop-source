@@ -28,6 +28,9 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property bool $restocked
  * @property int|null $refund_id
  * @property int|null $exchange_order_id
+ * @property string|null $return_label_url
+ * @property string|null $return_tracking_number
+ * @property string|null $return_carrier
  * @property Carbon|null $approved_at
  * @property Carbon|null $received_at
  * @property Carbon|null $closed_at

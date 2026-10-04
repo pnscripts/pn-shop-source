@@ -127,4 +127,25 @@ class ReturnController extends AdminController
 
         return response()->json(['data' => [...ReturnPresenter::present($return->refresh()), 'exchange_order_id' => $order->id]], 201);
     }
+
+    /**
+     * Create a return label
+     *
+     * For an approved return whose order shipped with a carrier that issues return labels;
+     * the label is emailed to the customer. 422 otherwise.
+     *
+     * @return array<string, mixed>
+     */
+    public function label(Request $request, ReturnRequest $return, ReturnService $returns): array
+    {
+        Gate::authorize('update', $return);
+
+        try {
+            $returns->createLabel($return, $this->admin($request));
+        } catch (OrderException $e) {
+            throw ValidationException::withMessages(['return' => $e->getMessage()]);
+        }
+
+        return ['data' => ReturnPresenter::present($return->refresh())];
+    }
 }

@@ -17,6 +17,8 @@ export interface OrderReturn {
     items: number;
     /** The number of the order the items were exchanged for. */
     exchange_order?: string | null;
+    /** The carrier's return label to print, when staff created one. */
+    return_label_url?: string | null;
     created_at: string | null;
 }
 
@@ -69,6 +71,18 @@ export function OrderReturns({ orderId, returns, returnable }: { orderId: number
                                 </span>
                                 <span className="font-medium">{item.status_label}</span>
                             </div>
+                            {item.return_label_url && (
+                                <p>
+                                    <a
+                                        href={item.return_label_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline underline-offset-4"
+                                    >
+                                        {t('Download the return label')}
+                                    </a>
+                                </p>
+                            )}
                             {item.exchange_order && (
                                 <p className="text-muted-foreground">{t('Exchanged for order :order', { order: item.exchange_order })}</p>
                             )}

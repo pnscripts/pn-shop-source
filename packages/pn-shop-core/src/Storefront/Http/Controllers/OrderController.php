@@ -71,6 +71,7 @@ class OrderController extends Controller
                 'staff_note' => $return->staff_note,
                 'items' => (int) $return->lines->sum('quantity'),
                 'exchange_order' => $return->exchangeOrder?->number,
+                'return_label_url' => $return->return_label_url,
                 'created_at' => self::displayDate($return->created_at, 'LL'),
             ]),
             'returnable' => $this->returnable($order, $returns),

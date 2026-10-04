@@ -60,6 +60,15 @@ class ReturnRequestResource extends Resource
                 TextEntry::make('number')->copyable(),
                 TextEntry::make('status')->badge(),
                 TextEntry::make('reason')->state(fn (ReturnRequest $record) => $record->reason->label()),
+                TextEntry::make('return_label_url')
+                    ->label('Return label')
+                    ->state(fn (ReturnRequest $record) => $record->return_label_url === null ? null : (trim(($record->return_carrier ?? '').' '.($record->return_tracking_number ?? '')) ?: 'Download'))
+                    ->url(fn (ReturnRequest $record) => $record->return_label_url, shouldOpenInNewTab: true)
+                    ->visible(fn (ReturnRequest $record) => $record->return_label_url !== null),
+                TextEntry::make('exchangeOrder.number')
+                    ->label('Exchanged for')
+                    ->url(fn (ReturnRequest $record) => $record->exchange_order_id !== null ? OrderResource::getUrl('view', ['record' => $record->exchange_order_id]) : null)
+                    ->visible(fn (ReturnRequest $record) => $record->exchange_order_id !== null),
                 TextEntry::make('order.number')->label('Order')->url(fn (ReturnRequest $record) => OrderResource::getUrl('view', ['record' => $record->order_id])),
                 TextEntry::make('order.email')->label('Customer')->copyable(),
                 TextEntry::make('created_at')->label('Requested')->dateTime(),

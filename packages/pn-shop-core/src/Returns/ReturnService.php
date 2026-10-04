@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Notification;
 use PnShop\Acl\Models\AdminUser;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Customer\Models\User;
+use PnShop\Customer\PostalAddress;
 use PnShop\Foundation\NumberSequence;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\StockMovementReason;
@@ -17,14 +18,18 @@ use PnShop\Payment\Models\Refund;
 use PnShop\Payment\RefundService;
 use PnShop\Returns\Models\ReturnRequest;
 use PnShop\Returns\Models\ReturnRequestLine;
+use PnShop\Returns\Notifications\ReturnLabelIssued;
 use PnShop\Returns\Notifications\ReturnUpdated;
 use PnShop\Sales\Exceptions\OrderException;
 use PnShop\Sales\Models\Order;
+use PnShop\Sales\Models\OrderAddress;
 use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\FulfillmentStatus;
 use PnShop\Sales\States\OrderStatus;
 use PnShop\Sales\StockAllocations;
 use PnShop\Settings\Settings;
+use PnShop\Shipping\Contracts\ProvidesReturnLabels;
+use PnShop\Shipping\ReturnLabelRequest;
 
 /**
  * Return requests (RMA): customers ask to send shipped units back within the return
@@ -230,6 +235,94 @@ class ReturnService
     public function receivedQuantities(ReturnRequest $return): array
     {
         return $return->lines()->get()->mapWithKeys(fn (ReturnRequestLine $line) => [$line->order_item_id => $line->quantity_received])->filter()->all();
+    }
+
+    /**
+     * Whether the order's carrier can issue a return label for this return now.
+     */
+    public function canCreateLabel(ReturnRequest $return): bool
+    {
+        return $return->status === ReturnStatus::Approved
+            && $return->return_label_url === null
+            && $this->labelCarrier($return) !== null;
+    }
+
+    /**
+     * Ask the order's carrier for a return label and send it to the customer.
+     *
+     * @throws OrderException when the carrier cannot or does not issue one.
+     */
+    public function createLabel(ReturnRequest $return, ?Model $actor = null): ReturnRequest
+    {
+        if ($return->status !== ReturnStatus::Approved) {
+            throw new OrderException(__('Return labels are created for approved returns.'));
+        }
+
+        $order = $return->order()->with(['shippingMethod', 'addresses', 'items.allocations.location'])->firstOrFail();
+        $carrier = $this->labelCarrier($return);
+        $method = $order->shippingMethod;
+
+        if ($carrier === null || $method === null) {
+            throw new OrderException(__('The carrier of this order cannot issue return labels.'));
+        }
+
+        $shipping = $order->addresses->firstWhere('type', OrderAddress::SHIPPING);
+        $return->loadMissing('lines.orderItem');
+
+        try {
+            $label = $carrier->returnLabel(new ReturnLabelRequest(
+                $return->number,
+                $shipping?->toPostalAddress() ?? PostalAddress::fromArray([]),
+                $this->returnAddress($order),
+                array_values($return->lines->map(fn (ReturnRequestLine $line) => [
+                    'title' => (string) $line->orderItem?->product_title,
+                    'quantity' => $line->quantity,
+                    'weight' => (int) ProductVariant::withTrashed()->whereKey($line->orderItem?->product_variant_id)->value('weight'),
+                ])->all()),
+            ), $method);
+        } catch (\RuntimeException $e) {
+            throw new OrderException(__('The carrier did not issue a label: :message', ['message' => $e->getMessage()]));
+        }
+
+        $return->forceFill([
+            'return_label_url' => $label->labelUrl,
+            'return_tracking_number' => $label->trackingNumber,
+            'return_carrier' => $method->name,
+        ])->save();
+
+        $this->workflow->addNote($order, __('Return :number: return label created.', ['number' => $return->number]), $actor);
+
+        Notification::route('mail', $order->email)->notify((new ReturnLabelIssued($return))->locale($order->locale));
+
+        return $return;
+    }
+
+    private function labelCarrier(ReturnRequest $return): ?ProvidesReturnLabels
+    {
+        $carrier = $return->order?->shippingMethod?->carrierInstance();
+
+        return $carrier instanceof ProvidesReturnLabels ? $carrier : null;
+    }
+
+    /** Where returns go: the stock location the items shipped from, with the store's name. */
+    private function returnAddress(Order $order): ?PostalAddress
+    {
+        $location = $order->items->flatMap(fn ($item) => $item->allocations)->first(fn ($allocation) => $allocation->quantity_shipped > 0)?->location;
+
+        if ($location === null || $location->address === null) {
+            return null;
+        }
+
+        $settings = app(Settings::class);
+
+        return PostalAddress::fromArray([
+            'company' => (string) $settings->get('store.name'),
+            'line1' => $location->address,
+            'city' => $location->city,
+            'postcode' => $location->postcode,
+            'country_code' => $location->country_code,
+            'phone' => $settings->get('store.phone'),
+        ]);
     }
 
     /**

@@ -40,6 +40,7 @@ final class ReturnPresenter
             'refunded' => MoneyPresenter::present($return->refund?->amount),
             // Store credit, or the order the items were exchanged for.
             'refunded_to' => $return->refund?->destination,
+            'return_label' => $return->return_label_url === null ? null : ['url' => $return->return_label_url, 'tracking_number' => $return->return_tracking_number, 'carrier' => $return->return_carrier],
             'exchange_order' => $return->exchangeOrder === null ? null : ['id' => $return->exchangeOrder->id, 'number' => $return->exchangeOrder->number],
             'transitions' => array_map(fn (ReturnStatus $status) => $status->value, $return->status->transitions()),
             'created_at' => $return->created_at?->toIso8601String(),

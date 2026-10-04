@@ -52,6 +52,13 @@ class ViewReturnRequest extends ViewRecord
                 ->visible(fn () => $this->can(ReturnStatus::Rejected))
                 ->schema([$note('Reason (sent to the customer)')->required()])
                 ->action(fn (array $data) => $this->run(fn (ReturnService $returns) => $returns->reject($this->return(), $data['note'], auth('admin')->user()), 'Return rejected.')),
+            Action::make('returnLabel')
+                ->label('Create return label')
+                ->icon(Heroicon::OutlinedPrinter)
+                ->visible(fn () => app(ReturnService::class)->canCreateLabel($this->return()))
+                ->requiresConfirmation()
+                ->modalDescription('Asks the order\'s carrier for a return label and emails it to the customer.')
+                ->action(fn () => $this->run(fn (ReturnService $returns) => $returns->createLabel($this->return(), auth('admin')->user()), 'Return label sent to the customer.')),
             Action::make('receive')
                 ->label('Mark received')
                 ->icon(Heroicon::OutlinedInboxArrowDown)
