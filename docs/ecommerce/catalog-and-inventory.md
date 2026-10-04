@@ -68,7 +68,7 @@ Ordered lists chosen on the product form:
 
 | Table | Purpose |
 |---|---|
-| `stock_locations` | Where stock is kept. One default location ("Main warehouse") is created. |
+| `stock_locations` | Where stock is kept. One default location ("Main warehouse") is created; add warehouses and shops in Admin → Catalog → Stock locations. See [Stock locations](stock-locations.md). |
 | `stock_levels` | `on_hand` and `reserved` per variant and location. *Available* = on hand − reserved. |
 | `stock_movements` | Append-only ledger: quantity, resulting on-hand, reason, the order (or other record) that caused it, the admin user, a note. |
 
@@ -77,7 +77,8 @@ All changes go through `PnShop\Inventory\InventoryService`:
 ```php
 $inventory->adjust($variant, -2, StockMovementReason::Order, $order); // throws InsufficientStock if it would oversell
 $inventory->setOnHand($variant, 40, $admin, 'Stock take');            // records the difference as an adjustment
-$inventory->available($variant);                                      // null when the variant does not track stock
+$inventory->available($variant);                                      // online locations; null when the variant does not track stock
+$inventory->transfer($variant, $from, $to, 3, $admin);                 // between locations, recorded at both
 ```
 
 - Decrements are a single conditional `UPDATE`, so concurrent checkouts can never oversell.
@@ -88,6 +89,7 @@ $inventory->available($variant);                                      // null wh
   - cancelling a shipped order: `order_cancelled`, returning stock;
   - reopening a cancelled order straight to shipped: `order_reopened`;
   - admin edits: `adjustment`;
+  - moving stock between locations: `transfer`;
   - orders placed before Phase 5 recorded `order` at checkout.
 - **Low stock:** the dashboard's *Low stock* widget lists tracked variants at or below their *Low stock at* value (variant form), or 5 units when it is empty.
 - **Stock history:** the *Stock history* tab of a product lists every movement of its variants, with the reason, the change, the on-hand count after it and who made it.

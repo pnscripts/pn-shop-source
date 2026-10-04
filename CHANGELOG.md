@@ -2,6 +2,24 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## 1.4.0 (2026-10-04)
+
+Several stock locations. See [Stock locations](docs/ecommerce/stock-locations.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.4.md).
+
+### Added
+
+- **Stock locations:** warehouses and shops with an address, a position and *Sells online*. A default location can be chosen, and a location can be deleted only once it is empty. Admin API `/stock-locations`.
+- **Stock per location:** *Stock by location* and *Transfer stock* on products and variants. Transfers are recorded in the stock history at both locations. The Admin API takes `location` on `POST /variants/{id}/stock` and adds `POST /variants/{id}/stock/transfers`; variants list their stock per location.
+- **Orders served per location:** checkout reserves each line at the locations that sell online:
+  - the customer's country first, then the default location, then by position;
+  - one location per line when it can, split across locations otherwise.
+- **Shipping from a location:** each shipment leaves from a location, the one holding the units or one staff choose (*Ships from*, Admin API `location`). Cancelling, reopening, refunds and returns move stock at the right locations, so the ledger balances per location.
+- **Store pickup at a location:** pickup methods can name a stock location. Orders reserve their units there, and checkout shows whether everything is in stock there.
+
+### Changed
+
+- The storefront's stock counts only active locations that sell online. With one location nothing changes.
+
 ## 1.3.0 (2026-10-04)
 
 Pricing and business customers. See [Pricing and business customers](docs/ecommerce/pricing.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.3.md).

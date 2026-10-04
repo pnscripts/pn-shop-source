@@ -18,7 +18,7 @@ A **shipping method** belongs to a zone and uses a **carrier**, which prices the
 |---|---|---|
 | Flat rate (`flat_rate`) | price, once per order or per item | the price |
 | Free shipping (`free_shipping`) | minimum subtotal (optional) | free, offered only from the minimum |
-| Pickup (`pickup`) | price (usually 0), address and hours | the price |
+| Pickup (`pickup`) | price (usually 0), address and hours, stock location (optional) | the price; with a stock location, orders reserve their units there and checkout shows whether everything is in stock there ([details](stock-locations.md#store-pickup)) |
 | By weight (`weight_based`) | lines of `grams: price` | the first band at or above the order weight; heavier orders are not offered this method |
 | By order subtotal (`price_based`) | lines of `subtotal: price` | the band the subtotal falls into |
 
@@ -42,6 +42,7 @@ A **shipping method** belongs to a zone and uses a **carrier**, which prices the
 *Create shipment* on the order page ships some or all of the remaining lines, with an optional tracking number and note.
 
 - **Stock:** shipped units leave the shelf when they ship (`order_fulfilled` movements). Partial shipments are never taken twice.
+- **Location:** with several stock locations, each shipment leaves from one of them (*Ships from*). See [Stock locations](stock-locations.md#shipping-from-a-location).
 - **Order state:** the order becomes *Partially shipped* or *Shipped*.
 - **Customer view:** customers see their parcels and tracking links on the order page.
 - **Shipped without a shipment:** *Update fulfillment → Shipped* still marks everything shipped at once, with no shipment record.

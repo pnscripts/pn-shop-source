@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "PN Shop Admin API",
-        "version": "1.3.0",
+        "version": "1.4.0",
         "description": "Integrations (ERP, accounting, PIM) with staff tokens created under System \u2192 API tokens or with `php artisan pnshop:api-token`.\n\n* **Permissions:** a token's abilities are permission keys, so a call needs the token ability and the owner's permission.\n* **Errors:** `application/problem+json` with a stable `code`.\n* **Lists:** cursor-paginated, with `filter[updated_since]` for incremental sync."
     },
     "servers": [
@@ -2227,6 +2227,7 @@
                                                 },
                                                 "shipments": {
                                                     "type": "array",
+                                                    "description": "With the stock location (code) each parcel left from.",
                                                     "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -2259,6 +2260,12 @@
                                                             },
                                                             "quantity": {
                                                                 "type": "integer"
+                                                            },
+                                                            "location": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
@@ -2267,7 +2274,8 @@
                                                             "tracking_number",
                                                             "tracking_url",
                                                             "shipped_at",
-                                                            "quantity"
+                                                            "quantity",
+                                                            "location"
                                                         ]
                                                     }
                                                 },
@@ -2332,6 +2340,35 @@
                                                     "required": [
                                                         "number"
                                                     ]
+                                                },
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "description": "Where each line's units are held (stock location codes), and how many shipped from there.",
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "location": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity_shipped": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "location",
+                                                                "quantity",
+                                                                "quantity_shipped"
+                                                            ]
+                                                        }
+                                                    }
                                                 },
                                                 "customer_id": {
                                                     "type": [
@@ -2522,6 +2559,7 @@
                                                 "shipments",
                                                 "refunds",
                                                 "invoice",
+                                                "allocations",
                                                 "customer_id",
                                                 "stock_status",
                                                 "updated_at",
@@ -3008,6 +3046,7 @@
                                                 },
                                                 "shipments": {
                                                     "type": "array",
+                                                    "description": "With the stock location (code) each parcel left from.",
                                                     "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -3040,6 +3079,12 @@
                                                             },
                                                             "quantity": {
                                                                 "type": "integer"
+                                                            },
+                                                            "location": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
@@ -3048,7 +3093,8 @@
                                                             "tracking_number",
                                                             "tracking_url",
                                                             "shipped_at",
-                                                            "quantity"
+                                                            "quantity",
+                                                            "location"
                                                         ]
                                                     }
                                                 },
@@ -3113,6 +3159,35 @@
                                                     "required": [
                                                         "number"
                                                     ]
+                                                },
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "description": "Where each line's units are held (stock location codes), and how many shipped from there.",
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "location": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity_shipped": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "location",
+                                                                "quantity",
+                                                                "quantity_shipped"
+                                                            ]
+                                                        }
+                                                    }
                                                 },
                                                 "customer_id": {
                                                     "type": [
@@ -3303,6 +3378,7 @@
                                                 "shipments",
                                                 "refunds",
                                                 "invoice",
+                                                "allocations",
                                                 "customer_id",
                                                 "stock_status",
                                                 "updated_at",
@@ -3777,6 +3853,7 @@
                                                 },
                                                 "shipments": {
                                                     "type": "array",
+                                                    "description": "With the stock location (code) each parcel left from.",
                                                     "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -3809,6 +3886,12 @@
                                                             },
                                                             "quantity": {
                                                                 "type": "integer"
+                                                            },
+                                                            "location": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
@@ -3817,7 +3900,8 @@
                                                             "tracking_number",
                                                             "tracking_url",
                                                             "shipped_at",
-                                                            "quantity"
+                                                            "quantity",
+                                                            "location"
                                                         ]
                                                     }
                                                 },
@@ -3882,6 +3966,35 @@
                                                     "required": [
                                                         "number"
                                                     ]
+                                                },
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "description": "Where each line's units are held (stock location codes), and how many shipped from there.",
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "location": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity_shipped": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "location",
+                                                                "quantity",
+                                                                "quantity_shipped"
+                                                            ]
+                                                        }
+                                                    }
                                                 },
                                                 "customer_id": {
                                                     "type": [
@@ -4072,6 +4185,7 @@
                                                 "shipments",
                                                 "refunds",
                                                 "invoice",
+                                                "allocations",
                                                 "customer_id",
                                                 "stock_status",
                                                 "updated_at",
@@ -4103,7 +4217,7 @@
         "/orders/{order}/shipments": {
             "post": {
                 "operationId": "admin.orders.shipments.store",
-                "description": "Records a shipment. `items` maps order item ids to quantities; leave it out to ship\neverything not shipped yet.",
+                "description": "Records a shipment. `items` maps order item ids to quantities; leave it out to ship\neverything not shipped yet. `location` is the stock location code it leaves from:\nwithout it, the location holding the units (422 when they are held at several);\nwith it and without `items`, everything waiting there ships.",
                 "summary": "Ship items",
                 "tags": [
                     "Order"
@@ -4161,6 +4275,12 @@
                                             "null"
                                         ],
                                         "maxLength": 1000
+                                    },
+                                    "location": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
                                     }
                                 }
                             }
@@ -4559,6 +4679,7 @@
                                                 },
                                                 "shipments": {
                                                     "type": "array",
+                                                    "description": "With the stock location (code) each parcel left from.",
                                                     "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -4591,6 +4712,12 @@
                                                             },
                                                             "quantity": {
                                                                 "type": "integer"
+                                                            },
+                                                            "location": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
@@ -4599,7 +4726,8 @@
                                                             "tracking_number",
                                                             "tracking_url",
                                                             "shipped_at",
-                                                            "quantity"
+                                                            "quantity",
+                                                            "location"
                                                         ]
                                                     }
                                                 },
@@ -4664,6 +4792,35 @@
                                                     "required": [
                                                         "number"
                                                     ]
+                                                },
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "description": "Where each line's units are held (stock location codes), and how many shipped from there.",
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "location": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity_shipped": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "location",
+                                                                "quantity",
+                                                                "quantity_shipped"
+                                                            ]
+                                                        }
+                                                    }
                                                 },
                                                 "customer_id": {
                                                     "type": [
@@ -4854,6 +5011,7 @@
                                                 "shipments",
                                                 "refunds",
                                                 "invoice",
+                                                "allocations",
                                                 "customer_id",
                                                 "stock_status",
                                                 "updated_at",
@@ -5344,6 +5502,7 @@
                                                 },
                                                 "shipments": {
                                                     "type": "array",
+                                                    "description": "With the stock location (code) each parcel left from.",
                                                     "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -5376,6 +5535,12 @@
                                                             },
                                                             "quantity": {
                                                                 "type": "integer"
+                                                            },
+                                                            "location": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
@@ -5384,7 +5549,8 @@
                                                             "tracking_number",
                                                             "tracking_url",
                                                             "shipped_at",
-                                                            "quantity"
+                                                            "quantity",
+                                                            "location"
                                                         ]
                                                     }
                                                 },
@@ -5449,6 +5615,35 @@
                                                     "required": [
                                                         "number"
                                                     ]
+                                                },
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "description": "Where each line's units are held (stock location codes), and how many shipped from there.",
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "location": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity_shipped": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "location",
+                                                                "quantity",
+                                                                "quantity_shipped"
+                                                            ]
+                                                        }
+                                                    }
                                                 },
                                                 "customer_id": {
                                                     "type": [
@@ -5639,6 +5834,7 @@
                                                 "shipments",
                                                 "refunds",
                                                 "invoice",
+                                                "allocations",
                                                 "customer_id",
                                                 "stock_status",
                                                 "updated_at",
@@ -7523,6 +7719,11 @@
                                                             "available": {
                                                                 "type": "string"
                                                             },
+                                                            "locations": {
+                                                                "type": "array",
+                                                                "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                                "items": {}
+                                                            },
                                                             "updated_at": {
                                                                 "type": [
                                                                     "string",
@@ -7548,6 +7749,7 @@
                                                             "on_hand",
                                                             "reserved",
                                                             "available",
+                                                            "locations",
                                                             "updated_at"
                                                         ]
                                                     }
@@ -7858,6 +8060,11 @@
                                                             "available": {
                                                                 "type": "string"
                                                             },
+                                                            "locations": {
+                                                                "type": "array",
+                                                                "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                                "items": {}
+                                                            },
                                                             "updated_at": {
                                                                 "type": [
                                                                     "string",
@@ -7883,6 +8090,7 @@
                                                             "on_hand",
                                                             "reserved",
                                                             "available",
+                                                            "locations",
                                                             "updated_at"
                                                         ]
                                                     }
@@ -8338,6 +8546,11 @@
                                                             "available": {
                                                                 "type": "string"
                                                             },
+                                                            "locations": {
+                                                                "type": "array",
+                                                                "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                                "items": {}
+                                                            },
                                                             "updated_at": {
                                                                 "type": [
                                                                     "string",
@@ -8363,6 +8576,7 @@
                                                             "on_hand",
                                                             "reserved",
                                                             "available",
+                                                            "locations",
                                                             "updated_at"
                                                         ]
                                                     }
@@ -10124,6 +10338,616 @@
                 }
             }
         },
+        "/stock-locations": {
+            "get": {
+                "operationId": "admin.stock-locations.index",
+                "description": "The default location first, then by position.",
+                "summary": "List stock locations",
+                "tags": [
+                    "StockLocation"
+                ],
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "code": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "is_default": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "sells_online": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "position": {
+                                                        "type": "integer"
+                                                    },
+                                                    "address": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "city": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "postcode": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "country_code": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "code",
+                                                    "name",
+                                                    "is_default",
+                                                    "is_active",
+                                                    "sells_online",
+                                                    "position",
+                                                    "address",
+                                                    "city",
+                                                    "postcode",
+                                                    "country_code"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "admin.stock-locations.store",
+                "summary": "Create a stock location",
+                "tags": [
+                    "StockLocation"
+                ],
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "maxLength": 64
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "sells_online": {
+                                        "type": "boolean"
+                                    },
+                                    "position": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 65535
+                                    },
+                                    "address": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
+                                    },
+                                    "city": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
+                                    },
+                                    "postcode": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 32
+                                    },
+                                    "country_code": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "minLength": 2,
+                                        "maxLength": 2
+                                    }
+                                },
+                                "required": [
+                                    "code",
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "is_default": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "sells_online": {
+                                                    "type": "boolean"
+                                                },
+                                                "position": {
+                                                    "type": "integer"
+                                                },
+                                                "address": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "city": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "postcode": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "country_code": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "code",
+                                                "name",
+                                                "is_default",
+                                                "is_active",
+                                                "sells_online",
+                                                "position",
+                                                "address",
+                                                "city",
+                                                "postcode",
+                                                "country_code"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/stock-locations/{stockLocation}": {
+            "get": {
+                "operationId": "admin.stock-locations.show",
+                "summary": "Show a stock location",
+                "tags": [
+                    "StockLocation"
+                ],
+                "parameters": [
+                    {
+                        "name": "stockLocation",
+                        "in": "path",
+                        "required": true,
+                        "description": "The stock location ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "is_default": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "sells_online": {
+                                                    "type": "boolean"
+                                                },
+                                                "position": {
+                                                    "type": "integer"
+                                                },
+                                                "address": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "city": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "postcode": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "country_code": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "code",
+                                                "name",
+                                                "is_default",
+                                                "is_active",
+                                                "sells_online",
+                                                "position",
+                                                "address",
+                                                "city",
+                                                "postcode",
+                                                "country_code"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "admin.stock-locations.update",
+                "description": "Send `is_default: true` to make it the default location.",
+                "summary": "Update a stock location",
+                "tags": [
+                    "StockLocation"
+                ],
+                "parameters": [
+                    {
+                        "name": "stockLocation",
+                        "in": "path",
+                        "required": true,
+                        "description": "The stock location ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "maxLength": 64
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "sells_online": {
+                                        "type": "boolean"
+                                    },
+                                    "position": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 65535
+                                    },
+                                    "address": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
+                                    },
+                                    "city": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
+                                    },
+                                    "postcode": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 32
+                                    },
+                                    "country_code": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "minLength": 2,
+                                        "maxLength": 2
+                                    },
+                                    "is_default": {
+                                        "enum": [
+                                            "yes",
+                                            "on",
+                                            "1",
+                                            1,
+                                            "true",
+                                            true
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "is_default": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "sells_online": {
+                                                    "type": "boolean"
+                                                },
+                                                "position": {
+                                                    "type": "integer"
+                                                },
+                                                "address": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "city": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "postcode": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "country_code": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "code",
+                                                "name",
+                                                "is_default",
+                                                "is_active",
+                                                "sells_online",
+                                                "position",
+                                                "address",
+                                                "city",
+                                                "postcode",
+                                                "country_code"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "admin.stock-locations.destroy",
+                "description": "Refused (403) for the default location and for locations that still hold or reserve stock.",
+                "summary": "Delete a stock location",
+                "tags": [
+                    "StockLocation"
+                ],
+                "parameters": [
+                    {
+                        "name": "stockLocation",
+                        "in": "path",
+                        "required": true,
+                        "description": "The stock location ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
         "/extensions": {
             "get": {
                 "operationId": "admin.extensions.index",
@@ -10219,7 +11043,7 @@
                                             "properties": {
                                                 "pnshop_version": {
                                                     "type": "string",
-                                                    "const": "1.3.0"
+                                                    "const": "1.4.0"
                                                 }
                                             },
                                             "required": [
@@ -10672,6 +11496,11 @@
                                                 "available": {
                                                     "type": "string"
                                                 },
+                                                "locations": {
+                                                    "type": "array",
+                                                    "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                    "items": {}
+                                                },
                                                 "updated_at": {
                                                     "type": [
                                                         "string",
@@ -10697,6 +11526,7 @@
                                                 "on_hand",
                                                 "reserved",
                                                 "available",
+                                                "locations",
                                                 "updated_at"
                                             ]
                                         }
@@ -10949,6 +11779,11 @@
                                                 "available": {
                                                     "type": "string"
                                                 },
+                                                "locations": {
+                                                    "type": "array",
+                                                    "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                    "items": {}
+                                                },
                                                 "updated_at": {
                                                     "type": [
                                                         "string",
@@ -10974,6 +11809,7 @@
                                                 "on_hand",
                                                 "reserved",
                                                 "available",
+                                                "locations",
                                                 "updated_at"
                                             ]
                                         }
@@ -11038,7 +11874,7 @@
         "/variants/{variant}/stock": {
             "post": {
                 "operationId": "admin.variants.stock",
-                "description": "Either `on_hand` (a count: the quantity on the shelf now) or `adjust` (a difference,\ne.g. -2 for damaged goods). Recorded in the stock history with the optional `note`.",
+                "description": "Either `on_hand` (a count: the quantity on the shelf now) or `adjust` (a difference,\ne.g. -2 for damaged goods). Recorded in the stock history with the optional `note`.\n`location` is a stock location code; without it the default location is used.",
                 "summary": "Change stock",
                 "tags": [
                     "Variant"
@@ -11084,6 +11920,12 @@
                                             "null"
                                         ],
                                         "maxLength": 500
+                                    },
+                                    "location": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
                                     }
                                 }
                             }
@@ -11216,6 +12058,11 @@
                                                 "available": {
                                                     "type": "string"
                                                 },
+                                                "locations": {
+                                                    "type": "array",
+                                                    "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                    "items": {}
+                                                },
                                                 "updated_at": {
                                                     "type": [
                                                         "string",
@@ -11241,6 +12088,257 @@
                                                 "on_hand",
                                                 "reserved",
                                                 "available",
+                                                "locations",
+                                                "updated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/variants/{variant}/stock/transfers": {
+            "post": {
+                "operationId": "admin.variants.stock.transfers",
+                "description": "Moves `quantity` available units from the location `from` to `to` (location codes),\nrecorded in the stock history at both. Reserved units cannot be moved (422).",
+                "summary": "Transfer stock",
+                "tags": [
+                    "Variant"
+                ],
+                "parameters": [
+                    {
+                        "name": "variant",
+                        "in": "path",
+                        "required": true,
+                        "description": "The variant ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Response language (a store language code); defaults to Accept-Language, then the store default.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "Unique key (e.g. a UUID) that makes retries safe: a repeat within 24 hours returns the first response.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "from": {
+                                        "type": "string"
+                                    },
+                                    "to": {
+                                        "type": "string"
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 10000000
+                                    },
+                                    "note": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "from",
+                                    "to",
+                                    "quantity"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "product_id": {
+                                                    "type": "integer"
+                                                },
+                                                "sku": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "barcode": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "price": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
+                                                },
+                                                "sale_price": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "amount": {
+                                                            "type": "string"
+                                                        },
+                                                        "minor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "formatted": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "amount",
+                                                        "minor",
+                                                        "currency",
+                                                        "formatted"
+                                                    ]
+                                                },
+                                                "weight": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "track_inventory": {
+                                                    "type": "boolean"
+                                                },
+                                                "allow_backorder": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_default": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "low_stock_threshold": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "position": {
+                                                    "type": "integer"
+                                                },
+                                                "option_value_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": [
+                                                            "integer",
+                                                            "string"
+                                                        ]
+                                                    }
+                                                },
+                                                "on_hand": {
+                                                    "type": "integer"
+                                                },
+                                                "reserved": {
+                                                    "type": "integer"
+                                                },
+                                                "available": {
+                                                    "type": "string"
+                                                },
+                                                "locations": {
+                                                    "type": "array",
+                                                    "description": "Per location: what is on the shelf, reserved for orders, and available.",
+                                                    "items": {}
+                                                },
+                                                "updated_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "product_id",
+                                                "sku",
+                                                "barcode",
+                                                "price",
+                                                "sale_price",
+                                                "weight",
+                                                "track_inventory",
+                                                "allow_backorder",
+                                                "is_default",
+                                                "is_active",
+                                                "low_stock_threshold",
+                                                "position",
+                                                "option_value_ids",
+                                                "on_hand",
+                                                "reserved",
+                                                "available",
+                                                "locations",
                                                 "updated_at"
                                             ]
                                         }

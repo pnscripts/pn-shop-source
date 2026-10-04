@@ -108,7 +108,8 @@ php artisan pnshop:api-token ops@example.com --name="ERP" --ability=catalog.prod
 | `GET /me` | the token's owner and abilities |
 | `GET/POST /products`, `GET/PATCH/DELETE /products/{id}` | `catalog.products.view` / `.create` / `.update` / `.delete` |
 | `GET /variants?filter[sku]=`, `POST /products/{id}/variants`, `PATCH/DELETE /variants/{id}` | `catalog.products.view` / `.update` |
-| `POST /variants/{id}/stock` (`on_hand` or `adjust`) | `catalog.inventory.manage` |
+| `POST /variants/{id}/stock` (`on_hand` or `adjust`, optional `location`), `POST /variants/{id}/stock/transfers` | `catalog.inventory.manage` |
+| `/stock-locations` (CRUD) | `catalog.inventory.manage` |
 | `/categories`, `/brands` (CRUD) | `catalog.categories.manage`, `catalog.brands.manage` |
 | `POST /media` (multipart `file`) | `content.media.manage` |
 | `GET /orders`, `GET /orders/{id}` | `sales.orders.view` |
@@ -123,7 +124,7 @@ php artisan pnshop:api-token ops@example.com --name="ERP" --ability=catalog.prod
 
 The Admin API goes through the same rules as the admin panel:
 
-- **Order states:** changes go through the order workflow, so only allowed transitions are accepted, stock moves, history is written and emails are sent. Refunds and shipping are not state changes: `POST /orders/{id}/refunds` (`items`, optional `extra`, `restock`, `reason`) and `POST /orders/{id}/shipments` record them, and a transition to *refunded*, *shipped* or *returned* is refused (422).
+- **Order states:** changes go through the order workflow, so only allowed transitions are accepted, stock moves, history is written and emails are sent. Refunds and shipping are not state changes: `POST /orders/{id}/refunds` (`items`, optional `extra`, `restock`, `reason`) and `POST /orders/{id}/shipments` (`items`, `tracking_number`, `note`, optional stock `location`) record them, and a transition to *refunded*, *shipped* or *returned* is refused (422).
 - **Stock:** changes are recorded in the stock history with the staff member who made them.
 - **Settings:** values are validated by their definitions, and secret values are never returned.
 - **Pages:** every save records a revision, and staff without `cms.html_block` cannot add or change HTML blocks.

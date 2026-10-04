@@ -4,7 +4,8 @@ Status: **approved** (2026-10-02), decisions P1–P5 as recommended.
 - 1.1 was released on 2026-10-02.
 - 1.2, added on 2026-10-03 after the audit of 1.1, closes catalog and storefront gaps.
 - 1.3 (pricing and B2B basics) was released on 2026-10-04.
-- 1.4 (locations) is next.
+- 1.4 (multi-location inventory) was released on 2026-10-04.
+- 1.5 (channels) is next.
 - The later releases keep their order, each one number higher.
 
 1.0 shipped everything in [02-platform-architecture-proposal.md](02-platform-architecture-proposal.md) §20 except the items it deferred. This document orders those deferred items, together with the follow-ups found while building and reviewing 1.0, into releases. Each phase keeps the 1.0 loop: implement, test (SQLite, MySQL, PostgreSQL), Larastan, lint, build, browser check, review, docs and upgrade notes.
