@@ -62,7 +62,7 @@ class OrderController extends Controller
                 ]),
                 'totals' => $order->presentTotals(),
             ],
-            'returns' => ReturnRequest::query()->where('order_id', $order->id)->with('lines')->latest('id')->get()->map(fn (ReturnRequest $return) => [
+            'returns' => ReturnRequest::query()->where('order_id', $order->id)->with(['lines', 'exchangeOrder'])->latest('id')->get()->map(fn (ReturnRequest $return) => [
                 'id' => $return->id,
                 'number' => $return->number,
                 'status' => $return->status->value,
@@ -70,6 +70,7 @@ class OrderController extends Controller
                 'reason' => __($return->reason->label()),
                 'staff_note' => $return->staff_note,
                 'items' => (int) $return->lines->sum('quantity'),
+                'exchange_order' => $return->exchangeOrder?->number,
                 'created_at' => self::displayDate($return->created_at, 'LL'),
             ]),
             'returnable' => $this->returnable($order, $returns),

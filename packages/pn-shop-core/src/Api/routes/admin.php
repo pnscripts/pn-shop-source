@@ -58,6 +58,7 @@ Route::post('orders/{order}/refunds', [OrderController::class, 'refund'])->where
 Route::get('returns', [ReturnController::class, 'index'])->name('returns.index');
 Route::get('returns/{return}', [ReturnController::class, 'show'])->whereNumber('return')->name('returns.show');
 Route::post('returns/{return}/transitions', [ReturnController::class, 'transition'])->whereNumber('return')->middleware('pnshop.idempotent')->name('returns.transition');
+Route::post('returns/{return}/exchange', [ReturnController::class, 'exchange'])->whereNumber('return')->middleware('pnshop.idempotent')->name('returns.exchange');
 
 Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
 Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')->name('customers.show');

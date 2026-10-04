@@ -17,6 +17,8 @@ use PnShop\Customer\Models\User;
 use PnShop\Foundation\Extension\Permission;
 use PnShop\Foundation\Extension\PipelineRegistry;
 use PnShop\Foundation\ModuleServiceProvider;
+use PnShop\Payment\Events\RefundCompleted;
+use PnShop\Payment\Models\Refund;
 use PnShop\Payment\PaymentGatewayManager;
 use PnShop\Payment\PaymentService;
 use PnShop\Payment\PaymentState;
@@ -33,6 +35,7 @@ class CreditServiceProvider extends ModuleServiceProvider
     {
         $this->app->singleton(Balances::class);
         $this->app->scoped(CartBalances::class);
+        $this->app->singleton(Exchanges::class);
 
         $this->app->afterResolving(PaymentGatewayManager::class, fn (PaymentGatewayManager $manager) => $manager->register(StoreCreditGateway::class));
 
@@ -51,6 +54,17 @@ class CreditServiceProvider extends ModuleServiceProvider
     protected function bootModule(): void
     {
         $this->app->make(PipelineRegistry::class)->stage(CartSummary::PIPELINE, AddBalancesToCart::class, 100);
+
+        // A refund to store credit: the customer's credit, or a new gift card emailed to a guest.
+        Event::listen(RefundCompleted::class, function (RefundCompleted $event): void {
+            $refund = $event->refund;
+
+            if ($refund->destination !== Refund::TO_STORE_CREDIT || $refund->credit_reference !== null) {
+                return;
+            }
+
+            $refund->forceFill(['credit_reference' => app(Balances::class)->creditRefund($refund)[0]])->save();
+        });
 
         // A cancelled order that was not fully paid gives its gift cards and store credit back.
         Event::listen(OrderStateChanged::class, function (OrderStateChanged $event): void {

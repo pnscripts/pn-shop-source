@@ -13,6 +13,7 @@ use PnShop\Customer\Models\User;
 use PnShop\Foundation\NumberSequence;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\StockMovementReason;
+use PnShop\Payment\Models\Refund;
 use PnShop\Payment\RefundService;
 use PnShop\Returns\Models\ReturnRequest;
 use PnShop\Returns\Models\ReturnRequestLine;
@@ -182,7 +183,10 @@ class ReturnService
     /**
      * Refund the received units (their paid price, tax included where it was added).
      */
-    public function refund(ReturnRequest $return, ?Model $actor = null): ReturnRequest
+    /**
+     * @param  string  $destination  Refund::TO_ORIGINAL or Refund::TO_STORE_CREDIT
+     */
+    public function refund(ReturnRequest $return, ?Model $actor = null, string $destination = Refund::TO_ORIGINAL): ReturnRequest
     {
         // A double click must not refund twice: the status is re-read under the lock.
         $lock = Cache::lock('pnshop:return:'.$return->id, 120);
@@ -194,13 +198,13 @@ class ReturnService
         try {
             $return->refresh();
 
-            return $this->refundLocked($return, $actor);
+            return $this->refundLocked($return, $actor, $destination);
         } finally {
             $lock->release();
         }
     }
 
-    private function refundLocked(ReturnRequest $return, ?Model $actor): ReturnRequest
+    private function refundLocked(ReturnRequest $return, ?Model $actor, string $destination = Refund::TO_ORIGINAL): ReturnRequest
     {
         $return->load(['lines', 'order']);
 
@@ -212,10 +216,36 @@ class ReturnService
 
         $this->assertCanMove($return, ReturnStatus::Refunded);
 
-        $refund = $this->refunds->refund($return->order, $quantities, restock: false, reason: __('Return :number', ['number' => $return->number]), actor: $actor);
+        $refund = $this->refunds->refund($return->order, $quantities, restock: false, reason: __('Return :number', ['number' => $return->number]), actor: $actor, destination: $destination);
         $return->forceFill(['refund_id' => $refund->id]);
 
         return $this->move($return, ReturnStatus::Refunded, null, $actor);
+    }
+
+    /**
+     * Received units of the return, by order item id (what a refund or an exchange pays back).
+     *
+     * @return array<int, int>
+     */
+    public function receivedQuantities(ReturnRequest $return): array
+    {
+        return $return->lines()->get()->mapWithKeys(fn (ReturnRequestLine $line) => [$line->order_item_id => $line->quantity_received])->filter()->all();
+    }
+
+    /**
+     * @throws OrderException when the return cannot be exchanged now (it must have been received).
+     */
+    public function assertCanExchange(ReturnRequest $return): void
+    {
+        $this->assertCanMove($return, ReturnStatus::Exchanged);
+    }
+
+    /**
+     * Mark the return as exchanged for a new order (see PnShop\Credit\Exchanges).
+     */
+    public function markExchanged(ReturnRequest $return, Order $exchange, ?Model $actor = null): ReturnRequest
+    {
+        return $this->move($return, ReturnStatus::Exchanged, __('Exchanged for order :number.', ['number' => $exchange->number]), $actor, ['exchange_order_id' => $exchange->id]);
     }
 
     public function close(ReturnRequest $return, ?string $note = null, ?Model $actor = null): ReturnRequest

@@ -14,6 +14,7 @@ use PnShop\Api\Http\Resources\OrderPresenter;
 use PnShop\Inventory\Models\StockLocation;
 use PnShop\Money\MoneyPresenter;
 use PnShop\Payment\Models\Payment;
+use PnShop\Payment\Models\Refund;
 use PnShop\Payment\RefundService;
 use PnShop\Sales\Exceptions\OrderException;
 use PnShop\Sales\ManualStateChanges;
@@ -202,6 +203,7 @@ class OrderController extends AdminController
             'extra' => ['nullable', 'numeric', 'min:0'],
             'restock' => ['sometimes', 'boolean'],
             'reason' => ['nullable', 'string', 'max:1000'],
+            'to' => ['sometimes', Rule::in([Refund::TO_ORIGINAL, Refund::TO_STORE_CREDIT])],
         ]);
 
         $quantities = [];
@@ -218,6 +220,7 @@ class OrderController extends AdminController
                 (bool) ($data['restock'] ?? false),
                 $data['reason'] ?? null,
                 $this->admin($request),
+                (string) ($data['to'] ?? Refund::TO_ORIGINAL),
             );
         } catch (OrderException $e) {
             throw ValidationException::withMessages(['items' => $e->getMessage()]);

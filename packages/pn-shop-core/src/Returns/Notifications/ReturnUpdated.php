@@ -32,6 +32,7 @@ class ReturnUpdated extends OrderMail
             ReturnStatus::Rejected => __('We cannot accept this return.'),
             ReturnStatus::Received => __('The items you sent back have arrived.'),
             ReturnStatus::Refunded => __('Your return has been refunded.'),
+            ReturnStatus::Exchanged => __('We have sent your exchange as order :order.', ['order' => (string) $this->return->exchangeOrder?->number]),
             ReturnStatus::Closed => __('Your return is closed.'),
         });
 

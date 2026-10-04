@@ -6,14 +6,17 @@ use Brick\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use PnShop\Acl\Models\AdminUser;
 use PnShop\Credit\Contracts\BalanceAccount;
 use PnShop\Credit\Exceptions\InsufficientBalance;
 use PnShop\Credit\Models\BalanceTransaction;
 use PnShop\Credit\Models\CreditAccount;
 use PnShop\Credit\Models\GiftCard;
+use PnShop\Credit\Notifications\GiftCardIssued;
 use PnShop\Customer\Models\User;
 use PnShop\Payment\Models\Payment;
+use PnShop\Payment\Models\Refund;
 use PnShop\Sales\Models\Order;
 
 /**
@@ -117,6 +120,33 @@ final class Balances
                 'note' => $note === null ? null : mb_substr($note, 0, 500),
             ]);
         });
+    }
+
+    /**
+     * Credit a refund's amount: to the customer's store credit, or for a guest to a new
+     * gift card emailed to the order's address.
+     *
+     * @return array{0: string, 1: string|null} the balance's reference ("credit_account:3"), and a new gift card's code
+     */
+    public function creditRefund(Refund $refund, BalanceReason $reason = BalanceReason::Refund, bool $notify = true): array
+    {
+        $order = $refund->order()->firstOrFail();
+        $customer = $order->user_id !== null ? User::modelClass()::query()->find($order->user_id) : null;
+
+        if ($customer instanceof User) {
+            $account = $this->creditAccount($customer, $refund->currency);
+            $this->change($account, $refund->amount, $reason, $order, note: $refund->reason);
+
+            return [$account->getMorphClass().':'.$account->id, null];
+        }
+
+        [$card, $code] = $this->issueGiftCard($refund->amount, recipientEmail: $order->email, note: $refund->reason, reason: $reason, order: $order);
+
+        if ($notify) {
+            Notification::route('mail', $order->email)->notify(new GiftCardIssued($card, $code));
+        }
+
+        return [$card->getMorphClass().':'.$card->id, $code];
     }
 
     private function newCode(): string

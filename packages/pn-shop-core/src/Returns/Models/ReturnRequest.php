@@ -27,6 +27,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $staff_note shown to the customer with approvals and rejections
  * @property bool $restocked
  * @property int|null $refund_id
+ * @property int|null $exchange_order_id
  * @property Carbon|null $approved_at
  * @property Carbon|null $received_at
  * @property Carbon|null $closed_at
@@ -77,6 +78,16 @@ class ReturnRequest extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(ReturnRequestLine::class)->orderBy('id');
+    }
+
+    /**
+     * The order the returned items were exchanged for.
+     *
+     * @return BelongsTo<Order, $this>
+     */
+    public function exchangeOrder(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'exchange_order_id');
     }
 
     /**

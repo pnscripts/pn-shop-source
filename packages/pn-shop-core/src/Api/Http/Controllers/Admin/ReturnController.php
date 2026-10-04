@@ -3,10 +3,13 @@
 namespace PnShop\Api\Http\Controllers\Admin;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use PnShop\Credit\Exchanges;
+use PnShop\Payment\Models\Refund;
 use PnShop\Returns\Models\ReturnRequest;
 use PnShop\Returns\ReturnPresenter;
 use PnShop\Returns\ReturnService;
@@ -68,6 +71,8 @@ class ReturnController extends AdminController
             'received' => ['sometimes', 'array'],
             'received.*' => ['integer', 'min:0'],
             'restock' => ['sometimes', 'boolean'],
+            // For "refund": the order's payment (default) or store credit.
+            'to' => ['sometimes', Rule::in([Refund::TO_ORIGINAL, Refund::TO_STORE_CREDIT])],
         ]);
 
         $admin = $this->admin($request);
@@ -78,7 +83,7 @@ class ReturnController extends AdminController
                 'approve' => $returns->approve($return, $note, $admin),
                 'reject' => $returns->reject($return, $note, $admin),
                 'receive' => $returns->receive($return, array_map('intval', $data['received'] ?? []), (bool) ($data['restock'] ?? true), $admin),
-                'refund' => $returns->refund($return, $admin),
+                'refund' => $returns->refund($return, $admin, (string) ($data['to'] ?? Refund::TO_ORIGINAL)),
                 default => $returns->close($return, $note, $admin),
             };
         } catch (OrderException $e) {
@@ -86,5 +91,40 @@ class ReturnController extends AdminController
         }
 
         return ['data' => ReturnPresenter::present($return->refresh())];
+    }
+
+    /**
+     * Exchange a return
+     *
+     * Places a new order for `items` (`[{variant_id, quantity}]`) paid with the value of the
+     * received items; `payment_method_id` pays any difference (when the new items cost more),
+     * `shipping_method_id` delivers them (default: the original order's). A difference in the
+     * customer's favour stays as store credit (a gift card emailed to a guest).
+     */
+    public function exchange(Request $request, ReturnRequest $return, Exchanges $exchanges): JsonResponse
+    {
+        Gate::authorize('update', $return);
+
+        $data = $request->validate([
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.variant_id' => ['required', 'integer', Rule::exists('product_variants', 'id')],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000'],
+            'payment_method_id' => ['nullable', 'integer', Rule::exists('payment_methods', 'id')],
+            'shipping_method_id' => ['nullable', 'integer', Rule::exists('shipping_methods', 'id')],
+        ]);
+
+        $variants = [];
+
+        foreach ($data['items'] as $item) {
+            $variants[(int) $item['variant_id']] = ($variants[(int) $item['variant_id']] ?? 0) + (int) $item['quantity'];
+        }
+
+        try {
+            $order = $exchanges->exchange($return, $variants, $data['payment_method_id'] ?? null, $data['shipping_method_id'] ?? null, $this->admin($request));
+        } catch (OrderException $e) {
+            throw ValidationException::withMessages(['items' => $e->getMessage()]);
+        }
+
+        return response()->json(['data' => [...ReturnPresenter::present($return->refresh()), 'exchange_order_id' => $order->id]], 201);
     }
 }

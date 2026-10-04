@@ -43,6 +43,9 @@ final class CartRepository
     /** Request attribute holding the guest token of a stateless (API) request. */
     private const STATELESS_TOKEN = 'pnshop.cart.stateless_token';
 
+    /** Request attribute set while a temporary cart is in use (see temporary()). */
+    private const TEMPORARY = 'pnshop.cart.temporary';
+
     /**
      * @return array<int, int> variant id => quantity
      */
@@ -175,7 +178,7 @@ final class CartRepository
 
     public function current(bool $create = false): ?Cart
     {
-        $user = Auth::guard('web')->user();
+        $user = $this->request()->attributes->get(self::TEMPORARY) === true ? null : Auth::guard('web')->user();
 
         if ($user instanceof User) {
             return $create
@@ -198,6 +201,40 @@ final class CartRepository
      * Use the given guest token for this request instead of the session and cookie, and keep
      * a newly created cart's token on the request (read it back with guestToken()).
      */
+    /**
+     * Run code with a fresh cart of its own (e.g. to place an exchange order through
+     * checkout), whoever is signed in; the cart is deleted afterwards and the visitor's own
+     * cart is untouched.
+     *
+     * @template T
+     *
+     * @param  \Closure(): T  $callback
+     * @return T
+     */
+    public function temporary(\Closure $callback): mixed
+    {
+        $attributes = $this->request()->attributes;
+        $saved = [self::STATELESS_TOKEN => $attributes->has(self::STATELESS_TOKEN) ? [$attributes->get(self::STATELESS_TOKEN)] : null, self::TEMPORARY => $attributes->get(self::TEMPORARY)];
+
+        $attributes->set(self::STATELESS_TOKEN, null);
+        $attributes->set(self::TEMPORARY, true);
+        $this->forgetLines();
+
+        try {
+            return $callback();
+        } finally {
+            $token = $attributes->get(self::STATELESS_TOKEN);
+
+            if (is_string($token)) {
+                Cart::query()->where('token', $token)->whereNull('user_id')->delete();
+            }
+
+            $saved[self::STATELESS_TOKEN] === null ? $attributes->remove(self::STATELESS_TOKEN) : $attributes->set(self::STATELESS_TOKEN, $saved[self::STATELESS_TOKEN][0]);
+            $saved[self::TEMPORARY] === null ? $attributes->remove(self::TEMPORARY) : $attributes->set(self::TEMPORARY, $saved[self::TEMPORARY]);
+            $this->forgetLines();
+        }
+    }
+
     public function useStatelessToken(?string $token): void
     {
         $this->request()->attributes->set(self::STATELESS_TOKEN, is_string($token) && Str::isUuid($token) ? $token : null);

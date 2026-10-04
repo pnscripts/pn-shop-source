@@ -15,6 +15,8 @@ export interface OrderReturn {
     reason: string;
     staff_note: string | null;
     items: number;
+    /** The number of the order the items were exchanged for. */
+    exchange_order?: string | null;
     created_at: string | null;
 }
 
@@ -67,6 +69,9 @@ export function OrderReturns({ orderId, returns, returnable }: { orderId: number
                                 </span>
                                 <span className="font-medium">{item.status_label}</span>
                             </div>
+                            {item.exchange_order && (
+                                <p className="text-muted-foreground">{t('Exchanged for order :order', { order: item.exchange_order })}</p>
+                            )}
                             {item.staff_note && <p className="text-muted-foreground">{item.staff_note}</p>}
                         </li>
                     ))}

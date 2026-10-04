@@ -12,6 +12,7 @@ use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\OrderStockStatus;
 use PnShop\Inventory\StockMovementReason;
+use PnShop\Payment\Contracts\PaymentGateway;
 use PnShop\Payment\Events\RefundCompleted;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentTransaction;
@@ -44,7 +45,7 @@ class RefundService
      *
      * @throws OrderException when nothing can be refunded, the amount is too high or the gateway fails.
      */
-    public function refund(Order $order, array $quantities, ?Money $extra = null, bool $restock = false, ?string $reason = null, ?Model $actor = null): Refund
+    public function refund(Order $order, array $quantities, ?Money $extra = null, bool $restock = false, ?string $reason = null, ?Model $actor = null, string $destination = Refund::TO_ORIGINAL): Refund
     {
         // One refund of an order at a time: the checks below must see the previous refund.
         $lock = Cache::lock('pnshop:refund:order:'.$order->id, 120);
@@ -54,7 +55,7 @@ class RefundService
         }
 
         try {
-            return $this->refundLocked($order, $quantities, $extra, $restock, $reason, $actor);
+            return $this->refundLocked($order, $quantities, $extra, $restock, $reason, $actor, $destination);
         } finally {
             $lock->release();
         }
@@ -63,7 +64,7 @@ class RefundService
     /**
      * @param  array<int, int>  $quantities
      */
-    private function refundLocked(Order $order, array $quantities, ?Money $extra, bool $restock, ?string $reason, ?Model $actor): Refund
+    private function refundLocked(Order $order, array $quantities, ?Money $extra, bool $restock, ?string $reason, ?Model $actor, string $destination = Refund::TO_ORIGINAL): Refund
     {
         $order->refresh()->load(['items', 'payments.method']);
 
@@ -90,8 +91,10 @@ class RefundService
 
         $method = $payment->method;
         $gateway = $method?->gatewayInstance();
+        // Store credit and exchanges do not go through the payment provider.
+        $toBalance = $destination !== Refund::TO_ORIGINAL;
 
-        if ($method === null || $gateway === null || ! $gateway->supportsRefunds()) {
+        if (! $toBalance && ($method === null || $gateway === null || ! $gateway->supportsRefunds())) {
             throw new OrderException(__('This payment method cannot refund from the shop. Return the money directly to the customer.'));
         }
 
@@ -105,12 +108,14 @@ class RefundService
             'status' => Refund::PENDING,
             'restock' => $restock,
             'reason' => $reason,
+            'destination' => $destination,
             'actor_type' => $actor?->getMorphClass(),
             'actor_id' => $actor?->getKey(),
         ]);
 
         try {
-            $result = $gateway->refund($payment, $amount, $method);
+            /** @var PaymentGateway $gateway */
+            $result = $toBalance ? PaymentResult::refunded() : $gateway->refund($payment, $amount, $method);
         } catch (Throwable $e) {
             Log::error('Payment gateway failed to refund.', ['gateway' => $gateway->code(), 'payment' => $payment->id, 'exception' => $e]);
             $result = PaymentResult::failed(__('The payment provider did not accept the refund.'));

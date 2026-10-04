@@ -15,6 +15,7 @@ enum ReturnStatus: string implements HasColor, HasLabel
     case Rejected = 'rejected';
     case Received = 'received';
     case Refunded = 'refunded';
+    case Exchanged = 'exchanged';
     case Closed = 'closed';
 
     public function label(): string
@@ -25,6 +26,7 @@ enum ReturnStatus: string implements HasColor, HasLabel
             self::Rejected => 'Rejected',
             self::Received => 'Received',
             self::Refunded => 'Refunded',
+            self::Exchanged => 'Exchanged',
             self::Closed => 'Closed',
         };
     }
@@ -39,7 +41,7 @@ enum ReturnStatus: string implements HasColor, HasLabel
         return match ($this) {
             self::Requested => 'warning',
             self::Approved, self::Received => 'info',
-            self::Refunded => 'success',
+            self::Refunded, self::Exchanged => 'success',
             self::Rejected => 'danger',
             self::Closed => 'gray',
         };
@@ -54,9 +56,9 @@ enum ReturnStatus: string implements HasColor, HasLabel
             self::Requested => [self::Approved, self::Rejected],
             // Closed without receiving: the customer never sent the items.
             self::Approved => [self::Received, self::Closed],
-            // Closed without a refund: exchanged or repaired instead.
-            self::Received => [self::Refunded, self::Closed],
-            self::Refunded => [self::Closed],
+            // Closed without a refund: repaired instead.
+            self::Received => [self::Refunded, self::Exchanged, self::Closed],
+            self::Refunded, self::Exchanged => [self::Closed],
             self::Rejected, self::Closed => [],
         };
     }

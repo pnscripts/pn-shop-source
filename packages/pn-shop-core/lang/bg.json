@@ -358,5 +358,8 @@
     "Your code: :code": "Вашият код: :code",
     "Use it before :date.": "Използвайте го преди :date.",
     "Enter the code in your cart or at checkout.": "Въведете кода в количката или при поръчката.",
-    "Visit the shop": "Към магазина"
+    "Visit the shop": "Към магазина",
+    "We have sent your exchange as order :order.": "Изпратихме замяната ви като поръчка :order.",
+    "Exchanged": "Заменено",
+    "Exchanged for order :order": "Заменено с поръчка :order"
 }

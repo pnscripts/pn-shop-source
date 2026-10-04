@@ -4,12 +4,18 @@ namespace PnShop\Returns\Filament\Resources\Returns\Pages;
 
 use Closure;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Credit\Exchanges;
+use PnShop\Payment\Models\PaymentMethod;
+use PnShop\Payment\Models\Refund;
 use PnShop\Returns\Filament\Resources\Returns\ReturnRequestResource;
 use PnShop\Returns\Models\ReturnRequest;
 use PnShop\Returns\Models\ReturnRequestLine;
@@ -62,9 +68,50 @@ class ViewReturnRequest extends ViewRecord
                 ->label('Refund received items')
                 ->icon(Heroicon::OutlinedReceiptRefund)
                 ->visible(fn () => $this->can(ReturnStatus::Refunded))
-                ->requiresConfirmation()
-                ->modalDescription('Refunds the price paid for the received items through the order\'s payment.')
-                ->action(fn () => $this->run(fn (ReturnService $returns) => $returns->refund($this->return(), auth('admin')->user()), 'Return refunded.')),
+                ->modalDescription('Refunds the price paid for the received items.')
+                ->schema([
+                    Select::make('to')
+                        ->label('Refund to')
+                        ->options([Refund::TO_ORIGINAL => 'The order\'s payment', Refund::TO_STORE_CREDIT => 'Store credit (a gift card for guests)'])
+                        ->default(Refund::TO_ORIGINAL)
+                        ->required(),
+                ])
+                ->action(fn (array $data) => $this->run(fn (ReturnService $returns) => $returns->refund($this->return(), auth('admin')->user(), (string) $data['to']), 'Return refunded.')),
+            Action::make('exchange')
+                ->label('Exchange')
+                ->icon(Heroicon::OutlinedArrowsRightLeft)
+                ->visible(fn () => $this->can(ReturnStatus::Exchanged))
+                ->modalDescription('Places a new order for other items, paid with the value of the received ones. A difference in the customer\'s favour stays as store credit.')
+                ->schema([
+                    Repeater::make('items')
+                        ->label('New items')
+                        ->minItems(1)
+                        ->schema([
+                            Select::make('variant_id')
+                                ->label('Product')
+                                ->required()
+                                ->searchable()
+                                ->getSearchResultsUsing(fn (string $search) => ProductVariant::query()->with('product')
+                                    ->where(fn ($query) => $query->whereLike('sku', '%'.$search.'%')->orWhereHas('product', fn ($product) => $product->whereLike('title', '%'.$search.'%')))
+                                    ->limit(30)->get()->mapWithKeys(fn (ProductVariant $variant) => [$variant->id => trim(($variant->product->title ?? '').' '.$variant->label().($variant->sku ? " ({$variant->sku})" : ''))])->all())
+                                ->getOptionLabelUsing(fn (mixed $value) => ($variant = ProductVariant::query()->with('product')->whereKey($value)->first()) !== null ? trim(($variant->product->title ?? '').' '.$variant->label()) : null),
+                            TextInput::make('quantity')->integer()->minValue(1)->default(1)->required(),
+                        ])
+                        ->columns(2),
+                    Select::make('payment_method_id')
+                        ->label('Payment for any difference')
+                        ->options(fn () => PaymentMethod::query()->where('is_active', true)->orderBy('position')->pluck('name', 'id')->all())
+                        ->helperText('Used only when the new items cost more than the returned ones.'),
+                ])
+                ->action(function (array $data): void {
+                    $variants = [];
+
+                    foreach ($data['items'] ?? [] as $item) {
+                        $variants[(int) $item['variant_id']] = ($variants[(int) $item['variant_id']] ?? 0) + (int) $item['quantity'];
+                    }
+
+                    $this->run(fn () => app(Exchanges::class)->exchange($this->return(), $variants, isset($data['payment_method_id']) ? (int) $data['payment_method_id'] : null, actor: auth('admin')->user()), 'Exchange order placed.');
+                }),
             Action::make('close')
                 ->icon(Heroicon::OutlinedArchiveBox)
                 ->color('gray')
