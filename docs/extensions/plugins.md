@@ -204,7 +204,8 @@ Loaded from the plugin folder when present:
 - **Extension points:**
   - payment gateways (`PaymentGatewayManager`), shipping carriers (`ShippingCarrierManager`) and the tax provider (`TaxProvider`);
   - CMS blocks (`BlockRegistry`);
-  - pipelines `cart.totals`, `catalog.price` (see [Pricing](../ecommerce/pricing.md#for-plugin-authors)) and `seo.meta`;
+  - pipelines `cart.totals`, `cart.summary`, `catalog.price` (see [Pricing](../ecommerce/pricing.md#for-plugin-authors)) and `seo.meta`;
+  - return labels for carriers (`ProvidesReturnLabels`, see [Returns](../ecommerce/returns.md#return-labels));
   - channels: `Channels::current()`, amounts from settings converted with `CurrencyConverter` (see [Channels](../ecommerce/channels.md#for-plugin-and-theme-authors));
   - the invoice renderer (`InvoiceRenderer`) and the CAPTCHA verifier (`CaptchaVerifier`);
   - events: `OrderPlaced`, `OrderStateChanged`, `ShipmentCreated`, `RefundCompleted`, and `OrderReopening` (inside the reopening transaction; throw an `OrderException` to refuse).

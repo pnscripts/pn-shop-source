@@ -2,6 +2,24 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## 1.6.0 (2026-10-04)
+
+Gift cards, store credit, exchanges and return labels. See [Gift cards and store credit](docs/ecommerce/gift-cards-and-store-credit.md), [Returns](docs/ecommerce/returns.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.6.md).
+
+### Added
+
+- **Gift cards:** issued by staff or the Admin API. The code is shown once and emailed to the recipient; only its hash is kept. Cards can expire, be disabled and be adjusted.
+- **Store credit:** a balance per customer and currency, managed on the customer's page and in the Admin API.
+- **A ledger** of every gift card and store credit change, like the payment ledger.
+- **Paying with balances:** gift cards and store credit pay part or all of an order. The payment method pays the rest, or is not needed when they pay everything. An order is paid once its payments cover the total.
+- **Refunds to store credit** on orders and returns. A guest gets a gift card by email. It works for any payment method, cash on delivery included.
+- **Exchanges:** a received return becomes a new order for other items, paid with the returned items' value. The difference is charged with a payment method, or kept as store credit.
+- **Return labels:** carriers implementing the new optional `ProvidesReturnLabels` contract issue labels for approved returns. The label is emailed to the customer. A contract test kit is included.
+
+### Fixes
+
+- **Bulgarian invoices:** a generic tax number is no longer labelled as a VAT number (shipped in 1.5.0, missing from its notes).
+
 ## 1.5.0 (2026-10-04)
 
 Several storefronts (channels) on one installation. See [Channels](docs/ecommerce/channels.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.5.md).

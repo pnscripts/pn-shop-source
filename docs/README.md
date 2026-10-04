@@ -13,6 +13,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 | [security/security.md](security/security.md) | Security model, hardening, production checklist |
 | [administration/staff-and-roles.md](administration/staff-and-roles.md) | Admin panel, staff accounts, roles and the activity log |
 | [ecommerce/catalog-and-inventory.md](ecommerce/catalog-and-inventory.md) | Products, variants, options, categories, brands, attributes, images, inventory |
+| [ecommerce/gift-cards-and-store-credit.md](ecommerce/gift-cards-and-store-credit.md) | Gift cards, store credit, paying with them, refunds to store credit |
 | [ecommerce/channels.md](ecommerce/channels.md) | Several storefronts on one installation: domains and paths, languages, currency, theme, catalog per channel, reports |
 | [ecommerce/stock-locations.md](ecommerce/stock-locations.md) | Several warehouses and shops: stock per location, transfers, where orders are served and shipped from, store pickup |
 | [ecommerce/pricing.md](ecommerce/pricing.md) | Price lists, quantity tiers, business customer groups (net prices, minimum order, invoice payment), prices for signed-in customers only |
@@ -21,7 +22,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 | [ecommerce/payments.md](ecommerce/payments.md) | Payment methods, gateways, payments and transactions |
 | [ecommerce/shipping.md](ecommerce/shipping.md) | Shipping zones, methods and carriers, checkout delivery, shipments |
 | [ecommerce/tax.md](ecommerce/tax.md) | Tax classes, zones and rates, inclusive or exclusive prices |
-| [ecommerce/returns.md](ecommerce/returns.md) | Return requests (RMA): customer form, staff workflow, restocking and refunds |
+| [ecommerce/returns.md](ecommerce/returns.md) | Return requests (RMA): customer form, staff workflow, restocking, refunds, exchanges and return labels |
 | [marketing/promotions.md](marketing/promotions.md) | Promotions (conditions and discounts), coupons, usage limits |
 | [cms/pages-and-blocks.md](cms/pages-and-blocks.md) | CMS pages, scheduling, revisions, the homepage, content blocks |
 | [cms/menus.md](cms/menus.md) | Header and footer menus, item types, translations, caching |
@@ -44,6 +45,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 
 | Release | Notes |
 |---|---|
+| 1.6.0 | [upgrades/2026-10-release-1.6.md](upgrades/2026-10-release-1.6.md): gift cards, store credit, exchanges, return labels |
 | 1.5.0 | [upgrades/2026-10-release-1.5.md](upgrades/2026-10-release-1.5.md): channels — several storefronts with their own domain, languages, currency, theme and catalog |
 | 1.4.0 | [upgrades/2026-10-release-1.4.md](upgrades/2026-10-release-1.4.md): stock locations, stock per location and transfers, orders shipped per location, pickup at a location |
 | 1.3.0 | [upgrades/2026-10-release-1.3.md](upgrades/2026-10-release-1.3.md): price lists and quantity tiers, business customer groups, invoice payment, prices for signed-in customers only |

@@ -54,6 +54,7 @@ The default React storefront does not use these APIs. It shares the same service
 | `GET /pages`, `GET /pages/{slug}`, `GET /menus/{code}` | Published pages with their blocks, and menus |
 | `GET /cart`, `POST /cart/items`, `PATCH`/`DELETE /cart/items/{variant}` | The cart |
 | `POST /cart/coupon`, `DELETE /cart/coupon` | Enter or remove a coupon code (`data.coupon` tells whether it applies) |
+| `POST /cart/gift-cards`, `DELETE /cart/gift-cards/{id}`, `PUT /cart/store-credit` | Pay with gift cards and the customer's store credit (`gift_cards`, `store_credit`, `amount_due`); checkout then needs no `payment_method_id` when they pay everything |
 | `GET /checkout/payment-methods`, `POST /checkout/quote`, `POST /checkout` | Payment methods, shipping options and totals, placing the order |
 | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout` | Customer tokens |
 | `GET`/`PATCH /account`, `GET /account/orders`, `/account/addresses` (CRUD) | The signed-in customer |
@@ -120,12 +121,14 @@ php artisan pnshop:api-token ops@example.com --name="ERP" --ability=catalog.prod
 | `GET /returns`, `GET /returns/{id}`, `POST /returns/{id}/transitions` | `sales.returns.manage` |
 | `/price-lists` (CRUD, `currency` on create), `GET/PUT /price-lists/{id}/prices` (by SKU, up to 1000 rows) | `catalog.prices.manage` |
 | `/promotions` (CRUD), `POST /promotions/{id}/coupons` (generate codes) | `marketing.promotions.manage` |
+| `/gift-cards` (issue, list, lookup, update, adjustments), `/customers/{id}/credit` | `sales.credit.manage` |
+| `POST /returns/{id}/exchange`, `POST /returns/{id}/label` | `sales.returns.manage` |
 | `GET /settings`, `GET/PATCH /settings/{namespace}` | `system.settings.manage` |
 | `GET /extensions`, `GET /themes` | `system.extensions.manage`, `appearance.themes.manage` |
 
 The Admin API goes through the same rules as the admin panel:
 
-- **Order states:** changes go through the order workflow, so only allowed transitions are accepted, stock moves, history is written and emails are sent. Refunds and shipping are not state changes: `POST /orders/{id}/refunds` (`items`, optional `extra`, `restock`, `reason`) and `POST /orders/{id}/shipments` (`items`, `tracking_number`, `note`, optional stock `location`) record them, and a transition to *refunded*, *shipped* or *returned* is refused (422).
+- **Order states:** changes go through the order workflow, so only allowed transitions are accepted, stock moves, history is written and emails are sent. Refunds and shipping are not state changes: `POST /orders/{id}/refunds` (`items`, optional `extra`, `restock`, `reason`) and `POST /orders/{id}/shipments` (`items`, `tracking_number`, `note`, optional stock `location`) record them (refunds take `to`: `original` or `store_credit`), and a transition to *refunded*, *shipped* or *returned* is refused (422).
 - **Stock:** changes are recorded in the stock history with the staff member who made them.
 - **Settings:** values are validated by their definitions, and secret values are never returned.
 - **Pages:** every save records a revision, and staff without `cms.html_block` cannot add or change HTML blocks.

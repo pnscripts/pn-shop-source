@@ -38,15 +38,18 @@ Every order has one or more **payments** (attempts to pay). Each payment has **t
 | Gateway asks for a redirect | pending | unpaid (the customer is sent to the provider) |
 | Gateway throws an error | failed | failed (the order is kept; the customer sees a friendly message) |
 | Staff set the payment state to *Paid* | open payments become paid (`manual` transaction) | paid |
-| Order cancelled | open payments become cancelled | — |
+| Order cancelled | open payments become cancelled; gift card and store credit payments of an order that was not fully paid go back to their balances | — |
 
 The order page shows the gateway's payment instructions while the payment is pending.
+
+**Several payments:** gift cards and store credit pay part of an order as payments of their own (gateway `store_credit`). The payment method then pays the rest. An order is *paid* once its payments cover the total (`PaymentService::amountDue()`). See [Gift cards and store credit](gift-cards-and-store-credit.md).
 
 ## Refunds
 
 *Refund* on the order page (for paid or partly refunded orders) returns money through the gateway of the payment that took it. For the manual gateways, staff return the money themselves and the refund is recorded.
 
 - **What can be refunded:** units of each line (at the price charged) plus an optional additional amount (shipping, goodwill). The total can't exceed what is left on one payment.
+- **Refund to:** the payment that took the money (default), or **store credit**. The customer's store credit, or a new gift card emailed to a guest; this needs no payment provider.
 - **Net prices:** with tax added on top, a line's tax is refunded with it.
 - **Stock:**
   - refunded units that had **not shipped** are cancelled: their reservation is released and they never ship;

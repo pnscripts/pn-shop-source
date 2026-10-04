@@ -50,6 +50,8 @@ A **shipping method** belongs to a zone and uses a **carrier**, which prices the
 
 ## Writing a carrier
 
+Carriers that can issue return labels also implement `PnShop\Shipping\Contracts\ProvidesReturnLabels::returnLabel(ReturnLabelRequest, ShippingMethod): ReturnLabel` (see [Returns](returns.md#return-labels)), and use `ReturnLabelContractTests` next to `ShippingCarrierContractTests`.
+
 ```php
 use PnShop\Shipping\Contracts\ShippingCarrier;
 
