@@ -2,9 +2,8 @@
 
 namespace PnShop\Promotion\Conditions;
 
-use Brick\Math\RoundingMode;
-use Brick\Money\Money;
 use Filament\Forms\Components\TextInput;
+use PnShop\Localization\CurrencyConverter;
 use PnShop\Promotion\Contracts\ConditionType;
 use PnShop\Promotion\PromotionContext;
 
@@ -32,7 +31,8 @@ class SubtotalCondition implements ConditionType
 
     public function passes(PromotionContext $context, array $data): bool
     {
-        $min = Money::of((string) ($data['min'] ?? 0), $context->currency(), roundingMode: RoundingMode::HalfUp);
+        // Entered in the default currency.
+        $min = app(CurrencyConverter::class)->fromDefault((string) ($data['min'] ?? 0), $context->currency());
 
         return $context->totals->subtotal->isGreaterThanOrEqualTo($min);
     }

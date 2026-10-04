@@ -2,14 +2,13 @@
 
 namespace PnShop\Plugins\HandlingFee;
 
-use Brick\Math\RoundingMode;
-use Brick\Money\Money;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use PnShop\Cart\ShoppingCartService;
 use PnShop\Cart\Totals\CartCalculator;
 use PnShop\Extension\Plugin;
 use PnShop\Foundation\Extension\PipelineRegistry;
+use PnShop\Localization\CurrencyConverter;
 use PnShop\Money\MoneyPresenter;
 use PnShop\Plugins\HandlingFee\Models\Exemption;
 use PnShop\Plugins\HandlingFee\Policies\ExemptionPolicy;
@@ -32,7 +31,7 @@ class HandlingFeePlugin extends Plugin
     private function hint(): ?array
     {
         $totals = $this->app->make(ShoppingCartService::class)->totals();
-        $threshold = Money::of((string) ($this->setting('threshold') ?: '0'), $totals->currency(), roundingMode: RoundingMode::HalfUp);
+        $threshold = app(CurrencyConverter::class)->fromDefault((string) ($this->setting('threshold') ?: '0'), $totals->currency());
 
         if ($totals->line('handling_fee') === null || $threshold->isZero()) {
             return null;

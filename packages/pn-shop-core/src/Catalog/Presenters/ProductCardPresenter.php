@@ -30,7 +30,7 @@ final class ProductCardPresenter
             'title' => $product->title,
             'slug' => $product->slug,
             // As this customer sees prices: null when hidden from guests, with or without tax.
-            'price' => $display->present($variant?->price, $product->tax_class_id),
+            'price' => $display->present($variant?->regularPrice(), $product->tax_class_id),
             'sale_price' => $variant?->isOnSale() ? $display->present($variant->unitPrice(), $product->tax_class_id) : null,
             'price_includes_tax' => $display->includesTax(),
             'price_from' => $product->hasVaryingPrices(),

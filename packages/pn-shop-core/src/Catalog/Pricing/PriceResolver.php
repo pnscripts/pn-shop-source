@@ -11,6 +11,7 @@ use PnShop\Catalog\Pricing\Models\PriceListEntry;
 use PnShop\Customer\Models\CustomerGroup;
 use PnShop\Customer\Models\User;
 use PnShop\Foundation\Extension\PipelineRegistry;
+use PnShop\Localization\CurrencyConverter;
 use PnShop\Localization\Localization;
 use Throwable;
 
@@ -50,11 +51,11 @@ class PriceResolver
             return $this->context;
         }
 
-        // Follows the signed-in customer: signing in during a request (or the next request in
-        // a long-running process) prices for them.
+        // Follows the signed-in customer and the channel's currency: signing in during a
+        // request (or the next request in a long-running process) prices for them.
         $customer = $this->currentCustomer();
 
-        if ($this->context === null || $this->context->customer?->getKey() !== $customer?->getKey()) {
+        if ($this->context === null || $this->context->customer?->getKey() !== $customer?->getKey() || $this->context->currency !== $this->currency()) {
             $this->switchTo($this->contextFor($customer));
         }
 
@@ -90,7 +91,7 @@ class PriceResolver
 
         try {
             $groupId ??= CustomerGroup::query()->where('is_default', true)->value('id');
-            $currency = $this->localization->defaultCurrency()->code;
+            $currency = $this->currency();
         } catch (Throwable) {
             // No database yet (installing): plain prices.
             $currency = (string) config('pnshop.money.currency', 'EUR');
@@ -125,7 +126,7 @@ class PriceResolver
         // First, so a change of customer clears quotes made for someone else.
         $context = $this->context();
         $quantity = max(1, $quantity);
-        $key = $variant->id.'|'.$quantity.'|'.$variant->price->getMinorAmount()->toInt().'|'.($variant->sale_price?->getMinorAmount()->toInt() ?? '-');
+        $key = $variant->id.'|'.$quantity.'|'.$context->currency.'|'.$variant->price->getMinorAmount()->toInt().'|'.($variant->sale_price?->getMinorAmount()->toInt() ?? '-');
 
         if (isset($this->quotes[$key])) {
             return $this->quotes[$key];
@@ -133,8 +134,11 @@ class PriceResolver
 
         $this->prime([$variant]);
 
+        // Catalog prices are in the default currency; a channel selling in another one converts them.
+        $regular = app(CurrencyConverter::class)->convert($variant->price, $context->currency);
+
         /** @var PriceQuote $quote */
-        $quote = $this->pipelines->run(self::PIPELINE, new PriceQuote($variant, $quantity, $context, $variant->price));
+        $quote = $this->pipelines->run(self::PIPELINE, new PriceQuote($variant, $quantity, $context, $regular));
 
         return $this->quotes[$key] = $quote;
     }
@@ -168,7 +172,8 @@ class PriceResolver
             ->get(['price_list_id', 'product_variant_id', 'min_quantity', 'price']);
 
         foreach ($rows as $row) {
-            $this->entries[$row->product_variant_id][] = ['price_list_id' => $row->price_list_id, 'min_quantity' => $row->min_quantity, 'price' => $row->price];
+            // In the list's currency (the context's): the column holds minor units.
+            $this->entries[$row->product_variant_id][] = ['price_list_id' => $row->price_list_id, 'min_quantity' => $row->min_quantity, 'price' => Money::ofMinor((int) $row->getRawOriginal('price'), $context->currency)];
         }
     }
 
@@ -207,6 +212,23 @@ class PriceResolver
             return $this->hasPriceLists ??= PriceList::query()->where('is_active', true)->exists();
         } catch (Throwable) {
             return false;
+        }
+    }
+
+    /** Forget what was read and worked out (price lists changed). */
+    public function forget(): void
+    {
+        $this->hasPriceLists = null;
+        $this->entries = [];
+        $this->quotes = [];
+    }
+
+    private function currency(): string
+    {
+        try {
+            return $this->localization->currency()->code;
+        } catch (Throwable) {
+            return (string) config('pnshop.money.currency', 'EUR');
         }
     }
 

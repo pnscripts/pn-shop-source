@@ -24,6 +24,7 @@ class LocalizationServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         $this->app->singleton(Localization::class);
+        $this->app->scoped(CurrencyConverter::class);
     }
 
     protected function permissions(): array
@@ -75,7 +76,7 @@ class LocalizationServiceProvider extends ModuleServiceProvider
 
         return [
             'locale' => $locale,
-            'currency' => $localization->defaultCurrency()->code,
+            'currency' => $localization->currency()->code,
             'languages' => $localization->languages()->map(fn (Language $language) => [
                 'code' => $language->code,
                 'name' => $language->native_name,

@@ -30,6 +30,12 @@ final class Localization
     /** @var (\Closure(): array{0: string|null, 1: list<string>|null})|null */
     private ?\Closure $restriction = null;
 
+    /** @var (\Closure(): ?string)|null */
+    private ?\Closure $currencyResolver = null;
+
+    /** @var array<string, Currency|null> */
+    private array $currencies = [];
+
     public function __construct(private Cache $cache) {}
 
     /**
@@ -120,6 +126,35 @@ final class Localization
         return $this->alternateResolver === null ? null : ($this->alternateResolver)($locale);
     }
 
+    /**
+     * The currency of this request: the channel's, or the default one.
+     */
+    public function currency(): Currency
+    {
+        $code = $this->currencyResolver !== null ? ($this->currencyResolver)() : null;
+        $default = $this->defaultCurrency();
+
+        if ($code === null || $code === $default->code) {
+            return $default;
+        }
+
+        if (! array_key_exists($code, $this->currencies)) {
+            $this->currencies[$code] = Currency::query()->where('code', $code)->where('is_active', true)->first();
+        }
+
+        return $this->currencies[$code] ?? $default;
+    }
+
+    /**
+     * Let the active channel choose the currency.
+     *
+     * @param  \Closure(): ?string  $resolver  a currency code, or null for the default
+     */
+    public function currencyUsing(\Closure $resolver): void
+    {
+        $this->currencyResolver = $resolver;
+    }
+
     public function defaultCurrency(): Currency
     {
         $attributes = $this->data()['currency'] ?? throw new RuntimeException('No default currency is configured.');
@@ -129,6 +164,7 @@ final class Localization
 
     public function flush(): void
     {
+        $this->currencies = [];
         $this->data = null;
         $this->cache->forget(self::CACHE_KEY);
     }

@@ -5,6 +5,7 @@ namespace PnShop\Customer\Models;
 use Brick\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use PnShop\Localization\CurrencyConverter;
 use PnShop\Money\MoneyCast;
 
 /**
@@ -48,7 +49,8 @@ class CustomerGroup extends Model
      */
     public function minimumOrderShortfall(Money $subtotal): ?Money
     {
-        $minimum = $this->min_order_total;
+        // Entered in the default currency.
+        $minimum = $this->min_order_total === null ? null : app(CurrencyConverter::class)->convert($this->min_order_total, $subtotal->getCurrency()->getCurrencyCode());
 
         return $minimum !== null && $minimum->isPositive() && $subtotal->isLessThan($minimum) ? $minimum : null;
     }

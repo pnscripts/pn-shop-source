@@ -153,6 +153,8 @@ class PriceListController extends AdminController
         return [
             'name' => [...$required, 'string', 'max:255'],
             'customer_group_id' => ['sometimes', 'nullable', 'integer', Rule::exists('customer_groups', 'id')],
+            // The default currency when left out; prices of a list in another currency are used by channels selling in it.
+            'currency' => $creating ? ['sometimes', 'string', 'size:3', Rule::exists('currencies', 'code')] : ['prohibited'],
             'starts_at' => ['sometimes', 'nullable', 'date'],
             'ends_at' => ['sometimes', 'nullable', 'date', 'after:starts_at'],
             'is_active' => ['sometimes', 'boolean'],

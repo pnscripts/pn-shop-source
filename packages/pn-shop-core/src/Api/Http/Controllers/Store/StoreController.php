@@ -19,7 +19,8 @@ class StoreController extends ApiController
      */
     public function show(Settings $settings, Localization $localization): array
     {
-        $currency = $localization->defaultCurrency();
+        // The channel's currency (prices are given in it).
+        $currency = $localization->currency();
 
         return ['data' => [
             'name' => $settings->get('store.name'),

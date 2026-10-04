@@ -39,6 +39,12 @@ class ChannelServiceProvider extends ModuleServiceProvider
 
         $this->app->make(Settings::class)->overrideUsing(fn (string $path) => $this->app->make(Channels::class)->override($path));
 
+        $this->app->make(Localization::class)->currencyUsing(function (): ?string {
+            $channels = $this->app->make(Channels::class);
+
+            return $channels->isActive() ? $channels->current()->currency : null;
+        });
+
         $this->app->make(Localization::class)->restrictUsing(function (): array {
             $channels = $this->app->make(Channels::class);
 

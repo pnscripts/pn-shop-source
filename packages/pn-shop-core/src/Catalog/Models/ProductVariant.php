@@ -105,6 +105,14 @@ class ProductVariant extends Model
     }
 
     /**
+     * The regular price in the currency of the current channel (the stored one converted).
+     */
+    public function regularPrice(): Money
+    {
+        return app(PriceResolver::class)->quote($this)->regular;
+    }
+
+    /**
      * Whether the current customer pays less than the regular price (shown struck through).
      */
     public function isOnSale(int $quantity = 1): bool

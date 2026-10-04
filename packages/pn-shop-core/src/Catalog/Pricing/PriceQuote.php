@@ -4,6 +4,7 @@ namespace PnShop\Catalog\Pricing;
 
 use Brick\Money\Money;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Localization\CurrencyConverter;
 
 /**
  * The price of a variant for one customer and quantity, as the "catalog.price" pipeline
@@ -31,8 +32,10 @@ final class PriceQuote
      */
     public function offer(Money $price, string $source): void
     {
-        if ($price->getCurrency()->getCurrencyCode() === $this->unit->getCurrency()->getCurrencyCode()
-            && $price->isLessThan($this->unit)
+        // Prices entered in the default currency are converted to the quote's (the channel's).
+        $price = app(CurrencyConverter::class)->convert($price, $this->unit->getCurrency()->getCurrencyCode());
+
+        if ($price->isLessThan($this->unit)
             && ! $price->isNegative()) {
             $this->unit = $price;
             $this->source = $source;

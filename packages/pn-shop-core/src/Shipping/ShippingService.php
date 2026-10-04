@@ -4,6 +4,8 @@ namespace PnShop\Shipping;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use PnShop\Localization\CurrencyConverter;
+use PnShop\Localization\Localization;
 use PnShop\Shipping\Models\ShippingMethod;
 use PnShop\Shipping\Models\ShippingZone;
 use Throwable;
@@ -66,8 +68,16 @@ class ShippingService
             return null;
         }
 
+        // Carrier settings (prices, free-shipping minimums, bands) are in the default currency:
+        // a channel selling in another one is quoted in the default and converted.
+        $converter = app(CurrencyConverter::class);
+        $currency = $request->currency();
+        $default = app(Localization::class)->defaultCurrency()->code;
+        $asked = $currency === $default ? $request : new ShippingRequest($request->items, $converter->convert($request->subtotal, $default), $request->countryCode, $request->postcode, $request->customer);
+
         try {
-            $price = $carrier->quote($request, $method);
+            $price = $carrier->quote($asked, $method);
+            $price = $price === null ? null : $converter->convert($price, $currency);
         } catch (Throwable $e) {
             Log::warning('Shipping carrier failed to quote.', ['carrier' => $carrier->code(), 'method' => $method->id, 'exception' => $e]);
 

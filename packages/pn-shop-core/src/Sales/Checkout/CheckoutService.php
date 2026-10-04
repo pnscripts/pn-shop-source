@@ -105,7 +105,8 @@ class CheckoutService
                 ->get()
                 ->keyBy('id');
 
-            $currency = app(Localization::class)->defaultCurrency()->code;
+            // The channel's currency: the cart was priced in it.
+            $currency = app(Localization::class)->currency()->code;
 
             $order = Order::create([
                 'user_id' => $user?->id,
@@ -147,7 +148,7 @@ class CheckoutService
                     'quantity' => $quantity,
                     'currency' => $currency,
                     // What this customer pays at this quantity; sale_price holds it when it is below the price.
-                    'price' => $variant->price,
+                    'price' => $variant->regularPrice(),
                     'sale_price' => $variant->isOnSale($quantity) ? $variant->unitPrice($quantity) : null,
                 ]), $variant, $quantity];
 

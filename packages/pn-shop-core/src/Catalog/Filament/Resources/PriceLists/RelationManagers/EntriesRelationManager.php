@@ -66,7 +66,8 @@ class EntriesRelationManager extends RelationManager
                 TextColumn::make('variant')->label('Variant')->state(fn (PriceListEntry $record) => self::variantLabel($record->variant)),
                 TextColumn::make('variant.sku')->label('SKU')->placeholder('—')->searchable(),
                 TextColumn::make('min_quantity')->label('From quantity')->sortable(),
-                TextColumn::make('price')->formatStateUsing(fn (?Money $state) => $state?->formatToLocale(app()->getLocale())),
+                // Stored in minor units of the list's currency.
+                TextColumn::make('price')->formatStateUsing(fn (?Money $state) => $state === null ? null : Money::ofMinor($state->getMinorAmount(), $this->priceList()->currency)->formatToLocale(app()->getLocale())),
                 TextColumn::make('regular')
                     ->label('Regular price')
                     ->color('gray')

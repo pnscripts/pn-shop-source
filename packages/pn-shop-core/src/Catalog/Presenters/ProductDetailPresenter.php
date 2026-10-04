@@ -87,7 +87,7 @@ final class ProductDetailPresenter
                 'sku' => $variant->sku,
                 'option_value_ids' => $variant->optionValues->modelKeys(),
                 // As this customer sees prices: null when hidden from guests, with or without tax.
-                'price' => $display->present($variant->price, $product->tax_class_id),
+                'price' => $display->present($variant->regularPrice(), $product->tax_class_id),
                 // What this customer pays for one (sale price, or their group's price).
                 'sale_price' => $variant->isOnSale() ? $display->present($variant->unitPrice(), $product->tax_class_id) : null,
                 'tiers' => self::tiers($variant),

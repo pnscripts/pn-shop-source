@@ -2,10 +2,9 @@
 
 namespace PnShop\Promotion\Actions;
 
-use Brick\Math\RoundingMode;
-use Brick\Money\Money;
 use Filament\Forms\Components\TextInput;
 use PnShop\Cart\CartItemDTO;
+use PnShop\Localization\CurrencyConverter;
 use PnShop\Promotion\Contracts\ActionType;
 use PnShop\Promotion\Discounts;
 use PnShop\Promotion\Fields;
@@ -45,7 +44,8 @@ class FixedOffAction implements ActionType
     {
         $discounts->spread(
             $context->items()->filter(fn (CartItemDTO $item) => $context->inScope($item, $data)),
-            Money::of((string) ($data['amount'] ?? 0), $context->currency(), roundingMode: RoundingMode::HalfUp),
+            // Entered in the default currency.
+            app(CurrencyConverter::class)->fromDefault((string) ($data['amount'] ?? 0), $context->currency()),
         );
     }
 }

@@ -3,11 +3,10 @@
 namespace PnShop\Plugins\HandlingFee;
 
 use App\Models\User;
-use Brick\Math\RoundingMode;
-use Brick\Money\Money;
 use Closure;
 use PnShop\Cart\Totals\CartTotals;
 use PnShop\Cart\Totals\TotalLine;
+use PnShop\Localization\CurrencyConverter;
 use PnShop\Plugins\HandlingFee\Models\Exemption;
 use PnShop\Settings\Settings;
 
@@ -20,8 +19,8 @@ class ApplyHandlingFee
 
     public function handle(CartTotals $totals, Closure $next): mixed
     {
-        $fee = Money::of((string) $this->settings->get('plugin.pnshop_handling_fee.amount'), $totals->currency(), roundingMode: RoundingMode::HalfUp);
-        $threshold = Money::of((string) ($this->settings->get('plugin.pnshop_handling_fee.threshold') ?: '0'), $totals->currency(), roundingMode: RoundingMode::HalfUp);
+        $fee = app(CurrencyConverter::class)->fromDefault((string) $this->settings->get('plugin.pnshop_handling_fee.amount'), $totals->currency());
+        $threshold = app(CurrencyConverter::class)->fromDefault((string) ($this->settings->get('plugin.pnshop_handling_fee.threshold') ?: '0'), $totals->currency());
         $user = $totals->context['user'] ?? auth('web')->user();
 
         $exempt = $user instanceof User && $user->customer_group_id !== null

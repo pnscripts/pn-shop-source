@@ -128,7 +128,7 @@ class ShoppingCartService
      */
     public function totals(array $context = []): CartTotals
     {
-        return $this->calculator->calculate($this->getCartItems(), app(Localization::class)->defaultCurrency()->code, $this->context($context));
+        return $this->calculator->calculate($this->getCartItems(), app(Localization::class)->currency()->code, $this->context($context));
     }
 
     /**

@@ -22,6 +22,8 @@ use PnShop\Catalog\Filament\Resources\PriceLists\Pages\ListPriceLists;
 use PnShop\Catalog\Filament\Resources\PriceLists\RelationManagers\EntriesRelationManager;
 use PnShop\Catalog\Pricing\Models\PriceList;
 use PnShop\Customer\Models\CustomerGroup;
+use PnShop\Localization\Localization;
+use PnShop\Localization\Models\Currency;
 use UnitEnum;
 
 /**
@@ -50,6 +52,12 @@ class PriceListResource extends Resource
                     ->options(fn () => CustomerGroup::query()->orderBy('name')->pluck('name', 'id')->all())
                     ->placeholder('Everyone (guests included)')
                     ->helperText('Empty: the prices apply to every customer, e.g. quantity discounts.'),
+                Select::make('currency')
+                    ->options(fn () => Currency::query()->where('is_active', true)->pluck('name', 'code')->all())
+                    ->default(fn () => app(Localization::class)->defaultCurrency()->code)
+                    ->required()
+                    ->disabled(fn (?PriceList $record) => $record !== null && $record->entries()->exists())
+                    ->helperText('Used by channels selling in this currency. Fixed once the list has prices.'),
                 DateTimePicker::make('starts_at')->label('From')->helperText('Empty: from now.'),
                 DateTimePicker::make('ends_at')->label('Until')->after('starts_at')->helperText('Empty: no end.'),
                 Toggle::make('is_active')->label('Active')->default(true),
@@ -63,6 +71,7 @@ class PriceListResource extends Resource
             ->defaultSort('name')
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
+                TextColumn::make('currency')->color('gray'),
                 TextColumn::make('customerGroup.name')->label('Customer group')->placeholder('Everyone'),
                 TextColumn::make('entries_count')->counts('entries')->label('Prices')->sortable(),
                 TextColumn::make('starts_at')->label('From')->dateTime()->placeholder('—'),

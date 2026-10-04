@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Customer\Models\CustomerGroup;
 use PnShop\Localization\Localization;
 
@@ -41,6 +42,10 @@ class PriceList extends Model
         static::creating(function (PriceList $list): void {
             $list->currency = $list->currency ?: app(Localization::class)->defaultCurrency()->code;
         });
+
+        // Prices already worked out in this request (or worker) are out of date.
+        static::saved(fn () => app(PriceResolver::class)->forget());
+        static::deleted(fn () => app(PriceResolver::class)->forget());
     }
 
     /**

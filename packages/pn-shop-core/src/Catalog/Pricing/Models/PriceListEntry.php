@@ -6,6 +6,7 @@ use Brick\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Money\MoneyCast;
 
 /**
@@ -28,6 +29,12 @@ class PriceListEntry extends Model
     protected function casts(): array
     {
         return ['price' => MoneyCast::class, 'min_quantity' => 'integer'];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => app(PriceResolver::class)->forget());
+        static::deleted(fn () => app(PriceResolver::class)->forget());
     }
 
     /**
