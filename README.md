@@ -75,6 +75,12 @@ npm run format:check && npm run lint:check && npm run types
 
 Start with [core modules](docs/development/core-modules.md) for the architecture, [plugins](docs/extensions/plugins.md) and [themes](docs/themes/themes.md) for extending, and [publishing](docs/release/publishing.md) for releases.
 
+## More from PN Scripts
+
+- [PN Invoice](https://github.com/pnscripts/pn-invoice): free PHP library to write and validate EN 16931 e-invoices (UBL and CII).
+- [Laravel and Filament upgrades and care](https://pnscripts.com/services/laravel-filament-care): fixed-price upgrades to Laravel 13 and Filament 5, and monthly care plans.
+- All products: [pnscripts.com/products](https://pnscripts.com/products)
+
 ## License
 
 MIT © 2026 Petar Nikolov / PN Scripts
