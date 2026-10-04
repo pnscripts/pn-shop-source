@@ -266,7 +266,8 @@ class ShoppingCartService
         /** @var CartSummary $result */
         $result = app(PipelineRegistry::class)->run(CartSummary::PIPELINE, new CartSummary($summary, $totals));
 
-        return $result->data;
+        // The base shape stays visible (API reference); stages may add and change keys.
+        return [...$summary, ...$result->data];
     }
 
     /**
