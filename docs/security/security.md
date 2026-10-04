@@ -53,7 +53,7 @@ How PN Shop protects the shop, and the settings that matter in production.
 - `APP_ENV=production`, `APP_DEBUG=false`, and `APP_URL` set to the real HTTPS address.
 - The web server serves `public/` only.
 - HTTPS everywhere. Behind a load balancer or Cloudflare, set `TRUSTED_PROXIES`.
-- The scheduler and a queue worker are running (see [installation](../installation/installation.md)).
+- The scheduler is running, and the queue worker if you use one; `php artisan queue:failed` lists no failed emails (see [installation](../installation/installation.md)).
 - Plugin zip uploads stay off unless needed. Install only plugins and themes you trust: plugins run PHP on your server, and themes run in your visitors' browsers.
 - Regular backups (`pnshop:update` backs up before updating; schedule your own as well).
 

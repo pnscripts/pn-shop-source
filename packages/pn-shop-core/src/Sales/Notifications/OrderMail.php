@@ -18,7 +18,7 @@ use PnShop\Settings\Settings;
  */
 abstract class OrderMail extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, RetriesDelivery;
 
     public function __construct(public Order $order)
     {

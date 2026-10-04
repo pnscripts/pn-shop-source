@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use PnShop\Credit\Models\GiftCard;
+use PnShop\Sales\Notifications\RetriesDelivery;
 use PnShop\Sales\Notifications\StoreMailIdentity;
 use PnShop\Settings\Settings;
 
@@ -16,7 +17,7 @@ use PnShop\Settings\Settings;
  */
 class GiftCardIssued extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, RetriesDelivery;
 
     public function __construct(public GiftCard $card, public string $code)
     {

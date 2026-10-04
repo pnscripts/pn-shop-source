@@ -65,6 +65,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Queue
+    |--------------------------------------------------------------------------
+    |
+    | Emails and image sizes are sent through the queue. So that they also go
+    | out on hosts without a permanent worker (shared hosting), the scheduler
+    | (cron, every minute) works through the queue and stops once it is empty
+    | or after `max_time` seconds. With a worker kept running by systemd or
+    | Supervisor this is not needed and can be turned off; leaving it on does
+    | no harm.
+    |
+    */
+
+    'queue' => [
+        'work_from_scheduler' => (bool) env('PNSHOP_QUEUE_FROM_SCHEDULER', true),
+        'max_time' => (int) env('PNSHOP_QUEUE_MAX_TIME', 50),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Extensions
     |--------------------------------------------------------------------------
     |

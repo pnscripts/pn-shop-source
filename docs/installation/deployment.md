@@ -58,7 +58,9 @@ On shared hosting with Apache, the `public/.htaccess` that ships with the projec
 
 It cancels orders left unpaid (hourly) and removes abandoned carts (daily). Plugins can add their own jobs.
 
-**A queue worker** sends emails and makes image sizes. Keep it running with systemd:
+It also works through the queue every minute (emails, image sizes) and stops when the queue is empty. On shared hosting, where you cannot keep a process running, **this cron line is all you need**: emails go out within about a minute.
+
+**A queue worker (recommended on a server)** sends emails and makes image sizes the moment they are queued. Keep it running with systemd:
 
 ```ini
 # /etc/systemd/system/shop-queue.service
@@ -77,6 +79,10 @@ WantedBy=multi-user.target
 ```
 
 Then run `systemctl enable --now shop-queue`. Supervisor works just as well. After each update, run `php artisan queue:restart` so the worker loads the new code.
+
+With a worker running, the scheduler's own pass over the queue is not needed. Leaving it on does no harm; to turn it off, set `PNSHOP_QUEUE_FROM_SCHEDULER=false` in `.env` (option `queue.work_from_scheduler` in `config/pnshop.php`).
+
+**Failed emails:** when the mail server refuses an email, it is retried after 1, 5, 15 and 60 minutes. After the fifth attempt it is logged (`storage/logs`) and kept in the `failed_jobs` table: list them with `php artisan queue:failed`, and send them again with `php artisan queue:retry all` once mail works.
 
 ## Caches
 
@@ -111,7 +117,8 @@ See [updating](updating.md) for what the update checks and does.
 - [ ] The site is HTTPS only, with `APP_URL` set to it.
 - [ ] `APP_DEBUG=false` and `APP_ENV=production`.
 - [ ] `TRUSTED_PROXIES` is set if the shop sits behind a proxy.
-- [ ] The cron entry and the queue worker run (`php artisan schedule:list` lists the jobs; a test order email arrives through the queue).
+- [ ] The cron entry runs (`php artisan schedule:list` lists the jobs), and the queue worker too if you use one. A test order email arrives through the queue.
+- [ ] `php artisan queue:failed` lists no failed emails.
 - [ ] A test order arrives by email, for both the customer and the store.
 - [ ] Daily database backups are kept off the server.
 - [ ] Only plugins and themes you trust are installed, and plugin zip uploads are off unless needed.

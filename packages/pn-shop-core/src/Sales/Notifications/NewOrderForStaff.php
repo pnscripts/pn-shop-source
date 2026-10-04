@@ -13,7 +13,7 @@ use PnShop\Sales\Models\Order;
  */
 class NewOrderForStaff extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, RetriesDelivery;
 
     public function __construct(public Order $order)
     {
