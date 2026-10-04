@@ -230,15 +230,11 @@ class OrderController extends AdminController
     private function detail(Order $order): array
     {
         $order->load([...OrderPresenter::RELATIONS, 'payments', 'history', 'shipments.location', 'items.allocations.location']);
-        $detail = OrderPresenter::detail($order);
-        $locations = $order->shipments->mapWithKeys(fn (Shipment $shipment) => [$shipment->id => $shipment->location?->code])->all();
-
-        foreach ($detail['shipments'] as $index => $shipment) {
-            $detail['shipments'][$index]['location'] = $locations[$shipment['id']] ?? null;
-        }
 
         return [
-            ...$detail,
+            ...OrderPresenter::detail($order),
+            // With the stock location (code) each parcel left from.
+            'shipments' => $order->shipments->map(fn (Shipment $shipment) => [...OrderPresenter::shipment($shipment), 'location' => $shipment->location?->code])->values()->all(),
             // Where each line's units are held (stock location codes), and how many shipped from there.
             'allocations' => $order->items->mapWithKeys(fn (OrderItem $item) => [$item->id => $item->allocations->map(fn (OrderItemAllocation $allocation) => [
                 'location' => $allocation->location?->code,

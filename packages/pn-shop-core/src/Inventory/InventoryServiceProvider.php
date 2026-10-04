@@ -17,7 +17,8 @@ class InventoryServiceProvider extends ModuleServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(InventoryService::class);
+        // Scoped: what it keeps about locations is refreshed for every request and queued job.
+        $this->app->scoped(InventoryService::class);
 
         Relation::morphMap([
             'stock_location' => StockLocation::class,

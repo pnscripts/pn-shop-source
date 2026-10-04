@@ -72,14 +72,7 @@ final class OrderPresenter
                 'line_total' => MoneyPresenter::present($item->lineTotal()),
             ])->values()->all(),
             'totals' => $order->presentTotals(),
-            'shipments' => $order->shipments->map(fn (Shipment $shipment) => [
-                'id' => $shipment->id,
-                'carrier' => $shipment->carrier_name,
-                'tracking_number' => $shipment->tracking_number,
-                'tracking_url' => $shipment->tracking_url,
-                'shipped_at' => $shipment->shipped_at?->toIso8601String(),
-                'quantity' => (int) $shipment->lines->sum('quantity'),
-            ])->values()->all(),
+            'shipments' => $order->shipments->map(fn (Shipment $shipment) => self::shipment($shipment))->values()->all(),
             'refunds' => $order->refunds->where('status', Refund::COMPLETED)->map(fn (Refund $refund) => [
                 'id' => $refund->id,
                 'amount' => MoneyPresenter::present($refund->amount),
@@ -108,6 +101,21 @@ final class OrderPresenter
                 'is_default_shipping' => $address->is_default_shipping,
                 'is_default_billing' => $address->is_default_billing,
             ] : []),
+        ];
+    }
+
+    /**
+     * @return array{id: int, carrier: string|null, tracking_number: string|null, tracking_url: string|null, shipped_at: string|null, quantity: int}
+     */
+    public static function shipment(Shipment $shipment): array
+    {
+        return [
+            'id' => $shipment->id,
+            'carrier' => $shipment->carrier_name,
+            'tracking_number' => $shipment->tracking_number,
+            'tracking_url' => $shipment->tracking_url,
+            'shipped_at' => $shipment->shipped_at?->toIso8601String(),
+            'quantity' => (int) $shipment->lines->sum('quantity'),
         ];
     }
 }
