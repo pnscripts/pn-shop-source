@@ -10,7 +10,10 @@ export type ShippingOption = {
     pickup?: { location: string; address: string; in_stock: boolean } | null;
 };
 
-type Quote = { options: ShippingOption[]; selected: number | null; totals: Totals };
+/** A gift card or store credit paying part of the order. */
+export type BalancePayment = { label: string; amount: Money };
+
+type Quote = { options: ShippingOption[]; selected: number | null; totals: Totals; balances?: BalancePayment[]; amount_due?: Money | null };
 
 function xsrfToken(): string {
     const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
@@ -54,5 +57,12 @@ export function useShippingQuote(countryCode: string, postcode: string, shipping
         };
     }, [countryCode, postcode, shippingMethodId]);
 
-    return { options: quote?.options ?? null, selected: quote?.selected ?? null, totals: quote?.totals ?? initialTotals, loading };
+    return {
+        options: quote?.options ?? null,
+        selected: quote?.selected ?? null,
+        totals: quote?.totals ?? initialTotals,
+        balances: quote?.balances ?? null,
+        amountDue: quote?.amount_due ?? null,
+        loading,
+    };
 }

@@ -1,4 +1,5 @@
 import { CouponForm } from '@/components/coupon-form';
+import { BalanceLines, GiftCardForm } from '@/components/gift-card-form';
 import { ProductCard } from '@/components/product-card';
 import { Slot } from '@/components/slot';
 import { TotalsBreakdown } from '@/components/totals-breakdown';
@@ -83,7 +84,17 @@ export default function CartIndex({ cart, suggestions }: { cart: CartSummary; su
                             <span>{cart.total_quantity}</span>
                         </div>
                         <CouponForm coupon={cart.coupon} />
+                        <GiftCardForm cart={cart} />
                         <TotalsBreakdown totals={cart.totals} />
+                        <BalanceLines
+                            lines={[
+                                ...(cart.gift_cards ?? [])
+                                    .filter((card) => card.applied)
+                                    .map((card) => ({ label: card.label, amount: card.applied! })),
+                                ...(cart.store_credit?.applied ? [{ label: t('Store credit'), amount: cart.store_credit.applied }] : []),
+                            ]}
+                            amountDue={cart.amount_due ?? null}
+                        />
                         <Slot name="cart.after_totals" props={{ cart }} />
                         {cart.minimum_order ? (
                             <p className="text-muted-foreground text-sm" role="status">

@@ -15,12 +15,22 @@ use PnShop\Customer\Models\User;
  * @property int|null $user_id
  * @property int|null $channel_id
  * @property string|null $coupon_code
+ * @property list<int>|null $gift_card_ids gift cards entered (see PnShop\Credit\CartBalances)
+ * @property bool $use_store_credit
  * @property Carbon $updated_at
  */
 class Cart extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['token', 'user_id', 'coupon_code', 'channel_id'];
+    protected $fillable = ['token', 'user_id', 'coupon_code', 'channel_id', 'gift_card_ids', 'use_store_credit'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return ['gift_card_ids' => 'array', 'use_store_credit' => 'boolean'];
+    }
 
     protected static function booted(): void
     {

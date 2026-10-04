@@ -2,14 +2,17 @@
 
 namespace PnShop\Sales\Checkout;
 
+use Brick\Money\Money;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use PnShop\Cart\CartItemDTO;
 use PnShop\Cart\ShoppingCartService;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Credit\CartBalances;
 use PnShop\Customer\Models\User;
 use PnShop\Customer\PostalAddress;
 use PnShop\Inventory\InventoryService;
+use PnShop\Money\MoneyPresenter;
 use PnShop\Shipping\Carriers\StorePickup;
 use PnShop\Shipping\ShippingQuote;
 use PnShop\Shipping\ShippingRequest;
@@ -33,7 +36,7 @@ class DeliveryQuote
     /**
      * @param  array<string, mixed>  $data  validated with RULES
      *                                      Pickup options at a stock location also say whether everything is in stock there.
-     * @return array{options: list<array<string, mixed>>, selected: int|null, totals: array<string, mixed>}
+     * @return array{options: list<array<string, mixed>>, selected: int|null, totals: array<string, mixed>, balances: list<array<string, mixed>>, amount_due: array<string, mixed>|null}
      */
     public function for(array $data, ?User $customer): array
     {
@@ -45,17 +48,25 @@ class DeliveryQuote
         $items = $this->cart->getCartItems();
         $variants = ProductVariant::query()->whereKey($items->pluck('variant_id')->all())->with('stockLevels')->get()->keyBy('id');
 
+        $totals = $this->cart->totals([
+            'shipping_address' => $address,
+            'shipping_method' => $selected?->method,
+            'user' => $customer,
+        ]);
+
+        // Gift cards and store credit entered in the cart pay first.
+        $plan = app(CartBalances::class)->plan($totals->total(), $customer);
+        $covered = array_reduce($plan, fn (Money $sum, array $part) => $sum->plus($part[1]), Money::zero($totals->currency()));
+
         return [
             'options' => array_values($quotes->map(fn (ShippingQuote $quote) => [
                 ...$quote->toArray(),
                 'pickup' => $this->pickup($quote, $items, $variants),
             ])->all()),
             'selected' => $selected?->method->id,
-            'totals' => $this->cart->totals([
-                'shipping_address' => $address,
-                'shipping_method' => $selected?->method,
-                'user' => $customer,
-            ])->toArray(),
+            'totals' => $totals->toArray(),
+            'balances' => array_map(fn (array $part) => ['label' => $part[0]->label(), 'amount' => MoneyPresenter::present($part[1])], $plan),
+            'amount_due' => MoneyPresenter::present($totals->total()->minus($covered)),
         ];
     }
 

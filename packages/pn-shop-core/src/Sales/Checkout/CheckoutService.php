@@ -13,6 +13,7 @@ use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Channel\Channels;
+use PnShop\Credit\CartBalances;
 use PnShop\Customer\Models\CustomerAddress;
 use PnShop\Customer\Models\User;
 use PnShop\Customer\PostalAddress;
@@ -114,7 +115,7 @@ class CheckoutService
                 'name' => $shipping->fullName(),
                 'email' => $data['email'],
                 'phone' => (string) $shipping->phone,
-                'payment_method_id' => $data['payment_method_id'],
+                'payment_method_id' => $data['payment_method_id'] ?? null,
                 'status' => OrderStatus::Pending,
                 'payment_status' => PaymentStatus::Unpaid,
                 'fulfillment_status' => FulfillmentStatus::Unfulfilled,
@@ -185,10 +186,21 @@ class CheckoutService
                 throw new CheckoutException(__('The minimum order is :amount. Please add more products.', ['amount' => $minimum->formatToLocale(app()->getLocale())]));
             }
 
-            $method = PaymentMethod::query()->find((int) $data['payment_method_id']);
+            // Gift cards and store credit pay first; the payment method pays the rest.
+            $balances = app(CartBalances::class);
+            $due = $totals->total()->minus($balances->covered($totals->total(), $user));
+            $method = isset($data['payment_method_id']) ? PaymentMethod::query()->find((int) $data['payment_method_id']) : null;
 
-            if ($method === null || ! $this->payments->accepts($method, new PaymentContext($totals->total(), $shipping->country_code, $user))) {
-                throw new CheckoutException(__('This payment method is not available for your order. Please choose another one.'));
+            if ($due->isPositive()) {
+                if ($method === null) {
+                    throw new CheckoutException(__('Please choose a payment method.'));
+                }
+
+                if (! $this->payments->accepts($method, new PaymentContext($due, $shipping->country_code, $user))) {
+                    throw new CheckoutException(__('This payment method is not available for your order. Please choose another one.'));
+                }
+            } else {
+                $order->forceFill(['payment_method_id' => $balances->paymentMethod()->id]);
             }
 
             $tax = $totals->meta['tax'] ?? null;
@@ -214,6 +226,8 @@ class CheckoutService
             ]);
 
             OrderPlacing::dispatch($order, $totals, $user);
+
+            $balances->spend($order, $user);
 
             $this->workflow->recordPlaced($order, $user);
 

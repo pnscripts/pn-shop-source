@@ -3,15 +3,26 @@
 namespace PnShop\Credit;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use PnShop\Cart\CartSummary;
+use PnShop\Credit\Gateways\StoreCreditGateway;
 use PnShop\Credit\Models\BalanceTransaction;
 use PnShop\Credit\Models\CreditAccount;
 use PnShop\Credit\Models\GiftCard;
 use PnShop\Credit\Policies\CreditAccountPolicy;
 use PnShop\Credit\Policies\GiftCardPolicy;
+use PnShop\Credit\Stages\AddBalancesToCart;
 use PnShop\Customer\Models\User;
 use PnShop\Foundation\Extension\Permission;
+use PnShop\Foundation\Extension\PipelineRegistry;
 use PnShop\Foundation\ModuleServiceProvider;
+use PnShop\Payment\PaymentGatewayManager;
+use PnShop\Payment\PaymentService;
+use PnShop\Payment\PaymentState;
+use PnShop\Sales\Events\OrderStateChanged;
+use PnShop\Sales\States\OrderStatus;
+use PnShop\Sales\States\PaymentStatus;
 
 /**
  * Gift cards and store credit: balances, their ledger, and spending them on orders.
@@ -21,6 +32,9 @@ class CreditServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         $this->app->singleton(Balances::class);
+        $this->app->scoped(CartBalances::class);
+
+        $this->app->afterResolving(PaymentGatewayManager::class, fn (PaymentGatewayManager $manager) => $manager->register(StoreCreditGateway::class));
 
         Relation::morphMap([
             'gift_card' => GiftCard::class,
@@ -36,6 +50,25 @@ class CreditServiceProvider extends ModuleServiceProvider
 
     protected function bootModule(): void
     {
+        $this->app->make(PipelineRegistry::class)->stage(CartSummary::PIPELINE, AddBalancesToCart::class, 100);
+
+        // A cancelled order that was not fully paid gives its gift cards and store credit back.
+        Event::listen(OrderStateChanged::class, function (OrderStateChanged $event): void {
+            if ($event->to !== OrderStatus::Cancelled || in_array($event->order->payment_status, [PaymentStatus::Paid, PaymentStatus::PartiallyRefunded, PaymentStatus::Refunded], true)) {
+                return;
+            }
+
+            foreach ($event->order->payments()->where('gateway', StoreCreditGateway::CODE)->where('status', PaymentState::Paid)->get() as $payment) {
+                $account = StoreCreditGateway::account($payment);
+
+                if ($account !== null) {
+                    app(Balances::class)->change($account, $payment->amount, BalanceReason::Released, $event->order, $payment);
+                }
+
+                app(PaymentService::class)->recordReturned($payment, __('Given back: the order was cancelled.'), $event->actor);
+            }
+        });
+
         Gate::policy(GiftCard::class, GiftCardPolicy::class);
         Gate::policy(CreditAccount::class, CreditAccountPolicy::class);
 

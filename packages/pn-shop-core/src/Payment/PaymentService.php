@@ -65,13 +65,24 @@ class PaymentService
     public function start(Order $order): PaymentResult
     {
         $method = $order->paymentMethod;
+        $due = $this->amountDue($order);
+
+        // Paid in full by gift cards or store credit at checkout.
+        if ($due->isZero() && $order->payments()->exists()) {
+            if ($order->payment_status !== PaymentStatus::Paid) {
+                $this->workflow->transition($order, PaymentStatus::Paid);
+            }
+
+            return PaymentResult::paid();
+        }
 
         $payment = Payment::query()->create([
             'order_id' => $order->id,
             'payment_method_id' => $method?->id,
             'gateway' => $method->gateway ?? 'manual',
             'currency' => $order->currency,
-            'amount' => $order->grandTotal(),
+            // What is left after gift cards and store credit.
+            'amount' => $due,
         ]);
 
         // Nothing to collect (a 100% discount): the order is paid as placed.
@@ -149,6 +160,11 @@ class PaymentService
             default => null,
         };
 
+        // Paid only once the payments cover the order (another part may be a gift card).
+        if ($orderState === PaymentStatus::Paid && $payment->order !== null && ! $this->amountDue($payment->order)->isZero()) {
+            $orderState = null;
+        }
+
         if ($orderState !== null && $payment->order !== null && $payment->order->payment_status !== $orderState) {
             $this->workflow->transition($payment->order, $orderState, $actor, $result->message);
         }
@@ -164,7 +180,9 @@ class PaymentService
      */
     public function settle(Order $order, ?Model $actor = null): void
     {
-        if ($order->payments()->whereIn('status', [PaymentState::Paid, PaymentState::PartiallyRefunded, PaymentState::Refunded])->exists()) {
+        $due = $this->amountDue($order);
+
+        if ($due->isZero() && $order->payments()->whereIn('status', [PaymentState::Paid, PaymentState::PartiallyRefunded, PaymentState::Refunded])->exists()) {
             return;
         }
 
@@ -176,7 +194,7 @@ class PaymentService
                 'payment_method_id' => $order->payment_method_id,
                 'gateway' => $order->paymentMethod->gateway ?? 'manual',
                 'currency' => $order->currency,
-                'amount' => $order->grandTotal(),
+                'amount' => $due,
             ])]);
         }
 
@@ -211,6 +229,39 @@ class PaymentService
         $method = $payment->method;
 
         return $method === null ? null : $method->gatewayInstance()?->instructions($payment, $method);
+    }
+
+    /**
+     * What the order still has to pay: its total less the payments made (a refund does not
+     * make a payment unpaid).
+     */
+    public function amountDue(Order $order): Money
+    {
+        $paid = $order->payments()->whereIn('status', [PaymentState::Paid, PaymentState::PartiallyRefunded, PaymentState::Refunded])->get()
+            ->reduce(fn (Money $sum, Payment $payment) => $sum->plus($payment->amount), Money::zero($order->currency));
+        $due = $order->grandTotal()->minus($paid);
+
+        return $due->isNegative() ? Money::zero($order->currency) : $due;
+    }
+
+    /**
+     * Record a payment taken at once (a gift card or store credit), without changing the
+     * order's payment status: start() does when everything is covered.
+     */
+    public function recordPaid(Payment $payment, ?string $message = null): void
+    {
+        $payment->forceFill(['status' => PaymentState::Paid])->save();
+        $this->record($payment, 'initiate', PaymentOutcome::Paid->value, $payment->amount, $payment->reference, $message, [], null);
+    }
+
+    /**
+     * Mark a payment as given back in full outside a refund (a cancelled order's gift card
+     * payment returned to the card).
+     */
+    public function recordReturned(Payment $payment, ?string $message = null, ?Model $actor = null): void
+    {
+        $payment->forceFill(['status' => PaymentState::Refunded, 'refunded_amount' => $payment->amount])->save();
+        $this->record($payment, 'refund', PaymentOutcome::Refunded->value, $payment->amount, $payment->reference, $message, [], $actor);
     }
 
     /**

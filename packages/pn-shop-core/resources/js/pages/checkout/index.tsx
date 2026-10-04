@@ -1,5 +1,6 @@
 import { AddressFields, emptyAddress, type AddressData, type Country } from '@/components/address-fields';
 import { BotTrapFields, type BotTrapData } from '@/components/bot-trap';
+import { BalanceLines } from '@/components/gift-card-form';
 import InputError from '@/components/input-error';
 import { Slot } from '@/components/slot';
 import { TotalsBreakdown } from '@/components/totals-breakdown';
@@ -63,6 +64,13 @@ export default function Checkout({
     });
     const fieldErrors = errors as Record<string, string | undefined>;
     const delivery = useShippingQuote(data.shipping.country_code, data.shipping.postcode, data.shipping_method_id, cart.totals);
+    // Gift cards and store credit (from the quote once there is one, else from the cart).
+    const balanceLines = delivery.balances ?? [
+        ...(cart.gift_cards ?? []).filter((card) => card.applied).map((card) => ({ label: card.label, amount: card.applied! })),
+        ...(cart.store_credit?.applied ? [{ label: t('Store credit'), amount: cart.store_credit.applied }] : []),
+    ];
+    const amountDue = delivery.amountDue ?? cart.amount_due ?? null;
+    const paidInFull = balanceLines.length > 0 && amountDue !== null && amountDue.minor === 0;
 
     // Keep the customer's choice; fall back to the server's pick only when the chosen
     // option is not offered for the address (or nothing is chosen yet).
@@ -249,28 +257,32 @@ export default function Checkout({
                         )}
                     </section>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="payment_method_id">{t('Payment method')}</Label>
-                        <select
-                            id="payment_method_id"
-                            className="border-input h-9 rounded-md border bg-transparent px-3 text-sm"
-                            value={data.payment_method_id}
-                            onChange={(event) => setData('payment_method_id', event.target.value)}
-                            required
-                        >
-                            {paymentMethods.map((method) => (
-                                <option key={method.id} value={method.id}>
-                                    {method.name}
-                                </option>
-                            ))}
-                        </select>
-                        <InputError message={errors.payment_method_id} />
-                        {paymentMethods.find((method) => String(method.id) === String(data.payment_method_id))?.description && (
-                            <p className="text-muted-foreground text-sm">
-                                {paymentMethods.find((method) => String(method.id) === String(data.payment_method_id))?.description}
-                            </p>
-                        )}
-                    </div>
+                    {paidInFull ? (
+                        <p className="text-muted-foreground text-sm">{t('Your gift cards and store credit pay the whole order.')}</p>
+                    ) : (
+                        <div className="grid gap-2">
+                            <Label htmlFor="payment_method_id">{t('Payment method')}</Label>
+                            <select
+                                id="payment_method_id"
+                                className="border-input h-9 rounded-md border bg-transparent px-3 text-sm"
+                                value={data.payment_method_id}
+                                onChange={(event) => setData('payment_method_id', event.target.value)}
+                                required
+                            >
+                                {paymentMethods.map((method) => (
+                                    <option key={method.id} value={method.id}>
+                                        {method.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <InputError message={errors.payment_method_id} />
+                            {paymentMethods.find((method) => String(method.id) === String(data.payment_method_id))?.description && (
+                                <p className="text-muted-foreground text-sm">
+                                    {paymentMethods.find((method) => String(method.id) === String(data.payment_method_id))?.description}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <aside className="h-fit rounded-xl border p-6">
@@ -287,6 +299,7 @@ export default function Checkout({
                         ))}
                     </ul>
                     <TotalsBreakdown totals={delivery.totals} />
+                    <BalanceLines lines={balanceLines} amountDue={amountDue} />
                     <Slot name="checkout.before_submit" props={{ cart, totals: delivery.totals }} />
                     <Button type="submit" className="w-full" disabled={processing || (shippingRequired && data.shipping_method_id === '')}>
                         {t('Place order')}

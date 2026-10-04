@@ -14,6 +14,7 @@ use PnShop\Cart\Totals\CartTotals;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
+use PnShop\Foundation\Extension\PipelineRegistry;
 use PnShop\Inventory\InventoryService;
 use PnShop\Localization\Localization;
 use PnShop\Money\MoneyPresenter;
@@ -236,7 +237,7 @@ class ShoppingCartService
     {
         $totals = $this->totals($context);
 
-        return [
+        $summary = [
             'items' => $this->getCartItems()->map(fn (CartItemDTO $item) => [
                 'variant_id' => $item->variant_id,
                 'product_id' => $item->product_id,
@@ -261,6 +262,11 @@ class ShoppingCartService
             // The customer group's minimum order, while the products fall short of it.
             'minimum_order' => MoneyPresenter::present(app(PriceResolver::class)->customerGroup()?->minimumOrderShortfall($totals->subtotal)),
         ];
+
+        /** @var CartSummary $result */
+        $result = app(PipelineRegistry::class)->run(CartSummary::PIPELINE, new CartSummary($summary, $totals));
+
+        return $result->data;
     }
 
     /**

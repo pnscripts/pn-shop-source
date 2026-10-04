@@ -31,6 +31,9 @@ Route::middleware('throttle:cart')->group(function () {
     Route::delete('/cart/{variant}', [CartController::class, 'destroy'])->whereNumber('variant')->name('cart.destroy');
     Route::post('/cart/coupon', [CartController::class, 'applyCoupon'])->name('cart.coupon.store');
     Route::delete('/cart/coupon', [CartController::class, 'removeCoupon'])->name('cart.coupon.destroy');
+    Route::post('/cart/gift-cards', [CartController::class, 'applyGiftCard'])->name('cart.gift-cards.store');
+    Route::delete('/cart/gift-cards/{giftCard}', [CartController::class, 'removeGiftCard'])->whereNumber('giftCard')->name('cart.gift-cards.destroy');
+    Route::put('/cart/store-credit', [CartController::class, 'useStoreCredit'])->name('cart.store-credit.update');
 });
 
 Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');

@@ -29,8 +29,9 @@ final class CheckoutRules
             ...$billing,
             'save_address' => ['boolean'],
             'shipping_method_id' => ['nullable', 'integer'],
+            // Not needed when gift cards or store credit pay everything (checked by CheckoutService).
             'payment_method_id' => [
-                'required',
+                'nullable',
                 'integer',
                 Rule::exists('payment_methods', 'id')->where('is_active', true),
             ],

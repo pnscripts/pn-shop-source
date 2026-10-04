@@ -154,6 +154,12 @@ export interface CartSummary {
     coupon: CartCoupon | null;
     /** The customer group's minimum order, while the products fall short of it. */
     minimum_order?: Money | null;
+    /** Gift cards entered in the cart, and what each pays. */
+    gift_cards?: { id: number; label: string; balance: Money; applied: Money | null }[];
+    /** The signed-in customer's store credit, when they have some. */
+    store_credit?: { available: Money; used: boolean; applied: Money | null } | null;
+    /** What is left to pay after gift cards and store credit. */
+    amount_due?: Money | null;
 }
 
 export interface CartCoupon {

@@ -12,6 +12,8 @@ use PnShop\Cart\ShoppingCartService;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\Presenters\ProductCardPresenter;
 use PnShop\Catalog\ProductType;
+use PnShop\Credit\CartBalances;
+use PnShop\Localization\Localization;
 use PnShop\Storefront\Http\Requests\Cart\AddToCartRequest;
 use PnShop\Storefront\Http\Requests\Cart\UpdateCartRequest;
 
@@ -85,6 +87,33 @@ class CartController extends Controller
         $this->cart->setCouponCode(null);
 
         return back()->with('success', __('Coupon removed.'));
+    }
+
+    public function applyGiftCard(Request $request, CartBalances $balances): RedirectResponse
+    {
+        $code = (string) $request->validate(['gift_card' => ['required', 'string', 'max:64']])['gift_card'];
+
+        try {
+            $balances->apply($code, app(Localization::class)->currency()->code);
+        } catch (CartException $e) {
+            throw ValidationException::withMessages(['gift_card' => $e->getMessage()]);
+        }
+
+        return back()->with('success', __('Gift card added.'));
+    }
+
+    public function removeGiftCard(int $giftCard, CartBalances $balances): RedirectResponse
+    {
+        $balances->remove($giftCard);
+
+        return back()->with('success', __('Gift card removed.'));
+    }
+
+    public function useStoreCredit(Request $request, CartBalances $balances): RedirectResponse
+    {
+        $balances->useCredit($request->boolean('use'));
+
+        return back();
     }
 
     /**

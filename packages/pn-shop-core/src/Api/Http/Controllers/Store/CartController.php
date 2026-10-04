@@ -10,6 +10,8 @@ use PnShop\Cart\CartRepository;
 use PnShop\Cart\ShoppingCartService;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\ProductType;
+use PnShop\Credit\CartBalances;
+use PnShop\Localization\Localization;
 
 /**
  * The cart of the customer behind the token, or the guest cart named by the X-Cart-Token
@@ -103,6 +105,49 @@ class CartController extends ApiController
     public function removeCoupon(): array
     {
         $this->cart->setCouponCode(null);
+
+        return $this->cart();
+    }
+
+    /**
+     * Enter a gift card code
+     *
+     * Its balance pays part or all of the order at checkout (`gift_cards`, `amount_due`).
+     * A wrong, used-up, expired or other-currency code is refused (422).
+     *
+     * @return array<string, mixed>
+     */
+    public function applyGiftCard(Request $request, CartBalances $balances): array
+    {
+        $data = $request->validate(['code' => ['required', 'string', 'max:64']]);
+
+        $balances->apply($data['code'], app(Localization::class)->currency()->code);
+
+        return $this->cart();
+    }
+
+    /**
+     * Remove a gift card
+     *
+     * @return array<string, mixed>
+     */
+    public function removeGiftCard(int $giftCard, CartBalances $balances): array
+    {
+        $balances->remove($giftCard);
+
+        return $this->cart();
+    }
+
+    /**
+     * Spend store credit
+     *
+     * `use: true` spends the signed-in customer's store credit on the order (`store_credit`).
+     *
+     * @return array<string, mixed>
+     */
+    public function useStoreCredit(Request $request, CartBalances $balances): array
+    {
+        $balances->useCredit((bool) $request->validate(['use' => ['required', 'boolean']])['use']);
 
         return $this->cart();
     }
