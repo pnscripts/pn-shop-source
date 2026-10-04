@@ -32,6 +32,8 @@ class PriceResolver
     /** Set by forCustomer(): the context no longer follows the signed-in customer. */
     private bool $pinned = false;
 
+    private ?User $pinnedCustomer = null;
+
     /** @var array<int, list<array{price_list_id: int, min_quantity: int, price: Money}>> variant id => entries */
     private array $entries = [];
 
@@ -47,13 +49,10 @@ class PriceResolver
 
     public function context(): PriceContext
     {
-        if ($this->pinned && $this->context !== null) {
-            return $this->context;
-        }
-
-        // Follows the signed-in customer and the channel's currency: signing in during a
-        // request (or the next request in a long-running process) prices for them.
-        $customer = $this->currentCustomer();
+        // Follows the signed-in customer (unless pinned with forCustomer()) and the channel's
+        // currency: signing in during a request, or the next request in a long-running
+        // process, prices for them.
+        $customer = $this->pinned ? $this->pinnedCustomer : $this->currentCustomer();
 
         if ($this->context === null || $this->context->customer?->getKey() !== $customer?->getKey() || $this->context->currency !== $this->currency()) {
             $this->switchTo($this->contextFor($customer));
@@ -69,10 +68,8 @@ class PriceResolver
     public function forCustomer(?User $customer): void
     {
         $this->pinned = true;
-
-        if ($this->context === null || $this->context->customer?->getKey() !== $customer?->getKey()) {
-            $this->switchTo($this->contextFor($customer));
-        }
+        $this->pinnedCustomer = $customer;
+        $this->context();
     }
 
     private function switchTo(PriceContext $context): void

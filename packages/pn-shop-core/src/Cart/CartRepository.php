@@ -273,7 +273,8 @@ final class CartRepository
     {
         $channel = app(Channels::class)->current();
 
-        return $channel->is_default ? self::SESSION_TOKEN : self::SESSION_TOKEN.'.'.$channel->code;
+        // An underscore, not a dot: the session would nest "cart.token.<code>" inside "cart.token".
+        return $channel->is_default ? self::SESSION_TOKEN : self::SESSION_TOKEN.'_'.$channel->code;
     }
 
     private function forgetLines(): void
