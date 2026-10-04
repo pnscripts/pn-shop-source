@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use PnShop\Api\Http\Resources\OrderPresenter;
+use PnShop\Inventory\Models\StockLocation;
 use PnShop\Money\MoneyPresenter;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\RefundService;
@@ -18,11 +19,14 @@ use PnShop\Sales\Exceptions\OrderException;
 use PnShop\Sales\ManualStateChanges;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\Models\OrderHistory;
+use PnShop\Sales\Models\OrderItem;
+use PnShop\Sales\Models\OrderItemAllocation;
 use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\FulfillmentStatus;
 use PnShop\Sales\States\OrderState;
 use PnShop\Sales\States\OrderStatus;
 use PnShop\Sales\States\PaymentStatus;
+use PnShop\Shipping\Models\Shipment;
 use PnShop\Shipping\ShipmentService;
 
 /**
@@ -147,7 +151,9 @@ class OrderController extends AdminController
      * Ship items
      *
      * Records a shipment. `items` maps order item ids to quantities; leave it out to ship
-     * everything not shipped yet.
+     * everything not shipped yet. `location` is the stock location code it leaves from:
+     * without it, the location holding the units (422 when they are held at several);
+     * with it and without `items`, everything waiting there ships.
      */
     public function ship(Request $request, Order $order, ShipmentService $shipments): JsonResponse
     {
@@ -158,16 +164,18 @@ class OrderController extends AdminController
             'items.*' => ['integer', 'min:1'],
             'tracking_number' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:1000'],
+            'location' => ['nullable', 'string', Rule::exists('stock_locations', 'code')],
         ]);
 
         $quantities = [];
+        $location = isset($data['location']) ? StockLocation::query()->where('code', $data['location'])->firstOrFail() : null;
 
         foreach ((array) ($data['items'] ?? []) as $itemId => $quantity) {
             $quantities[(int) $itemId] = (int) $quantity;
         }
 
         try {
-            $shipments->ship($order, $quantities, $data['tracking_number'] ?? null, $data['note'] ?? null, $this->admin($request));
+            $shipments->ship($order, $quantities, $data['tracking_number'] ?? null, $data['note'] ?? null, $this->admin($request), $location);
         } catch (OrderException $e) {
             throw ValidationException::withMessages(['items' => $e->getMessage()]);
         }
@@ -221,10 +229,22 @@ class OrderController extends AdminController
      */
     private function detail(Order $order): array
     {
-        $order->load([...OrderPresenter::RELATIONS, 'payments', 'history']);
+        $order->load([...OrderPresenter::RELATIONS, 'payments', 'history', 'shipments.location', 'items.allocations.location']);
+        $detail = OrderPresenter::detail($order);
+        $locations = $order->shipments->mapWithKeys(fn (Shipment $shipment) => [$shipment->id => $shipment->location?->code])->all();
+
+        foreach ($detail['shipments'] as $index => $shipment) {
+            $detail['shipments'][$index]['location'] = $locations[$shipment['id']] ?? null;
+        }
 
         return [
-            ...OrderPresenter::detail($order),
+            ...$detail,
+            // Where each line's units are held (stock location codes), and how many shipped from there.
+            'allocations' => $order->items->mapWithKeys(fn (OrderItem $item) => [$item->id => $item->allocations->map(fn (OrderItemAllocation $allocation) => [
+                'location' => $allocation->location?->code,
+                'quantity' => $allocation->quantity,
+                'quantity_shipped' => $allocation->quantity_shipped,
+            ])->values()->all()])->all(),
             'customer_id' => $order->user_id,
             'stock_status' => $order->stock_status->value,
             'updated_at' => $order->updated_at?->toIso8601String(),

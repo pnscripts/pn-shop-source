@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Inventory\Exceptions\InsufficientStock;
-use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\OrderStockStatus;
-use PnShop\Inventory\StockMovementReason;
 use PnShop\Sales\Events\OrderReopening;
 use PnShop\Sales\Events\OrderStateChanged;
 use PnShop\Sales\Exceptions\InvalidOrderTransition;
@@ -35,7 +33,7 @@ use PnShop\Sales\States\PaymentStatus;
  */
 class OrderWorkflow
 {
-    public function __construct(private InventoryService $inventory) {}
+    public function __construct(private StockAllocations $allocations) {}
 
     /**
      * @param  (Closure(Order): bool)|null  $when  checked against the locked order first; when it
@@ -158,40 +156,28 @@ class OrderWorkflow
             return;
         }
 
-        $shipped = min($item->quantity_fulfilled, $item->quantityKept());
-        $held = $item->quantityToShip();
         $kept = $item->quantityKept();
 
+        // Stock moves at the locations the line's units are held at (StockAllocations).
         try {
             switch ([$from, $to]) {
                 case [OrderStockStatus::Reserved, OrderStockStatus::Fulfilled]:
-                    if ($held > 0) {
-                        $this->inventory->commit($variant, $held, StockMovementReason::OrderFulfilled, $order);
-                    }
+                    $this->allocations->fulfilAll($item, $variant, $order);
                     $item->quantity_fulfilled = $kept;
                     break;
                 case [OrderStockStatus::Reserved, OrderStockStatus::Released]:
-                    $this->inventory->release($variant, $held);
-                    if ($shipped > 0) {
-                        $this->inventory->adjust($variant, $shipped, StockMovementReason::OrderCancelled, $order);
-                    }
+                    $this->allocations->releaseAll($item, $variant, $order, reserved: true);
                     $item->quantity_fulfilled = 0;
                     break;
                 case [OrderStockStatus::Fulfilled, OrderStockStatus::Released]:
-                    if ($shipped > 0) {
-                        $this->inventory->adjust($variant, $shipped, StockMovementReason::OrderCancelled, $order);
-                    }
+                    $this->allocations->releaseAll($item, $variant, $order, reserved: false);
                     $item->quantity_fulfilled = 0;
                     break;
                 case [OrderStockStatus::Released, OrderStockStatus::Reserved]:
-                    if ($kept > 0) {
-                        $this->inventory->reserve($variant, $kept);
-                    }
+                    $this->allocations->reopen($item, $variant, $order, shipped: false);
                     break;
                 case [OrderStockStatus::Released, OrderStockStatus::Fulfilled]:
-                    if ($kept > 0) {
-                        $this->inventory->adjust($variant, -$kept, StockMovementReason::OrderReopened, $order);
-                    }
+                    $this->allocations->reopen($item, $variant, $order, shipped: true);
                     $item->quantity_fulfilled = $kept;
                     break;
             }

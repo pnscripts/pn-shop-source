@@ -24,10 +24,11 @@ class ShipmentsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with('lines.item'))
+            ->modifyQueryUsing(fn ($query) => $query->with(['lines.item', 'location']))
             ->columns([
                 TextColumn::make('shipped_at')->label('Shipped')->dateTime(),
                 TextColumn::make('carrier_name')->label('Method')->placeholder('—'),
+                TextColumn::make('location.name')->label('From')->placeholder('—'),
                 TextColumn::make('items')
                     ->state(fn (Shipment $record) => $record->lines->map(fn (ShipmentLine $line) => $line->quantity.' × '.$line->item?->product_title)->all())
                     ->listWithLineBreaks(),

@@ -22,6 +22,7 @@ use PnShop\Sales\Models\Order;
 use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\FulfillmentStatus;
 use PnShop\Sales\States\OrderStatus;
+use PnShop\Sales\StockAllocations;
 use PnShop\Settings\Settings;
 
 /**
@@ -169,7 +170,8 @@ class ReturnService
                 $variant = $line->orderItem?->product_variant_id ? ProductVariant::withTrashed()->find($line->orderItem->product_variant_id) : null;
 
                 if ($restock && $quantity > 0 && $variant !== null) {
-                    $this->inventory->adjust($variant, $quantity, StockMovementReason::Return, $return, $actor instanceof AdminUser ? $actor : null, $return->number);
+                    // Back to the location the units shipped from.
+                    $this->inventory->adjust($variant, $quantity, StockMovementReason::Return, $return, $actor instanceof AdminUser ? $actor : null, $return->number, app(StockAllocations::class)->returnLocation($line->orderItem));
                 }
             }
 

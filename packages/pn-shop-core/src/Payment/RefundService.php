@@ -21,6 +21,7 @@ use PnShop\Sales\Models\Order;
 use PnShop\Sales\Models\OrderItem;
 use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\PaymentStatus;
+use PnShop\Sales\StockAllocations;
 use Throwable;
 
 /**
@@ -220,12 +221,14 @@ class RefundService
         $returned = $quantity - $cancel;
         $variant = $item->product_variant_id === null ? null : ProductVariant::withTrashed()->find($item->product_variant_id);
 
-        if ($variant !== null && $cancel > 0 && $order->stock_status === OrderStockStatus::Reserved) {
-            $this->inventory->release($variant, $cancel);
+        // Units that will never ship stop being held at their locations; returned ones go
+        // back where they shipped from.
+        if ($item->product_variant_id !== null && $cancel > 0) {
+            app(StockAllocations::class)->cancel($item, $variant, $cancel, $order->stock_status === OrderStockStatus::Reserved);
         }
 
         if ($variant !== null && $returned > 0 && $restock) {
-            $this->inventory->adjust($variant, $returned, StockMovementReason::Return, $order);
+            $this->inventory->adjust($variant, $returned, StockMovementReason::Return, $order, location: app(StockAllocations::class)->returnLocation($item));
         }
 
         $item->forceFill([

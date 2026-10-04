@@ -6,6 +6,7 @@ use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use PnShop\Catalog\Models\Product;
 use PnShop\Money\MoneyCast;
@@ -80,6 +81,16 @@ class OrderItem extends Model
     public function quantityKept(): int
     {
         return max(0, $this->quantity - $this->quantity_cancelled);
+    }
+
+    /**
+     * Where its units are held; see StockAllocations.
+     *
+     * @return HasMany<OrderItemAllocation, $this>
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(OrderItemAllocation::class);
     }
 
     /**

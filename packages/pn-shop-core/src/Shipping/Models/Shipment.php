@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use PnShop\Inventory\Models\StockLocation;
 use PnShop\Sales\Models\Order;
 
 /**
@@ -15,6 +16,7 @@ use PnShop\Sales\Models\Order;
  * @property int $id
  * @property int $order_id
  * @property int|null $shipping_method_id
+ * @property int|null $stock_location_id
  * @property string|null $carrier_name
  * @property string|null $tracking_number
  * @property string|null $tracking_url
@@ -24,7 +26,7 @@ use PnShop\Sales\Models\Order;
 class Shipment extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['order_id', 'shipping_method_id', 'carrier_name', 'tracking_number', 'tracking_url', 'note', 'shipped_at', 'actor_type', 'actor_id'];
+    protected $fillable = ['order_id', 'shipping_method_id', 'stock_location_id', 'carrier_name', 'tracking_number', 'tracking_url', 'note', 'shipped_at', 'actor_type', 'actor_id'];
 
     /**
      * @return array<string, string>
@@ -40,6 +42,16 @@ class Shipment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * The stock location it left from (null for shipments before 1.4).
+     *
+     * @return BelongsTo<StockLocation, $this>
+     */
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(StockLocation::class, 'stock_location_id');
     }
 
     /**
