@@ -9,6 +9,12 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 - **Order emails on hosts without a queue worker:** the scheduler (cron, every minute) now works through the queue and stops when it is empty, so order, return and gift card emails are sent on shared hosting too. Turn it off with `PNSHOP_QUEUE_FROM_SCHEDULER=false` when a worker runs. See [deployment](docs/installation/deployment.md#background-jobs).
 - **Retries for store emails:** an email the mail server refuses is retried after 1, 5, 15 and 60 minutes, then logged and kept in `failed_jobs` (`php artisan queue:failed`). Before, it was retried only as often as the worker's `--tries` allowed, with no pause.
 
+## Unreleased
+
+### Added
+
+- **PayPal plugin, for developers:** `services.paypal.api_url` points the plugin at another API address, such as the local stand-in in the source repository (`tests/Support/PayPalStandIn`), to try it end to end without a PayPal account.
+
 ## 1.7.0 (2026-10-05)
 
 A PayPal payment plugin, and store emails without a queue worker. See the [upgrade notes](docs/upgrades/2026-10-release-1.7.md).

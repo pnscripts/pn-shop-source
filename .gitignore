@@ -30,3 +30,5 @@ yarn-error.log
 /themes/*/*/dist
 /packages/pn-shop-core/theme/dist
 /public/vendor/pnshop
+/tests/Support/PayPalStandIn/state.json
+/tests/Support/PayPalStandIn/requests.log

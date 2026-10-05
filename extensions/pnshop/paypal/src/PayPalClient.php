@@ -27,6 +27,14 @@ class PayPalClient
 
     public function base(): string
     {
+        // For developers: another API address (a local stand-in or a proxy), set in
+        // config/services.php as paypal.api_url. Shops never set it.
+        $override = config('services.paypal.api_url');
+
+        if (is_string($override) && $override !== '') {
+            return rtrim($override, '/');
+        }
+
         return $this->settings->get('plugin.pnshop_paypal.environment') === 'live' ? self::LIVE : self::SANDBOX;
     }
 

@@ -27,3 +27,13 @@ PayPal is offered for the currencies PayPal accepts with decimal amounts: AUD, B
 ## Testing
 
 Use sandbox credentials and a sandbox buyer account from the PayPal developer dashboard. Webhooks need a public URL: expose your local shop with a tunnel and add that URL as the sandbox webhook.
+
+For development without a PayPal account, the plugin can talk to a local stand-in of PayPal's API instead. Set its address in `config/services.php`:
+
+```php
+'paypal' => ['api_url' => env('PAYPAL_API_URL')],
+```
+
+The source repository has such a stand-in: `tests/Support/PayPalStandIn/server.php`, with an approval page, request log and PayPal's capture and refund rules.
+
+Leave `PAYPAL_API_URL` unset in a real shop: the plugin then uses PayPal's sandbox or live API, as chosen in the settings.

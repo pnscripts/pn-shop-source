@@ -17,6 +17,7 @@ use PnShop\Payment\PaymentGatewayManager;
 use PnShop\Payment\PaymentState;
 use PnShop\Payment\RefundService;
 use PnShop\Payment\Testing\PaymentGatewayContractTests;
+use PnShop\Plugins\PayPal\PayPalClient;
 use PnShop\Plugins\PayPal\WebhookSignature;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\OrderWorkflow;
@@ -230,6 +231,16 @@ class PayPalPluginTest extends AdminTestCase
         DB::table('settings')->where('namespace', 'plugin.pnshop_paypal')->delete();
         app(Settings::class)->flush();
         $this->assertFalse($gateway->isAvailable(new PaymentContext(Money::of(10, 'EUR'), 'BG'), $method));
+    }
+
+    public function test_developers_can_point_the_plugin_at_another_api(): void
+    {
+        config(['services.paypal.api_url' => 'http://127.0.0.1:8125/']);
+
+        $this->assertSame('http://127.0.0.1:8125', app(PayPalClient::class)->base());
+
+        config(['services.paypal.api_url' => null]);
+        $this->assertSame(self::API, app(PayPalClient::class)->base());
     }
 
     private function checkout(): Order
