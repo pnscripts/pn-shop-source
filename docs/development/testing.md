@@ -48,6 +48,13 @@ Keep the schema portable:
 - **Query counts:** `tests/Feature/Core/QueryCountTest.php` fails when a storefront page or API list starts making more queries. Keep it green by eager-loading relations, not by raising the limits.
 - **Contract test kits:** a payment gateway or shipping carrier (core or plugin) gets its tests from `PnShop\Payment\Testing\PaymentGatewayContractTests` and `PnShop\Shipping\Testing\ShippingCarrierContractTests`.
 
+## Payment providers
+
+The suite fakes payment providers' APIs. Two optional runs go further:
+
+- **Stripe, real test mode:** `STRIPE_TEST_SECRET_KEY=sk_test_… ./vendor/bin/phpunit --group stripe-live` runs `tests/Feature/Extensions/StripeLiveTest.php` against Stripe's API. It is excluded from the normal suite and CI, and refuses live keys. The full run with Stripe's payment page is in [Stripe end to end](stripe-end-to-end.md).
+- **PayPal, local stand-in:** `tests/Support/PayPalStandIn` imitates PayPal's API (see the PayPal plugin's README).
+
 ## The other checks
 
 CI runs these on every pull request and every push to `main` and `next`:

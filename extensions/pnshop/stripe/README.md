@@ -15,3 +15,5 @@ How it works:
 - Requests to Stripe use idempotency keys, so retries never charge or refund twice.
 
 Test locally with the Stripe CLI: `stripe listen --forward-to localhost:8000/stripe/webhook` and the card 4242 4242 4242 4242.
+
+Developers: `docs/development/stripe-end-to-end.md` in the source repository runs the plugin against Stripe's test mode, with API tests and a browser checklist.

@@ -12,6 +12,12 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <groups>
+        <exclude>
+            <!-- Calls Stripe's real test-mode API; see tests/Feature/Extensions/StripeLiveTest.php. -->
+            <group>stripe-live</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>

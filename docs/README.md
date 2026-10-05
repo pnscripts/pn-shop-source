@@ -35,6 +35,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 | [development/core-modules.md](development/core-modules.md) | The core package, module layout, permissions, pipelines and settings, the storefront build |
 | [development/localization-and-money.md](development/localization-and-money.md) | Languages, localized URLs, translatable models, interface text, money |
 | [development/testing.md](development/testing.md) | Running the tests, other databases, test conventions, the CI checks |
+| [development/stripe-end-to-end.md](development/stripe-end-to-end.md) | The Stripe plugin against Stripe's test mode: API tests and a browser checklist |
 | [extensions/plugins.md](extensions/plugins.md) | Plugins: trust model, manifest, lifecycle, CLI, safe mode, signatures, writing a plugin |
 | [themes/themes.md](themes/themes.md) | Themes: manifest, settings as CSS variables, override-by-path builds, activation, slots |
 | [api/README.md](api/README.md) | Store API and Admin API: tokens, errors, pagination, idempotency, endpoints, OpenAPI documents |
