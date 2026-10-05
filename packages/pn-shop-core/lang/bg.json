@@ -364,5 +364,16 @@
     "Exchanged for order :order": "Заменено с поръчка :order",
     "Download the return label": "Изтеглете етикета за връщане",
     "Return label for :number": "Етикет за връщане :number",
-    "Print the return label and attach it to the parcel with the items for return :number.": "Отпечатайте етикета за връщане и го залепете на пратката с артикулите от връщане :number."
+    "Print the return label and attach it to the parcel with the items for return :number.": "Отпечатайте етикета за връщане и го залепете на пратката с артикулите от връщане :number.",
+    ":block: fill it in to see it here.": ":block: попълнете го, за да се покаже тук.",
+    "Add a block in the editor to start.": "Добавете блок в редактора, за да започнете.",
+    "Changes show here at once. Click a block to edit it; save to publish them.": "Промените се виждат тук веднага. Щракнете върху блок, за да го редактирате; запазете, за да ги публикувате.",
+    "Design": "Дизайн",
+    "Design: :title": "Дизайн: :title",
+    "Desktop": "Компютър",
+    "Mobile": "Телефон",
+    "Page preview": "Преглед на страницата",
+    "Page settings": "Настройки на страницата",
+    "Preview size": "Размер на прегледа",
+    "Tablet": "Таблет"
 }

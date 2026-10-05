@@ -34,6 +34,20 @@ A page's body is a list of blocks, edited per language. A language without block
 - **Links:** a link like `/shop` gets the visitor's language prefix (`/bg/shop`). Full `https://` links open in a new tab.
 - **Images:** uploaded images go into the media library and get responsive WebP versions.
 
+## Visual editor
+
+*Design* (on the pages list and the edit page) opens a page's blocks next to a preview of the page in the storefront's own layout, theme and block components.
+
+- **Live preview:** typing, adding, moving and removing blocks shows at once in the preview. Nothing is published until *Save changes*; saving works like the edit page (same block rules, a revision is kept).
+- **Click to edit:** clicking a block in the preview opens it in the editor, and the block being edited is outlined in the preview. Links in the preview do not navigate.
+- **Sizes:** *Desktop*, *Tablet* and *Mobile* resize the preview.
+- **Languages:** one language at a time; the language buttons switch to another. The preview uses that language's address (`/bg/…`).
+- **New blocks:** a block without content yet shows a placeholder until it is filled in. Images uploaded but not saved yet show after saving.
+- **Who:** staff who may edit the page. The preview (`/preview/pages/{id}/design`) is refused to everyone else and is never indexed.
+- **Data:** the same blocks as the edit page's content tabs; nothing is stored differently.
+
+A block type needs nothing extra for the visual editor: the preview uses its `props()` and its registered React component.
+
 ## Adding a block type
 
 A block type is a PHP class plus a React component with the same key:

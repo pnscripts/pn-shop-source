@@ -4,6 +4,10 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 
 ## Unreleased
 
+### Added
+
+- **Visual page editor:** *Design* on a page shows its blocks next to a live preview in the storefront's own layout and components. Changes show at once (unsaved); clicking a block in the preview opens it in the editor; desktop, tablet and mobile sizes; one language at a time. Same blocks and rules as the edit page; nothing changes in how pages are stored. See [pages and blocks](docs/cms/pages-and-blocks.md#visual-editor).
+
 ### Fixes
 
 - **Order emails on hosts without a queue worker:** the scheduler (cron, every minute) now works through the queue and stops when it is empty, so order, return and gift card emails are sent on shared hosting too. Turn it off with `PNSHOP_QUEUE_FROM_SCHEDULER=false` when a worker runs. See [deployment](docs/installation/deployment.md#background-jobs).

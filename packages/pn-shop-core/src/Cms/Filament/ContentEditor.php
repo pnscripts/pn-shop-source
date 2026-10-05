@@ -9,6 +9,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use PnShop\Cms\Blocks\BlockRegistry;
 use PnShop\Cms\Blocks\BlockType;
 use PnShop\Localization\Localization;
@@ -35,7 +36,10 @@ final class ContentEditor
             ]);
     }
 
-    private static function builder(string $area, string $locale, bool $isDefault): Builder
+    /**
+     * The block editor of one language (the design page edits one language at a time).
+     */
+    public static function builder(string $area, string $locale, bool $isDefault): Builder
     {
         $registry = app(BlockRegistry::class);
         $staff = auth('admin')->user();
@@ -77,6 +81,44 @@ final class ContentEditor
                     $record->syncBlocks($area, $locale, array_values((array) $component->getState()));
                 }
             });
+    }
+
+    /**
+     * The blocks of a builder's state, keyed like the state, ready for BlockRegistry: files
+     * uploaded but not saved yet are left out (they show once the page is saved).
+     *
+     * @param  array<array-key, mixed>  $state
+     * @return array<string, array{type: string, data: array<string, mixed>}>
+     */
+    public static function fromState(array $state): array
+    {
+        $blocks = [];
+
+        foreach ($state as $key => $block) {
+            if (is_array($block) && is_string($block['type'] ?? null)) {
+                $blocks[(string) $key] = ['type' => $block['type'], 'data' => self::withoutUploads(is_array($block['data'] ?? null) ? $block['data'] : [])];
+            }
+        }
+
+        return $blocks;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function withoutUploads(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if ($value instanceof TemporaryUploadedFile) {
+                $data[$key] = null;
+            } elseif (is_array($value)) {
+                $files = array_filter($value, fn (mixed $item) => $item instanceof TemporaryUploadedFile);
+                $data[$key] = $files !== [] && count($files) === count($value) ? null : self::withoutUploads($value);
+            }
+        }
+
+        return $data;
     }
 
     /**

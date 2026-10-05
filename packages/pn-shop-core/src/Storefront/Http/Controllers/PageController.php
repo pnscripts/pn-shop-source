@@ -43,7 +43,22 @@ class PageController extends Controller
         return $this->render($page, preview: ! $page->isLive());
     }
 
-    private function render(Page $page, bool $preview = false): Response
+    /**
+     * The visual editor's canvas: the page in the storefront's own layout and theme, whose
+     * blocks the admin's design page replaces live (unsaved) through postMessage. Staff who
+     * may edit the page only.
+     */
+    public function canvas(Page $page): Response
+    {
+        $staff = auth('admin')->user();
+        abort_unless($staff !== null && $staff->can('update', $page), 403);
+
+        app(Seo::class)->noindex();
+
+        return $this->render($page, preview: ! $page->isLive(), editor: true);
+    }
+
+    private function render(Page $page, bool $preview = false, bool $editor = false): Response
     {
         return Inertia::render('cms/page', [
             'page' => [
@@ -53,6 +68,8 @@ class PageController extends Controller
                 'preview' => $preview,
             ],
             'blocks' => $this->content->render($page),
+            // The design page's canvas: blocks are selectable and replaced live.
+            'editor' => $editor,
         ]);
     }
 }

@@ -24,6 +24,7 @@ use Illuminate\Support\Str;
 use PnShop\Channel\Filament\ChannelsField;
 use PnShop\Cms\Filament\ContentEditor;
 use PnShop\Cms\Filament\Resources\Pages\Pages\CreatePage;
+use PnShop\Cms\Filament\Resources\Pages\Pages\DesignPage;
 use PnShop\Cms\Filament\Resources\Pages\Pages\EditPage;
 use PnShop\Cms\Filament\Resources\Pages\Pages\ListPages;
 use PnShop\Cms\Filament\Resources\Pages\RelationManagers\RevisionsRelationManager;
@@ -94,7 +95,17 @@ class PageResource extends Resource
                 TextColumn::make('updated_at')->label('Updated')->since()->sortable(),
             ])
             ->filters([SelectFilter::make('status')->options(PageStatus::class)])
-            ->recordActions([self::previewAction(), EditAction::make(), DeleteAction::make()]);
+            ->recordActions([self::designAction(), self::previewAction(), EditAction::make(), DeleteAction::make()]);
+    }
+
+    /** The visual page editor. */
+    public static function designAction(): Action
+    {
+        return Action::make('design')
+            ->label('Design')
+            ->icon(Heroicon::OutlinedPaintBrush)
+            ->authorize(fn (Page $record) => auth('admin')->user()?->can('update', $record) ?? false)
+            ->url(fn (Page $record) => self::getUrl('design', ['record' => $record]));
     }
 
     public static function previewAction(): Action
@@ -117,6 +128,7 @@ class PageResource extends Resource
             'index' => ListPages::route('/'),
             'create' => CreatePage::route('/create'),
             'edit' => EditPage::route('/{record}/edit'),
+            'design' => DesignPage::route('/{record}/design'),
         ];
     }
 }

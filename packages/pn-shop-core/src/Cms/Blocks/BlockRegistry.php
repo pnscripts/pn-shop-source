@@ -59,6 +59,35 @@ final class BlockRegistry
     }
 
     /**
+     * Props for every block, in order and keyed like the input (the visual editor's canvas):
+     * a block that would be skipped on the storefront (empty, unknown type, failing) has
+     * null props, so the canvas can show a placeholder in its place.
+     *
+     * @param  array<array-key, array{type: string, data?: array<string, mixed>|null}>  $blocks
+     * @return list<array{key: string, type: string, props: array<string, mixed>|null}>
+     */
+    public function renderEach(array $blocks): array
+    {
+        $rendered = [];
+
+        foreach ($blocks as $key => $block) {
+            $props = null;
+
+            if ($this->has($block['type'])) {
+                try {
+                    $props = $this->get($block['type'])->props($block['data'] ?? []);
+                } catch (Throwable $e) {
+                    report($e);
+                }
+            }
+
+            $rendered[] = ['key' => (string) $key, 'type' => $block['type'], 'props' => $props];
+        }
+
+        return $rendered;
+    }
+
+    /**
      * Storefront props for stored blocks; unknown types and blocks that fail to render are skipped.
      *
      * @param  list<array{type: string, data: array<string, mixed>}>  $blocks

@@ -21,7 +21,7 @@ final class Seo
     public const PIPELINE = 'seo.meta';
 
     /** Routes that should never appear in search results. */
-    private const PRIVATE_ROUTES = ['cart.*', 'checkout.*', 'account.*', 'dashboard', 'orders.*', 'invoices.*', 'pages.preview', 'login', 'register', 'password.*', 'verification.*', 'profile.*', 'appearance', 'settings.*'];
+    private const PRIVATE_ROUTES = ['cart.*', 'checkout.*', 'account.*', 'dashboard', 'orders.*', 'invoices.*', 'pages.preview', 'pages.canvas', 'login', 'register', 'password.*', 'verification.*', 'profile.*', 'appearance', 'settings.*'];
 
     private SeoData $data;
 

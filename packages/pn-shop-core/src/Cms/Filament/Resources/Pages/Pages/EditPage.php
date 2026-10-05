@@ -19,7 +19,7 @@ class EditPage extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [PageResource::previewAction(), DeleteAction::make()];
+        return [PageResource::designAction(), PageResource::previewAction(), DeleteAction::make()];
     }
 
     protected function afterSave(): void

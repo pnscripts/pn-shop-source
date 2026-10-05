@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::get('/preview/pages/{page}', [PageController::class, 'preview'])->middleware('signed')->name('pages.preview');
+Route::get('/preview/pages/{page}/design', [PageController::class, 'canvas'])->whereNumber('page')->name('pages.canvas');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
