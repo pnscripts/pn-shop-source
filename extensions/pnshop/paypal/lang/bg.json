@@ -1,0 +1,12 @@
+{
+    "PayPal is not configured.": "PayPal не е настроен.",
+    "PayPal could not be reached. Please try again.": "Няма връзка с PayPal. Моля, опитайте отново.",
+    "The PayPal payment could not be started. Please try again or choose another payment method.": "Плащането с PayPal не можа да започне. Опитайте отново или изберете друг начин на плащане.",
+    "This payment has not been completed on PayPal.": "Това плащане не е завършено в PayPal.",
+    "PayPal did not accept the refund.": "PayPal не прие възстановяването.",
+    "The amount paid on PayPal does not match the order.": "Платената в PayPal сума не съвпада с поръчката.",
+    "PayPal declined the payment.": "PayPal отказа плащането.",
+    "The order for this payment was not found.": "Поръчката за това плащане не беше намерена.",
+    "Thank you! Your payment was received.": "Благодарим Ви! Плащането е получено.",
+    "The payment is not confirmed yet. If you completed it, it will appear shortly.": "Плащането все още не е потвърдено. Ако сте го завършили, ще се появи скоро."
+}

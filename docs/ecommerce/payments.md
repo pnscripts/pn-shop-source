@@ -12,7 +12,7 @@ A **gateway** is code that knows how to take a payment. A **payment method** is 
 | Bank transfer (`bank_transfer`) | The same, and the order page shows the account holder, IBAN, BIC and bank with the amount and order number as the reference. |
 | Invoice (`invoice`) | Pay later on payment terms (days, also `:days` in the instructions). Offered to signed-in customers only, and the order is never cancelled as unpaid. See [Pricing and business customers](pricing.md#paying-by-invoice). |
 
-Card and wallet providers (Stripe, PayPal, …) are added as gateways by extensions (Phase 8).
+Card and wallet providers are added as gateways by plugins. PN Shop ships two, available in Admin → Extensions: **Stripe** (cards and wallets) and **PayPal**. See [plugins](../extensions/plugins.md#stripe).
 
 Each method has:
 

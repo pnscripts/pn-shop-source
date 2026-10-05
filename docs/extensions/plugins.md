@@ -137,6 +137,20 @@ window.PnShop.registerBlock('testimonial', ({ quote }) => …);       // render 
 
 Setup steps are in its README.
 
+## PayPal
+
+`extensions/pnshop/paypal` provides PayPal payments through PayPal Checkout (Orders API v2):
+
+- the customer approves the payment on PayPal;
+- the shop captures it when the customer returns, or on the signed `CHECKOUT.ORDER.APPROVED` webhook;
+- a check that the captured amount matches the order;
+- nothing is captured for an order cancelled meanwhile, so the customer is never charged for it;
+- refunds from the admin;
+- `PayPal-Request-Id` on every write, so retries never capture or refund twice;
+- webhook signatures checked in the shop with PayPal's certificate, fetched only from paypal.com.
+
+It needs a sandbox or live app's Client ID and Secret, and the webhook's ID. PayPal is offered only for the currencies it accepts. Setup steps are in its README.
+
 ## Secrets
 
 Plugin settings of type `secret` (API keys, passwords) are:

@@ -9,6 +9,18 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 - **Order emails on hosts without a queue worker:** the scheduler (cron, every minute) now works through the queue and stops when it is empty, so order, return and gift card emails are sent on shared hosting too. Turn it off with `PNSHOP_QUEUE_FROM_SCHEDULER=false` when a worker runs. See [deployment](docs/installation/deployment.md#background-jobs).
 - **Retries for store emails:** an email the mail server refuses is retried after 1, 5, 15 and 60 minutes, then logged and kept in `failed_jobs` (`php artisan queue:failed`). Before, it was retried only as often as the worker's `--tries` allowed, with no pause.
 
+## Unreleased
+
+### Added
+
+- **PayPal plugin** (`extensions/pnshop/paypal`, available in Admin → Extensions):
+  - PayPal Checkout with capture on return or by signed webhook;
+  - amount checks, and no capture for cancelled orders;
+  - refunds from the admin;
+  - a sandbox/live switch.
+
+  See its README.
+
 ## 1.6.0 (2026-10-04)
 
 Gift cards, store credit, exchanges and return labels. See [Gift cards and store credit](docs/ecommerce/gift-cards-and-store-credit.md), [Returns](docs/ecommerce/returns.md) and the [upgrade notes](docs/upgrades/2026-10-release-1.6.md).

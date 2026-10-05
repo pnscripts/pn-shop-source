@@ -1,0 +1,18 @@
+{
+    "id": "pnshop/paypal",
+    "name": "PayPal",
+    "description": "PayPal Checkout: the customer approves the payment on PayPal, the shop captures it on return or by webhook, refunds from the admin.",
+    "version": "1.0.0",
+    "type": "plugin",
+    "requires": { "pnshop": "^1.6", "php": ">=8.4" },
+    "provider": "PnShop\\Plugins\\PayPal\\PayPalPlugin",
+    "autoload": { "psr-4": { "PnShop\\Plugins\\PayPal\\": "src/" } },
+    "settings": [
+        { "key": "environment", "type": "select", "label": "Environment", "default": "sandbox", "required": true, "options": { "sandbox": "Sandbox (testing)", "live": "Live" }, "help": "Use the sandbox with sandbox app credentials until you go live." },
+        { "key": "client_id", "type": "string", "label": "Client ID", "help": "From developer.paypal.com → Apps & Credentials, for the environment chosen above." },
+        { "key": "client_secret", "type": "secret", "label": "Secret", "help": "The app's secret. Stored encrypted and never shown again." },
+        { "key": "webhook_id", "type": "string", "label": "Webhook ID", "help": "Add a webhook to https://your-shop/paypal/webhook for CHECKOUT.ORDER.APPROVED and PAYMENT.CAPTURE.* events, and paste its ID. Without it, payments are still captured when the customer returns." }
+    ],
+    "author": "PN Scripts",
+    "license": "MIT"
+}
