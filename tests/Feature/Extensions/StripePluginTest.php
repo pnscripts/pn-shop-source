@@ -68,10 +68,11 @@ class StripePluginTest extends AdminTestCase
 
         Http::assertSent(fn (Request $request) => $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
             && $request->hasHeader('Authorization', 'Bearer sk_test_fake')
-            && $request->hasHeader('Idempotency-Key', 'pnshop-payment-'.$order->payments()->sole()->id)
+            && preg_match('/^pnshop-payment-'.$order->payments()->sole()->id.'-[a-z0-9]{20}$/', $request->header('Idempotency-Key')[0] ?? '') === 1
             && $request['line_items'][0]['price_data']['unit_amount'] === 2400
             && $request['line_items'][0]['price_data']['currency'] === 'usd'
-            && $request['client_reference_id'] === $order->number);
+            && $request['client_reference_id'] === $order->number
+            && $request['managed_payments'] === ['enabled' => 'false']);
 
         $this->assertSame('cs_test_1', $order->payments()->sole()->reference);
         $this->assertSame(PaymentStatus::Unpaid, $order->payment_status);
@@ -175,7 +176,8 @@ class StripePluginTest extends AdminTestCase
 
         app(RefundService::class)->refund($order->fresh(), [$order->items->sole()->id => 1]);
 
-        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.stripe.com/v1/refunds' && $request['payment_intent'] === 'pi_1' && $request['amount'] === 1200);
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.stripe.com/v1/refunds' && $request['payment_intent'] === 'pi_1' && $request['amount'] === 1200
+            && $request->hasHeader('Idempotency-Key', 'pnshop-refund-pi_1-0-1200'));
         $this->assertSame(PaymentStatus::PartiallyRefunded, $order->fresh()->payment_status);
     }
 

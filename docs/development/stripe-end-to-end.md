@@ -2,6 +2,8 @@
 
 Checks the Stripe plugin (`extensions/pnshop/stripe`) against Stripe itself, in **test mode**: no real money moves. It needs a Stripe account (test mode works before the account is activated) and its test-mode secret key, `sk_test_…` (Stripe dashboard → Developers → API keys, with *Test mode* on). Never use a live key (`sk_live_…`).
 
+New Stripe accounts have *Managed Payments* on by default; the plugin turns it off for its sessions (the shop is the seller and adds tax itself), so nothing needs changing in the dashboard.
+
 ## 1. The API tests
 
 ```bash

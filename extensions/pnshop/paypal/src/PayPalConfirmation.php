@@ -30,7 +30,7 @@ class PayPalConfirmation
         }
 
         try {
-            $order = $this->paypal->post('/v2/checkout/orders/'.$orderId.'/capture', [], 'pnshop-capture-'.$payment->id, ['Prefer' => 'return=representation']);
+            $order = $this->paypal->post('/v2/checkout/orders/'.$orderId.'/capture', [], 'pnshop-capture-'.$orderId, ['Prefer' => 'return=representation']);
         } catch (PayPalException $e) {
             if ($e->issue === 'ORDER_ALREADY_CAPTURED') {
                 $order = $this->paypal->get('/v2/checkout/orders/'.$orderId);

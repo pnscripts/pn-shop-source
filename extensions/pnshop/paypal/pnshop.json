@@ -2,7 +2,7 @@
     "id": "pnshop/paypal",
     "name": "PayPal",
     "description": "PayPal Checkout: the customer approves the payment on PayPal, the shop captures it on return or by webhook, refunds from the admin.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "plugin",
     "requires": { "pnshop": "^1.6", "php": ">=8.4" },
     "provider": "PnShop\\Plugins\\PayPal\\PayPalPlugin",

@@ -3,6 +3,7 @@
 namespace PnShop\Plugins\Stripe;
 
 use Brick\Money\Money;
+use Illuminate\Support\Str;
 use PnShop\Payment\Contracts\PaymentGateway;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentMethod;
@@ -64,8 +65,12 @@ class StripeGateway implements PaymentGateway
                     ],
                 ]],
                 'metadata' => ['payment_id' => (string) $payment->id, 'order_number' => (string) $order->number],
+                // The shop is the seller and has already added tax: Stripe Managed Payments
+                // (Stripe as merchant of record, on by default for new accounts) would ask for
+                // product tax codes and tax the order again.
+                'managed_payments' => ['enabled' => 'false'],
                 'payment_intent_data' => ['metadata' => ['payment_id' => (string) $payment->id, 'order_number' => (string) $order->number]],
-            ], 'pnshop-payment-'.$payment->id);
+            ], self::startKey($payment));
         } catch (StripeException $e) {
             report($e);
 
@@ -91,7 +96,7 @@ class StripeGateway implements PaymentGateway
                 'payment_intent' => $payment->reference,
                 'amount' => $amount->getMinorAmount()->toInt(),
                 'metadata' => ['payment_id' => (string) $payment->id],
-            ], 'pnshop-refund-'.$payment->id.'-'.$payment->refunded_amount->getMinorAmount()->toInt().'-'.$amount->getMinorAmount()->toInt());
+            ], 'pnshop-refund-'.$payment->reference.'-'.$payment->refunded_amount->getMinorAmount()->toInt().'-'.$amount->getMinorAmount()->toInt());
         } catch (StripeException $e) {
             return PaymentResult::failed($e->getMessage());
         }
@@ -99,6 +104,18 @@ class StripeGateway implements PaymentGateway
         return in_array($refund['status'] ?? null, ['succeeded', 'pending'], true)
             ? PaymentResult::refunded((string) $refund['id'], ['status' => $refund['status']])
             : PaymentResult::failed(__('Stripe did not accept the refund.'));
+    }
+
+    /**
+     * The idempotency key for starting a payment. Each payment is started once, so the key
+     * only has to cover the client's retries of that request; it is random because payment
+     * ids repeat across shops (and reinstalls) sharing a Stripe account, and Stripe refuses,
+     * or answers with the first result, a key used again within 24 hours. Refund keys use the
+     * PaymentIntent id, which is unique on Stripe.
+     */
+    public static function startKey(Payment $payment): string
+    {
+        return 'pnshop-payment-'.$payment->id.'-'.Str::lower(Str::random(20));
     }
 
     public function instructions(Payment $payment, PaymentMethod $method): ?string

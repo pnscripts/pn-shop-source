@@ -2,6 +2,17 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## Unreleased
+
+### Fixes
+
+- **Stripe and PayPal plugins (1.0.1): idempotency keys no longer collide between shops.** Keys were built from the shop's payment id, which repeats across shops (and reinstalls) using the same Stripe or PayPal account. Stripe then refused the payment for 24 hours, and PayPal could answer with the other shop's PayPal order. Starting a payment now uses a random key; captures and refunds use the provider's own ids. Existing shops: copy `extensions/pnshop/stripe` and `extensions/pnshop/paypal` from the [`pnscripts/pn-shop`](https://github.com/pnscripts/pn-shop) repository.
+- **Stripe plugin: works with new Stripe accounts.** New accounts have Stripe Managed Payments (Stripe as merchant of record) on by default, which refused every checkout without product tax codes. The shop is the seller and already adds tax, so the plugin turns it off for its Checkout Sessions.
+
+### Tests
+
+- **Stripe end to end:** opt-in tests against Stripe's test mode (`STRIPE_TEST_SECRET_KEY=sk_test_… ./vendor/bin/phpunit --group stripe-live`) and a browser checklist in [Stripe end to end](docs/development/stripe-end-to-end.md). Run on 2026-10-05: checkout, payment with a test card on Stripe's page, partial and full refunds, cancellation.
+
 ## 1.8.0 (2026-10-05)
 
 A visual page editor. No migrations; non-default themes should be rebuilt. See the [upgrade notes](docs/upgrades/2026-10-release-1.8.md).

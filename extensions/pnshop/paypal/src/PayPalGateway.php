@@ -3,6 +3,7 @@
 namespace PnShop\Plugins\PayPal;
 
 use Brick\Money\Money;
+use Illuminate\Support\Str;
 use PnShop\Payment\Contracts\PaymentGateway;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentMethod;
@@ -74,7 +75,7 @@ class PayPalGateway implements PaymentGateway
                     'return_url' => route('paypal.return', ['payment' => $payment->id]),
                     'cancel_url' => OrderLinks::signedShow($order),
                 ]]],
-            ], 'pnshop-payment-'.$payment->id);
+            ], self::startKey($payment));
         } catch (PayPalException $e) {
             report($e);
 
@@ -98,6 +99,18 @@ class PayPalGateway implements PaymentGateway
         return PaymentResult::redirect($approve, $created['id']);
     }
 
+    /**
+     * The PayPal-Request-Id for creating the PayPal order. Each payment is started once, so
+     * the id only has to cover the client's retries of that request; it is random because
+     * payment ids repeat across shops (and reinstalls) sharing a PayPal account, and PayPal
+     * answers a repeated id with the first request's result. Captures and refunds use
+     * PayPal's own (unique) order and capture ids.
+     */
+    public static function startKey(Payment $payment): string
+    {
+        return 'pnshop-payment-'.$payment->id.'-'.Str::lower(Str::random(20));
+    }
+
     public function supportsRefunds(): bool
     {
         return true;
@@ -115,7 +128,7 @@ class PayPalGateway implements PaymentGateway
         try {
             $refund = $this->paypal->post('/v2/payments/captures/'.rawurlencode($capture).'/refund', [
                 'amount' => ['currency_code' => $amount->getCurrency()->getCurrencyCode(), 'value' => self::value($amount)],
-            ], 'pnshop-refund-'.$payment->id.'-'.$payment->refunded_amount->getMinorAmount()->toInt().'-'.$amount->getMinorAmount()->toInt());
+            ], 'pnshop-refund-'.$capture.'-'.$payment->refunded_amount->getMinorAmount()->toInt().'-'.$amount->getMinorAmount()->toInt());
         } catch (PayPalException $e) {
             return PaymentResult::failed($e->getMessage());
         }

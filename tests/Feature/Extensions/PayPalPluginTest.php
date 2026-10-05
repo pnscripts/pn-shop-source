@@ -95,7 +95,7 @@ class PayPalPluginTest extends AdminTestCase
 
         Http::assertSent(fn (Request $request) => $request->url() === self::API.'/v2/checkout/orders'
             && $request->hasHeader('Authorization', 'Bearer A21-test')
-            && $request->hasHeader('PayPal-Request-Id', 'pnshop-payment-'.$payment->id)
+            && preg_match('/^pnshop-payment-'.$payment->id.'-[a-z0-9]{20}$/', $request->header('PayPal-Request-Id')[0] ?? '') === 1
             && $request['intent'] === 'CAPTURE'
             && $request['purchase_units'][0]['amount'] === ['currency_code' => 'USD', 'value' => '24.00']
             && $request['purchase_units'][0]['custom_id'] === (string) $payment->id
@@ -117,7 +117,7 @@ class PayPalPluginTest extends AdminTestCase
             ->assertSessionHas('success');
 
         Http::assertSent(fn (Request $request) => $request->url() === self::API.'/v2/checkout/orders/'.self::ORDER_ID.'/capture'
-            && $request->hasHeader('PayPal-Request-Id', 'pnshop-capture-'.$payment->id));
+            && $request->hasHeader('PayPal-Request-Id', 'pnshop-capture-'.self::ORDER_ID));
         $this->assertSame(PaymentState::Paid, $payment->fresh()->status);
         $this->assertSame(self::CAPTURE_ID, $payment->fresh()->reference);
         $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
@@ -216,7 +216,7 @@ class PayPalPluginTest extends AdminTestCase
 
         Http::assertSent(fn (Request $request) => $request->url() === self::API.'/v2/payments/captures/'.self::CAPTURE_ID.'/refund'
             && $request['amount'] === ['currency_code' => 'USD', 'value' => '12.00']
-            && str_starts_with($request->header('PayPal-Request-Id')[0] ?? '', 'pnshop-refund-'.$payment->id.'-'));
+            && str_starts_with($request->header('PayPal-Request-Id')[0] ?? '', 'pnshop-refund-'.self::CAPTURE_ID.'-'));
         $this->assertSame(PaymentStatus::PartiallyRefunded, $order->fresh()->payment_status);
     }
 
