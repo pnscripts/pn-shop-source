@@ -2,16 +2,13 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
-## Unreleased
+## 1.8.0 (2026-10-05)
+
+A visual page editor. No migrations; non-default themes should be rebuilt. See the [upgrade notes](docs/upgrades/2026-10-release-1.8.md).
 
 ### Added
 
 - **Visual page editor:** *Design* on a page shows its blocks next to a live preview in the storefront's own layout and components. Changes show at once (unsaved); clicking a block in the preview opens it in the editor; desktop, tablet and mobile sizes; one language at a time. Same blocks and rules as the edit page; nothing changes in how pages are stored. See [pages and blocks](docs/cms/pages-and-blocks.md#visual-editor).
-
-### Fixes
-
-- **Order emails on hosts without a queue worker:** the scheduler (cron, every minute) now works through the queue and stops when it is empty, so order, return and gift card emails are sent on shared hosting too. Turn it off with `PNSHOP_QUEUE_FROM_SCHEDULER=false` when a worker runs. See [deployment](docs/installation/deployment.md#background-jobs).
-- **Retries for store emails:** an email the mail server refuses is retried after 1, 5, 15 and 60 minutes, then logged and kept in `failed_jobs` (`php artisan queue:failed`). Before, it was retried only as often as the worker's `--tries` allowed, with no pause.
 
 ## 1.7.1 (2026-10-05)
 
