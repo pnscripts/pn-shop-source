@@ -46,6 +46,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 
 | Release | Notes |
 |---|---|
+| 1.8.1 | no upgrade steps beyond copying the Stripe and PayPal plugins: payment plugin fixes (see the CHANGELOG) |
 | 1.8.0 | [upgrades/2026-10-release-1.8.md](upgrades/2026-10-release-1.8.md): visual page editor |
 | 1.7.1 | no upgrade steps: a developer setting for the PayPal plugin (see the CHANGELOG) |
 | 1.7.0 | [upgrades/2026-10-release-1.7.md](upgrades/2026-10-release-1.7.md): PayPal plugin |

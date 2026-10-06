@@ -2,7 +2,9 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
-## Unreleased
+## 1.8.1 (2026-10-06)
+
+Payment plugin fixes found by the first run against Stripe's test mode. No migrations; update with `composer update pnscripts/pn-shop-core` and `php artisan pnshop:update`, then copy `extensions/pnshop/stripe` and `extensions/pnshop/paypal` from the [`pnscripts/pn-shop`](https://github.com/pnscripts/pn-shop) repository.
 
 ### Fixes
 
