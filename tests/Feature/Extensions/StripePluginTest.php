@@ -130,6 +130,28 @@ class StripePluginTest extends AdminTestCase
         $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
     }
 
+    public function test_the_customer_is_thanked_when_the_webhook_confirmed_first(): void
+    {
+        $order = $this->checkout();
+        $payment = $order->payments()->sole();
+        $payload = json_encode(['type' => 'checkout.session.completed', 'data' => ['object' => $this->stripeSession($payment->id)]]);
+        $this->call('POST', '/stripe/webhook', [], [], [], ['HTTP_STRIPE_SIGNATURE' => WebhookSignature::header((string) $payload, 'whsec_fake', time()), 'CONTENT_TYPE' => 'application/json'], $payload)->assertOk();
+        $this->assertSame('pi_1', $payment->fresh()->reference);
+
+        // A forged session id still gets the plain order page.
+        $this->get('/stripe/return/'.$payment->id.'?session_id=cs_other')->assertRedirect(route('orders.show', $order));
+
+        $location = $this->get('/stripe/return/'.$payment->id.'?session_id=cs_test_1')
+            ->assertRedirect()
+            ->assertSessionHas('success')
+            ->headers->get('Location');
+
+        $this->assertStringContainsString('signature=', (string) $location);
+        // Stripe is not asked again, and the payment is recorded once.
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), '/checkout/sessions/cs_test_1'));
+        $this->assertSame(1, $payment->transactions()->where('outcome', 'paid')->count());
+    }
+
     public function test_cancelling_expires_the_session_and_a_late_payment_is_flagged(): void
     {
         $order = $this->checkout();

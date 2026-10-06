@@ -23,13 +23,16 @@ class StripeController
      * Only the Checkout Session id proves the visitor is the customer: without it (anyone can
      * guess payment ids) the redirect goes to the plain order page, which shows the order only
      * to its customer or the browser that placed it, never to a signed link.
+     *
+     * The webhook often confirms the payment first (its reference is then the PaymentIntent);
+     * the session started for this payment is still recognised, so the customer is thanked.
      */
     public function return(Request $request, int $payment, StripeClient $stripe, StripeConfirmation $confirmation): RedirectResponse
     {
         $sessionId = (string) $request->query('session_id', '');
         $model = Payment::query()->where('gateway', 'stripe')->find($payment);
 
-        if ($model === null || preg_match('/^cs_[A-Za-z0-9_]+$/', $sessionId) !== 1 || ! hash_equals((string) $model->reference, $sessionId)) {
+        if ($model === null || preg_match('/^cs_[A-Za-z0-9_]+$/', $sessionId) !== 1 || ! $this->startedWith($model, $sessionId)) {
             return $model === null
                 ? redirect()->route('home')
                 : redirect()->route('orders.show', ['order' => $model->order_id]);
@@ -37,16 +40,29 @@ class StripeController
 
         $order = $model->order()->firstOrFail();
 
-        try {
-            $confirmation->apply($model, $stripe->get('checkout/sessions/'.$sessionId), 'return');
-        } catch (StripeException $e) {
-            report($e);
+        // Not confirmed yet (by the webhook): read the session back from Stripe.
+        if (hash_equals((string) $model->reference, $sessionId)) {
+            try {
+                $confirmation->apply($model, $stripe->get('checkout/sessions/'.$sessionId), 'return');
+            } catch (StripeException $e) {
+                report($e);
+            }
         }
 
         $paid = $model->fresh()?->status === PaymentState::Paid;
 
         return redirect()->to(OrderLinks::signedShow($order))
             ->with($paid ? 'success' : 'error', $paid ? __('Thank you! Your payment was received.') : __('The payment is not confirmed yet. If you completed it, it will appear shortly.'));
+    }
+
+    /**
+     * Whether this Checkout Session was the one started for the payment: its current reference
+     * until it is confirmed, then the reference recorded when it was started.
+     */
+    private function startedWith(Payment $payment, string $sessionId): bool
+    {
+        return hash_equals((string) $payment->reference, $sessionId)
+            || $payment->transactions()->where('type', 'initiate')->where('reference', $sessionId)->exists();
     }
 
     /**
