@@ -38,6 +38,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @property int $id
  * @property ProductType $type
+ * @property bool $is_gift_card sold as a gift card: each unit issues a card of its price when paid
  * @property string $title
  * @property string $slug
  * @property string|null $description
@@ -67,6 +68,7 @@ class Product extends Model implements TranslatableModel
     /** @var list<string> */
     protected $fillable = [
         'type',
+        'is_gift_card',
         'product_category_id',
         'brand_id',
         'tax_class_id',
@@ -103,6 +105,7 @@ class Product extends Model implements TranslatableModel
             'type' => ProductType::class,
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'is_gift_card' => 'boolean',
         ];
     }
 

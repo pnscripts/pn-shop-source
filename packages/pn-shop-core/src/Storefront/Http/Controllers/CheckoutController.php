@@ -48,7 +48,7 @@ class CheckoutController extends Controller
                 ->map(fn (PaymentMethod $method) => ['id' => $method->id, 'name' => $method->name, 'description' => $method->description])
                 ->values(),
             'countries' => AddressesController::countryOptions(),
-            'shippingRequired' => $this->shipping->isRequired(),
+            'shippingRequired' => $this->shipping->isRequired($this->cart->getCartItems()),
             'botTrap' => BotTrap::fields(),
             'savedAddresses' => $user?->addresses->map(fn (CustomerAddress $address) => [
                 'id' => $address->id,

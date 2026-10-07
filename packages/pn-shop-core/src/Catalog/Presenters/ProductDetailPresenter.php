@@ -61,6 +61,8 @@ final class ProductDetailPresenter
         return [
             'id' => $product->id,
             'type' => $product->type->value,
+            // Gift cards: the buyer can name a recipient (gift_card.email, name, message) when adding to the cart.
+            'is_gift_card' => (bool) $product->is_gift_card,
             'title' => $product->title,
             'slug' => $product->slug,
             'description' => $product->description,

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use PnShop\Api\Http\Controllers\ApiController;
 use PnShop\Cart\CartRepository;
+use PnShop\Cart\GiftCardRecipientRules;
 use PnShop\Cart\ShoppingCartService;
 use PnShop\Catalog\Models\Product;
 use PnShop\Catalog\ProductType;
@@ -39,7 +40,9 @@ class CartController extends ApiController
      * Add to the cart
      *
      * Adds `quantity` of a variant (`variant_id`), or of a simple product (`product_id`), to
-     * what is already in the cart. Stock is checked.
+     * what is already in the cart. Stock is checked. For gift card products, `gift_card`
+     * names who receives these cards (`email`, `name`, `message`); without it they go to
+     * the buyer.
      */
     public function store(Request $request): JsonResponse
     {
@@ -47,9 +50,10 @@ class CartController extends ApiController
             'variant_id' => ['required_without:product_id', 'nullable', 'integer'],
             'product_id' => ['required_without:variant_id', 'nullable', 'integer'],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000'],
+            ...GiftCardRecipientRules::rules(),
         ]);
 
-        $this->cart->addItemToCart($this->variantId($data), (int) $data['quantity']);
+        $this->cart->addItemToCart($this->variantId($data), (int) $data['quantity'], $data['gift_card'] ?? null);
 
         return response()->json($this->cart(), 201);
     }

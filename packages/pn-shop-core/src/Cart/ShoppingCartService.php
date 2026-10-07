@@ -45,7 +45,10 @@ class ShoppingCartService
         private CartCalculator $calculator,
     ) {}
 
-    public function addItemToCart(int $variantId, int $quantity): void
+    /**
+     * @param  array{email?: string|null, name?: string|null, message?: string|null}|null  $giftCardRecipient  for gift cards: who receives these cards (empty: the buyer)
+     */
+    public function addItemToCart(int $variantId, int $quantity, ?array $giftCardRecipient = null): void
     {
         if (! app(PriceDisplay::class)->visible()) {
             throw new CartException(__('Please sign in to see prices and order.'));
@@ -56,6 +59,20 @@ class ShoppingCartService
         $this->assertQuantityAvailable($variantId, ($lines[$variantId] ?? 0) + $quantity);
 
         $this->carts->setQuantity($variantId, ($lines[$variantId] ?? 0) + $quantity);
+
+        $recipient = array_filter($giftCardRecipient ?? [], fn (mixed $value) => is_string($value) && trim($value) !== '');
+
+        if ($recipient !== [] && ProductVariant::query()->whereKey($variantId)->whereHas('product', fn ($query) => $query->where('is_gift_card', true))->exists()) {
+            $this->carts->addGiftCardRecipient($variantId, $recipient, $quantity);
+        }
+    }
+
+    /**
+     * @return array<int, list<array<string, string|null>>> variant id => recipients
+     */
+    public function giftCardRecipients(): array
+    {
+        return $this->carts->giftCardRecipients();
     }
 
     public function updateItemQuantityInCart(int $variantId, int $quantity): void
@@ -237,6 +254,7 @@ class ShoppingCartService
     public function toArray(array $context = []): array
     {
         $totals = $this->totals($context);
+        $recipients = $this->giftCardRecipients();
 
         $summary = [
             'items' => $this->getCartItems()->map(fn (CartItemDTO $item) => [
@@ -253,6 +271,9 @@ class ShoppingCartService
                 'stock' => $item->available,
                 'quantity' => $item->quantity,
                 'line_total' => MoneyPresenter::present($item->getTotalPrice()),
+                'gift_card' => $item->giftCard,
+                // Who receives each card (entries missing: the buyer); null on other lines.
+                'gift_card_recipients' => $item->giftCard ? ($recipients[$item->variant_id] ?? []) : null,
             ])->all(),
             'total_quantity' => $this->getCartItems()->sum('quantity'),
             'total_price' => MoneyPresenter::present($totals->subtotal),

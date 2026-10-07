@@ -31,6 +31,7 @@ final class AdminCatalogPresenter
             'type' => $product->type->value,
             'is_active' => $product->is_active,
             'is_featured' => $product->is_featured,
+            'is_gift_card' => (bool) $product->is_gift_card,
             'title' => $product->getAttributes()['title'] ?? null,
             'slug' => $product->getAttributes()['slug'] ?? null,
             'description' => $product->getAttributes()['description'] ?? null,

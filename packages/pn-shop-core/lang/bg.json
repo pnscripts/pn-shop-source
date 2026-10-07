@@ -379,5 +379,16 @@
     "Your email address is verified. You can sign in now.": "Имейл адресът ви е потвърден. Вече можете да влезете.",
     "Verify your email address before ordering.": "Потвърдете имейл адреса си, преди да поръчате.",
     "A refund is undone only when the payment provider reports that it failed.": "Възстановяване се отменя само когато доставчикът на плащания съобщи, че е неуспешно.",
-    "A refund of :amount failed at the payment provider:reason, so the money was not returned. Refund it again (as an extra amount) or return it to the customer directly. Items and stock were left as they were.": "Възстановяване на :amount е неуспешно при доставчика на плащания:reason, затова парите не са върнати. Възстановете ги отново (като допълнителна сума) или ги върнете директно на клиента. Артикулите и наличностите не са променени."
+    "A refund of :amount failed at the payment provider:reason, so the money was not returned. Refund it again (as an extra amount) or return it to the customer directly. Items and stock were left as they were.": "Възстановяване на :amount е неуспешно при доставчика на плащания:reason, затова парите не са върнати. Възстановете ги отново (като допълнителна сума) или ги върнете директно на клиента. Артикулите и наличностите не са променени.",
+    "Who is it for?": "За кого е?",
+    "We email the gift card when your order is paid. Leave the email empty to receive it yourself.": "Ще изпратим ваучера по имейл, когато поръчката е платена. Оставете имейла празен, за да го получите вие.",
+    "Recipient's email": "Имейл на получателя",
+    "Recipient's name": "Име на получателя",
+    "Message (optional)": "Съобщение (по желание)",
+    "Gift card for :name": "Ваучер за :name",
+    "Gift card for you": "Ваучер за вас",
+    ":name sent you a gift card.": ":name ви изпрати ваучер за подарък.",
+    "Bought in order :number": "Закупен с поръчка :number",
+    "{1} Issued 1 gift card and emailed it.|[2,*] Issued :count gift cards and emailed them.": "{1} Издаден е 1 ваучер и е изпратен по имейл.|[2,*] Издадени са :count ваучера и са изпратени по имейл.",
+    "Gift card :card had been used: :left of :amount was left when it was cancelled.": "Ваучер :card е бил използван: при анулирането са оставали :left от :amount."
 }

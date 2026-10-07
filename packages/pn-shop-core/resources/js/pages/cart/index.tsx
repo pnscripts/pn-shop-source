@@ -44,6 +44,21 @@ export default function CartIndex({ cart, suggestions }: { cart: CartSummary; su
                                             <td className="px-4 py-3">
                                                 <div className="font-medium">{item.title}</div>
                                                 {item.variant_label && <div className="text-muted-foreground text-xs">{item.variant_label}</div>}
+                                                {item.gift_card && (
+                                                    <ul className="text-muted-foreground mt-1 text-xs">
+                                                        {Array.from({ length: item.quantity }, (_, index) => {
+                                                            const recipient = item.gift_card_recipients?.[index];
+
+                                                            return (
+                                                                <li key={index}>
+                                                                    {recipient?.email
+                                                                        ? t('Gift card for :name', { name: recipient.name || recipient.email })
+                                                                        : t('Gift card for you')}
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                )}
                                                 <div className="text-muted-foreground">{item.unit_price.formatted}</div>
                                             </td>
                                             <td className="px-4 py-3">

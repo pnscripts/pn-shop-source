@@ -66,6 +66,14 @@ class CreditServiceProvider extends ModuleServiceProvider
             $refund->forceFill(['credit_reference' => app(Balances::class)->creditRefund($refund)[0]])->save();
         });
 
+        // Gift cards sold as products: issued when the order is paid, cancelled when refunded.
+        Event::listen(OrderStateChanged::class, function (OrderStateChanged $event): void {
+            if ($event->to === PaymentStatus::Paid) {
+                app(PurchasedGiftCards::class)->issue($event->order);
+            }
+        });
+        Event::listen(RefundCompleted::class, fn (RefundCompleted $event) => app(PurchasedGiftCards::class)->refunded($event->refund));
+
         // A cancelled order that was not fully paid gives its gift cards and store credit back.
         Event::listen(OrderStateChanged::class, function (OrderStateChanged $event): void {
             if ($event->to !== OrderStatus::Cancelled || in_array($event->order->payment_status, [PaymentStatus::Paid, PaymentStatus::PartiallyRefunded, PaymentStatus::Refunded], true)) {

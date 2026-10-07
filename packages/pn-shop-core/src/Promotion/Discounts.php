@@ -89,9 +89,13 @@ final class Discounts
         return $this->freeShipping;
     }
 
-    /** What is left of a line after earlier promotions and this one. */
+    /** What is left of a line after earlier promotions and this one. Gift cards are never discounted. */
     public function left(CartItemDTO $item): Money
     {
+        if ($item->giftCard) {
+            return Money::zero($this->context->currency());
+        }
+
         $mine = $this->amounts[PromotionContext::lineKey($item)] ?? null;
 
         return $mine === null ? $this->context->remaining($item) : $this->context->remaining($item)->minus($mine);

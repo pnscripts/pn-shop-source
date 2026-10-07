@@ -4,6 +4,7 @@ namespace PnShop\Shipping;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use PnShop\Cart\CartItemDTO;
 use PnShop\Channel\Channels;
 use PnShop\Localization\CurrencyConverter;
 use PnShop\Localization\Localization;
@@ -17,10 +18,17 @@ use Throwable;
 class ShippingService
 {
     /**
-     * Whether checkout asks for a shipping method: as soon as the store has one.
+     * Whether checkout asks for a shipping method: as soon as the store has one, unless
+     * everything ordered is delivered by email (gift cards).
+     *
+     * @param  Collection<int, CartItemDTO>|null  $items
      */
-    public function isRequired(): bool
+    public function isRequired(?Collection $items = null): bool
     {
+        if ($items !== null && $items->isNotEmpty() && $items->every(fn (CartItemDTO $item) => $item->giftCard)) {
+            return false;
+        }
+
         $channels = app(Channels::class);
 
         return ShippingMethod::query()->active()->pluck('id')->contains(fn (int $id) => $channels->allows('shipping_method_ids', $id));

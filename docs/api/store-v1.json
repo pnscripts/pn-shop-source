@@ -1247,6 +1247,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -1262,7 +1272,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -1477,7 +1489,7 @@
         "/cart/items": {
             "post": {
                 "operationId": "store.cart.items.store",
-                "description": "Adds `quantity` of a variant (`variant_id`), or of a simple product (`product_id`), to\nwhat is already in the cart. Stock is checked.",
+                "description": "Adds `quantity` of a variant (`variant_id`), or of a simple product (`product_id`), to\nwhat is already in the cart. Stock is checked. For gift card products, `gift_card`\nnames who receives these cards (`email`, `name`, `message`); without it they go to\nthe buyer.",
                 "summary": "Add to the cart",
                 "tags": [
                     "Cart"
@@ -1523,6 +1535,38 @@
                                         "type": "integer",
                                         "minimum": 1,
                                         "maximum": 1000
+                                    },
+                                    "gift_card": {
+                                        "type": "object",
+                                        "properties": {
+                                            "email": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "format": "email",
+                                                "maxLength": 255
+                                            },
+                                            "name": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "maxLength": 100
+                                            },
+                                            "message": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "maxLength": 500
+                                            }
+                                        },
+                                        "required": [
+                                            "email",
+                                            "name",
+                                            "message"
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -1742,6 +1786,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -1757,7 +1811,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -2235,6 +2291,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -2250,7 +2316,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -2706,6 +2774,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -2721,7 +2799,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -3188,6 +3268,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -3203,7 +3293,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -3651,6 +3743,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -3666,7 +3768,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -4133,6 +4237,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -4148,7 +4262,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -4606,6 +4722,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -4621,7 +4747,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -5087,6 +5215,16 @@
                                                                             "currency",
                                                                             "formatted"
                                                                         ]
+                                                                    },
+                                                                    "gift_card": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "gift_card_recipients": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ],
+                                                                        "description": "Who receives each card (entries missing: the buyer); null on other lines."
                                                                     }
                                                                 },
                                                                 "required": [
@@ -5102,7 +5240,9 @@
                                                                     "image",
                                                                     "stock",
                                                                     "quantity",
-                                                                    "line_total"
+                                                                    "line_total",
+                                                                    "gift_card",
+                                                                    "gift_card_recipients"
                                                                 ]
                                                             }
                                                         },
@@ -7375,6 +7515,10 @@
                                                 "type": {
                                                     "type": "string"
                                                 },
+                                                "is_gift_card": {
+                                                    "type": "boolean",
+                                                    "description": "Gift cards: the buyer can name a recipient (gift_card.email, name, message) when adding to the cart."
+                                                },
                                                 "title": {
                                                     "type": "string"
                                                 },
@@ -7580,6 +7724,7 @@
                                             "required": [
                                                 "id",
                                                 "type",
+                                                "is_gift_card",
                                                 "title",
                                                 "slug",
                                                 "description",
@@ -7807,6 +7952,10 @@
                             "integer",
                             "null"
                         ]
+                    },
+                    "giftCard": {
+                        "type": "boolean",
+                        "description": "A gift card: not shipped, not discounted, not paid with balances; issued when paid."
                     }
                 },
                 "required": [
@@ -7822,7 +7971,8 @@
                     "available",
                     "quantity",
                     "weight",
-                    "taxClassId"
+                    "taxClassId",
+                    "giftCard"
                 ],
                 "title": "CartItemDTO"
             },

@@ -131,6 +131,7 @@ class CheckoutService
 
             $items = collect();
             $orderItems = [];
+            $recipients = $this->cart->giftCardRecipients();
 
             foreach ($lines as $variantId => $quantity) {
                 $variant = $variants->get($variantId);
@@ -151,6 +152,8 @@ class CheckoutService
                     // What this customer pays at this quantity; sale_price holds it when it is below the price.
                     'price' => $variant->regularPrice(),
                     'sale_price' => $variant->isOnSale($quantity) ? $variant->unitPrice($quantity) : null,
+                    // Gift cards: who receives each card (missing entries: the buyer).
+                    'gift_card_recipients' => $variant->product->is_gift_card ? array_slice($recipients[$variant->id] ?? [], 0, $quantity) : null,
                 ]), $variant, $quantity];
 
                 $items->push(CartItemDTO::fromVariant($variant, $quantity));
@@ -256,7 +259,7 @@ class CheckoutService
      */
     private function shippingMethod(array $data, Collection $items, string $currency, PostalAddress $address, ?User $user): ?ShippingMethod
     {
-        if (! $this->shipping->isRequired()) {
+        if (! $this->shipping->isRequired($items)) {
             return null;
         }
 

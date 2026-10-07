@@ -27,6 +27,7 @@ use PnShop\Money\MoneyCast;
  * @property string|null $product_title
  * @property string|null $product_sku
  * @property string|null $variant_label
+ * @property list<array{email?: string|null, name?: string|null, message?: string|null}>|null $gift_card_recipients null unless a gift card line
  */
 class OrderItem extends Model
 {
@@ -53,6 +54,7 @@ class OrderItem extends Model
         'sale_price',
         'tax_amount',
         'discount_amount',
+        'gift_card_recipients',
     ];
 
     /**
@@ -69,11 +71,23 @@ class OrderItem extends Model
         'sale_price' => MoneyCast::class.':currency',
         'tax_amount' => MoneyCast::class.':currency',
         'discount_amount' => MoneyCast::class.':currency',
+        'gift_card_recipients' => 'array',
     ];
+
+    /** A gift card line: its cards are issued and emailed when the order is paid. */
+    public function isGiftCard(): bool
+    {
+        return $this->gift_card_recipients !== null;
+    }
 
     /** Units that still have to ship. */
     public function quantityToShip(): int
     {
+        // Gift cards are emailed, never shipped.
+        if ($this->isGiftCard()) {
+            return 0;
+        }
+
         return max(0, $this->quantity - $this->quantity_fulfilled - $this->quantity_cancelled);
     }
 

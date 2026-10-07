@@ -18,6 +18,16 @@ Admin → Sales → Gift cards (permission `sales.credit.manage`).
 - **Finding a card:** search with the full code, or with its last four characters.
 - **Changing a card:** *Adjust balance* (positive or negative, with a note), *Active* (a disabled card cannot be spent), and its expiry date. The *History* tab lists every change.
 
+## Selling gift cards
+
+Turn on *Gift card* on a product (Admin → Catalog → Products). Its price is the card's value; give it variants for several values (25, 50, 100). Turn stock tracking off on its variants, and give it a tax class without tax if gift cards are not taxed where you sell (in many countries tax is due when the card is spent, not when it is bought).
+
+- **Buying:** on the product page the customer can name who the card is for: email, name and a message. Each card added can have its own recipient; cards without one go to the buyer. The cart lists who gets each card.
+- **No delivery:** an order of only gift cards asks for no delivery method. Gift card lines are never discounted by promotions or coupons, and are not paid with gift cards or store credit (the payment method pays them).
+- **When paid:** each card is issued for its price, in the order's currency, and emailed to its recipient with the buyer's name and message. The order notes how many were issued, the lines count as delivered, and an order of only gift cards becomes *Fulfilled*. Admin → Gift cards lists them ("Bought in order …").
+- **Refunds:** refunding gift card units cancels their cards (the newest first) and empties them. If a card had already been used, the order note says how much was left on it.
+- **Store API:** products show `is_gift_card`; `POST /cart/items` takes `gift_card: {email, name, message}`; cart lines show `gift_card` and `gift_card_recipients`.
+
 ## Store credit
 
 On a customer's page, *Store credit* lists their balance per currency, with *Add store credit* and *Adjust balance*. *Store credit history* lists every change.
@@ -84,4 +94,4 @@ All need `sales.credit.manage`, except refunds (`sales.orders.update`).
 - The `cart.summary` pipeline (`PnShop\Cart\CartSummary`) lets modules and plugins add to the cart as pages and the Store API show it; the Credit module adds its fields there.
 - `PaymentService::amountDue($order)` is what an order still has to pay.
 
-Not included: selling gift cards as products in the shop. Gift cards are issued by staff, by refunds and by exchanges.
+Gift cards are issued by staff, by refunds, by exchanges, and by selling them in the shop (below).

@@ -1270,6 +1270,13 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "accounts_channel_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "The channel whose separate customer accounts this is; null when shared by all channels."
+                                                },
                                                 "orders_count": {
                                                     "type": "integer"
                                                 },
@@ -1321,6 +1328,7 @@
                                                 "email",
                                                 "phone",
                                                 "customer_group_id",
+                                                "accounts_channel_id",
                                                 "orders_count",
                                                 "email_verified_at",
                                                 "created_at",
@@ -1430,6 +1438,13 @@
                                                         "null"
                                                     ]
                                                 },
+                                                "accounts_channel_id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "The channel whose separate customer accounts this is; null when shared by all channels."
+                                                },
                                                 "orders_count": {
                                                     "type": "integer"
                                                 },
@@ -1458,6 +1473,7 @@
                                                 "email",
                                                 "phone",
                                                 "customer_group_id",
+                                                "accounts_channel_id",
                                                 "orders_count",
                                                 "email_verified_at",
                                                 "created_at",
@@ -8516,6 +8532,9 @@
                                     "is_featured": {
                                         "type": "boolean"
                                     },
+                                    "is_gift_card": {
+                                        "type": "boolean"
+                                    },
                                     "category_id": {
                                         "type": "integer"
                                     },
@@ -8673,6 +8692,9 @@
                                                 "is_featured": {
                                                     "type": "boolean"
                                                 },
+                                                "is_gift_card": {
+                                                    "type": "boolean"
+                                                },
                                                 "title": {},
                                                 "slug": {},
                                                 "description": {},
@@ -8940,6 +8962,7 @@
                                                 "type",
                                                 "is_active",
                                                 "is_featured",
+                                                "is_gift_card",
                                                 "title",
                                                 "slug",
                                                 "description",
@@ -9024,6 +9047,9 @@
                                                 "is_featured": {
                                                     "type": "boolean"
                                                 },
+                                                "is_gift_card": {
+                                                    "type": "boolean"
+                                                },
                                                 "title": {},
                                                 "slug": {},
                                                 "description": {},
@@ -9291,6 +9317,7 @@
                                                 "type",
                                                 "is_active",
                                                 "is_featured",
+                                                "is_gift_card",
                                                 "title",
                                                 "slug",
                                                 "description",
@@ -9395,6 +9422,9 @@
                                         "type": "boolean"
                                     },
                                     "is_featured": {
+                                        "type": "boolean"
+                                    },
+                                    "is_gift_card": {
                                         "type": "boolean"
                                     },
                                     "category_id": {
@@ -9527,6 +9557,9 @@
                                                 "is_featured": {
                                                     "type": "boolean"
                                                 },
+                                                "is_gift_card": {
+                                                    "type": "boolean"
+                                                },
                                                 "title": {},
                                                 "slug": {},
                                                 "description": {},
@@ -9794,6 +9827,7 @@
                                                 "type",
                                                 "is_active",
                                                 "is_featured",
+                                                "is_gift_card",
                                                 "title",
                                                 "slug",
                                                 "description",

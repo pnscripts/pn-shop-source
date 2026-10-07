@@ -30,6 +30,8 @@ final readonly class CartItemDTO
         public int $quantity,
         public int $weight = 0,
         public ?int $taxClassId = null,
+        /** A gift card: not shipped, not discounted, not paid with balances; issued when paid. */
+        public bool $giftCard = false,
     ) {}
 
     /**
@@ -55,6 +57,7 @@ final readonly class CartItemDTO
             $quantity,
             (int) $variant->weight,
             $product->tax_class_id,
+            (bool) $product->is_gift_card,
         );
     }
 

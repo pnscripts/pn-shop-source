@@ -130,6 +130,7 @@ class ProductController extends AdminController
             'meta_description' => ['sometimes', 'nullable', 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],
             'is_featured' => ['sometimes', 'boolean'],
+            'is_gift_card' => ['sometimes', 'boolean'],
             'category_id' => [...$sometimes, 'required', 'integer', Rule::exists('product_categories', 'id')->whereNull('deleted_at')],
             'category_ids' => ['sometimes', 'array'],
             // Channels the product is shown in; empty: every channel.

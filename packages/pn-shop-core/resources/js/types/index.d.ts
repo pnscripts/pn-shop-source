@@ -116,6 +116,9 @@ export interface CartItem {
     stock: number | null;
     quantity: number;
     line_total: Money;
+    gift_card?: boolean;
+    /** Who receives each card; cards beyond the list go to the buyer. Null on other lines. */
+    gift_card_recipients?: { email?: string | null; name?: string | null; message?: string | null }[] | null;
 }
 
 export interface TotalLine {

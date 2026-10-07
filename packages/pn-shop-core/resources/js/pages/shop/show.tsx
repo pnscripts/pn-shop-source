@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from '@/hooks/use-translations';
 import StorefrontLayout from '@/layouts/storefront-layout';
 import { type Money, type ProductCard as ProductCardType, type ProductImage } from '@/types';
@@ -44,6 +45,8 @@ type ProductShow = {
     attributes: { attribute: string | null; value: string | null }[];
     price_includes_tax?: boolean;
     prices_visible?: boolean;
+    /** Each unit is a gift card, emailed to the recipient named here (or the buyer) once paid. */
+    is_gift_card?: boolean;
 };
 
 export default function ShopShow({ product, related }: { product: ProductShow; related: ProductCardType[] }) {
@@ -64,7 +67,10 @@ export default function ShopShow({ product, related }: { product: ProductShow; r
     const { data, setData, post, processing, errors } = useForm({
         variant_id: variant?.id ?? null,
         quantity: 1,
+        gift_card: { email: '', name: '', message: '' },
     });
+    const recipient = (field: keyof typeof data.gift_card, value: string) => setData('gift_card', { ...data.gift_card, [field]: value });
+    const fieldError = (field: string) => (errors as Record<string, string | undefined>)[field];
 
     const choose = (optionId: number, valueId: number) => {
         const next = { ...selection, [optionId]: valueId };
@@ -214,6 +220,44 @@ export default function ShopShow({ product, related }: { product: ProductShow; r
                                 />
                                 <InputError message={errors.quantity ?? errors.variant_id} />
                             </div>
+                            {product.is_gift_card && (
+                                <fieldset className="grid gap-3 rounded-lg border p-4">
+                                    <legend className="px-1 text-sm font-medium">{t('Who is it for?')}</legend>
+                                    <p className="text-muted-foreground text-sm">
+                                        {t('We email the gift card when your order is paid. Leave the email empty to receive it yourself.')}
+                                    </p>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="gift_card_email">{t("Recipient's email")}</Label>
+                                        <Input
+                                            id="gift_card_email"
+                                            type="email"
+                                            value={data.gift_card.email}
+                                            onChange={(event) => recipient('email', event.target.value)}
+                                        />
+                                        <InputError message={fieldError('gift_card.email')} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="gift_card_name">{t("Recipient's name")}</Label>
+                                        <Input
+                                            id="gift_card_name"
+                                            value={data.gift_card.name}
+                                            onChange={(event) => recipient('name', event.target.value)}
+                                        />
+                                        <InputError message={fieldError('gift_card.name')} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="gift_card_message">{t('Message (optional)')}</Label>
+                                        <Textarea
+                                            id="gift_card_message"
+                                            rows={3}
+                                            maxLength={500}
+                                            value={data.gift_card.message}
+                                            onChange={(event) => recipient('message', event.target.value)}
+                                        />
+                                        <InputError message={fieldError('gift_card.message')} />
+                                    </div>
+                                </fieldset>
+                            )}
                             <Button type="submit" disabled={processing || !purchasable}>
                                 {variant && !purchasable ? t('Out of stock') : t('Add to cart')}
                             </Button>

@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use PnShop\Cart\CartItemDTO;
 use PnShop\Cart\CartRepository;
 use PnShop\Cart\Exceptions\CartException;
+use PnShop\Cart\ShoppingCartService;
 use PnShop\Credit\Contracts\BalanceAccount;
 use PnShop\Credit\Exceptions\InsufficientBalance;
 use PnShop\Credit\Gateways\StoreCreditGateway;
@@ -20,6 +22,7 @@ use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Payment\PaymentService;
 use PnShop\Sales\Exceptions\CheckoutException;
 use PnShop\Sales\Models\Order;
+use PnShop\Sales\Models\OrderItem;
 
 /**
  * Gift cards and store credit spent on the current cart.
@@ -116,13 +119,19 @@ final class CartBalances
 
     /**
      * What each balance pays of the total: gift cards in the order they were entered, then
-     * store credit when chosen.
+     * store credit when chosen. Gift cards bought in the same order are not paid with
+     * balances (that would turn one card into another); $giftCards is their amount, the
+     * cart's when not given.
      *
      * @return list<array{0: BalanceAccount&Model, 1: Money}>
      */
-    public function plan(Money $total, ?User $customer): array
+    public function plan(Money $total, ?User $customer, ?Money $giftCards = null): array
     {
         $currency = $total->getCurrency()->getCurrencyCode();
+        $giftCards ??= app(ShoppingCartService::class)->getCartItems()
+            ->filter(fn (CartItemDTO $item) => $item->giftCard)
+            ->reduce(fn (Money $sum, CartItemDTO $item) => $sum->plus($item->getTotalPrice()), Money::zero($currency));
+        $total = $total->minus($giftCards)->isNegative() ? Money::zero($currency) : $total->minus($giftCards);
         $accounts = [...$this->giftCards($currency)->all()];
 
         if ($this->usesCredit() && ($credit = $this->creditAccount($customer, $currency)) !== null) {
@@ -162,7 +171,10 @@ final class CartBalances
         $method = $this->paymentMethod();
         $payments = app(PaymentService::class);
 
-        foreach ($this->plan($order->grandTotal(), $customer) as [$account, $amount]) {
+        $giftCards = $order->items->filter(fn (OrderItem $item) => $item->isGiftCard())
+            ->reduce(fn (Money $sum, OrderItem $item) => $sum->plus($item->unitPrice()->multipliedBy($item->quantity)), Money::zero($order->currency));
+
+        foreach ($this->plan($order->grandTotal(), $customer, $giftCards) as [$account, $amount]) {
             $payment = Payment::query()->create([
                 'order_id' => $order->id,
                 'payment_method_id' => $method->id,

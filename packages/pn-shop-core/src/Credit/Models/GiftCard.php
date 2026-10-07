@@ -25,12 +25,14 @@ use PnShop\Customer\Models\User;
  * @property string|null $recipient_email
  * @property int|null $user_id
  * @property string|null $note
+ * @property int|null $order_item_id the order line that bought it (gift cards sold as products)
+ * @property string|null $message the buyer's message to the recipient
  * @property Carbon|null $created_at
  */
 class GiftCard extends Model implements BalanceAccount
 {
     /** @var list<string> */
-    protected $fillable = ['expires_at', 'is_active', 'recipient_email', 'user_id', 'note'];
+    protected $fillable = ['expires_at', 'is_active', 'recipient_email', 'user_id', 'note', 'order_item_id', 'message'];
 
     /**
      * @return array<string, string>

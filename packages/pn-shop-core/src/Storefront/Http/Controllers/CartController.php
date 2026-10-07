@@ -42,7 +42,7 @@ class CartController extends Controller
     public function store(AddToCartRequest $request): RedirectResponse
     {
         try {
-            $this->cart->addItemToCart($this->variantId($request), (int) $request->validated('quantity'));
+            $this->cart->addItemToCart($this->variantId($request), (int) $request->validated('quantity'), $request->validated('gift_card'));
         } catch (CartException $e) {
             throw ValidationException::withMessages(['quantity' => $e->getMessage()]);
         }

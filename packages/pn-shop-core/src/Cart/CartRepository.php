@@ -71,11 +71,47 @@ final class CartRepository
         if ($quantity <= 0) {
             $cart->lines()->where('product_variant_id', $variantId)->delete();
         } else {
-            CartLine::query()->updateOrCreate(['cart_id' => $cart->id, 'product_variant_id' => $variantId], ['quantity' => $quantity]);
+            $line = CartLine::query()->updateOrCreate(['cart_id' => $cart->id, 'product_variant_id' => $variantId], ['quantity' => $quantity]);
+
+            // Fewer gift cards: the last recipients go with them.
+            if (is_array($line->gift_card_recipients) && count($line->gift_card_recipients) > $quantity) {
+                $line->update(['gift_card_recipients' => array_slice($line->gift_card_recipients, 0, $quantity)]);
+            }
         }
 
         $cart->touch();
         $this->forgetLines();
+    }
+
+    /**
+     * Who receives the gift cards of a line, one entry per card added with a recipient.
+     *
+     * @param  array{email?: string|null, name?: string|null, message?: string|null}  $recipient
+     */
+    public function addGiftCardRecipient(int $variantId, array $recipient, int $cards): void
+    {
+        $line = $this->current()?->lines()->where('product_variant_id', $variantId)->first();
+
+        if ($line === null) {
+            return;
+        }
+
+        $recipients = is_array($line->gift_card_recipients) ? $line->gift_card_recipients : [];
+        $line->update(['gift_card_recipients' => array_slice([...$recipients, ...array_fill(0, $cards, $recipient)], 0, $line->quantity)]);
+    }
+
+    /**
+     * Gift card recipients by variant id (lines without any are left out).
+     *
+     * @return array<int, list<array<string, string|null>>>
+     */
+    public function giftCardRecipients(): array
+    {
+        $cart = $this->current();
+
+        return $cart === null ? [] : $cart->lines()->whereNotNull('gift_card_recipients')->get()
+            ->mapWithKeys(fn (CartLine $line) => [$line->product_variant_id => (array) $line->gift_card_recipients])
+            ->all();
     }
 
     public function clear(): void
@@ -148,8 +184,12 @@ final class CartRepository
 
                 if ($existing) {
                     $existing->increment('quantity', $line->quantity);
+
+                    if ($line->gift_card_recipients !== null) {
+                        $existing->update(['gift_card_recipients' => [...(array) $existing->gift_card_recipients, ...$line->gift_card_recipients]]);
+                    }
                 } else {
-                    $cart->lines()->create(['product_variant_id' => $line->product_variant_id, 'quantity' => $line->quantity]);
+                    $cart->lines()->create(['product_variant_id' => $line->product_variant_id, 'quantity' => $line->quantity, 'gift_card_recipients' => $line->gift_card_recipients]);
                 }
             }
 

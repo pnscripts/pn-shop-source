@@ -2,6 +2,13 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## Unreleased
+
+### Added
+
+- **Separate customer accounts per channel (option):** a channel created with *Separate customer accounts* has its own customers; the same email can have an account there and a shared one, and each signs in only where it belongs (website, password reset, Store API). Accounts stay shared by default. See [channels](docs/ecommerce/channels.md#orders-carts-and-customers).
+- **Gift cards sold as products:** a product marked *Gift card* issues a card of its price for each unit when the order is paid, emailed to the recipient the buyer names (or the buyer), with their message. Not shipped, not discounted, not paid with balances; refunds cancel the cards. See [gift cards](docs/ecommerce/gift-cards-and-store-credit.md#selling-gift-cards).
+
 ## 1.9.0 (2026-10-07)
 
 No migrations. See the [upgrade notes](docs/upgrades/2026-10-release-1.9.md).

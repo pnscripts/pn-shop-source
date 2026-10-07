@@ -115,6 +115,9 @@ class ProductForm
                         Toggle::make('is_featured')
                             ->label('Featured on the home page')
                             ->helperText('Featured products come first in the home page\'s product list.'),
+                        Toggle::make('is_gift_card')
+                            ->label('Gift card')
+                            ->helperText('Each unit sold becomes a gift card of its price, emailed when the order is paid (to the recipient the buyer names, or the buyer). Not shipped, not discounted, not paid with gift cards. Use the price as the card value (variants for several values), turn stock tracking off, and choose a tax class without tax if gift cards are not taxed where you sell.'),
                         ChannelsField::make(),
                         Select::make('tax_class_id')
                             ->label('Tax class')

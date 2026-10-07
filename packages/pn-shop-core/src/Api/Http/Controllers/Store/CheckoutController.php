@@ -56,7 +56,7 @@ class CheckoutController extends ApiController
     public function quote(Request $request, DeliveryQuote $delivery): array
     {
         return ['data' => [
-            'shipping_required' => $this->shipping->isRequired(),
+            'shipping_required' => $this->shipping->isRequired($this->cart->getCartItems()),
             ...$delivery->for($request->validate(DeliveryQuote::RULES), $this->customer($request)),
         ]];
     }

@@ -4,6 +4,7 @@ namespace PnShop\Storefront\Http\Requests\Cart;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use PnShop\Cart\GiftCardRecipientRules;
 
 class AddToCartRequest extends FormRequest
 {
@@ -26,6 +27,7 @@ class AddToCartRequest extends FormRequest
                 Rule::exists('products', 'id')->where('is_active', true),
             ],
             'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+            ...GiftCardRecipientRules::rules(),
         ];
     }
 }
