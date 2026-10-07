@@ -28,6 +28,7 @@ yarn-error.log
 /public/fonts/filament
 /public/js/filament
 /themes/*/*/dist
+/themes/*/*/ssr
 /packages/pn-shop-core/theme/dist
 /public/vendor/pnshop
 /tests/Support/PayPalStandIn/state.json

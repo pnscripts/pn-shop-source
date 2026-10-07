@@ -8,7 +8,8 @@ import { coreRoot, themeChain, themeOverrides } from './scripts/vite-theme-overr
 
 /**
  * Builds a theme into themes/<vendor>/<name>/dist: the whole storefront, with the theme's
- * files (and its parents') replacing the storefront's files of the same path.
+ * files (and its parents') replacing the storefront's files of the same path. With --ssr,
+ * the server-side rendering bundle goes to themes/<vendor>/<name>/ssr (never published).
  *
  *     npm run build:theme -- acme/aurora
  */
@@ -24,7 +25,7 @@ const chain = themeChain(root, themeId);
 const themeDirectory = resolve(root, 'themes', themeId);
 const manifest = JSON.parse(readFileSync(resolve(themeDirectory, 'pnshop.json'), 'utf8')) as { entries?: string[] };
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
     // Entries and manifest keys stay "resources/js/app.tsx", wherever the core is installed.
     root: core,
     envDir: root,
@@ -33,6 +34,7 @@ export default defineConfig({
         themeOverrides(core, chain),
         laravel({
             input: manifest.entries ?? ['resources/css/app.css', 'resources/js/app.tsx'],
+            ssr: 'resources/js/ssr.tsx',
             // URLs point where the bundle is published (public/themes/<id>/build) ...
             buildDirectory: `themes/${themeId}/build`,
             refresh: false,
@@ -47,7 +49,7 @@ export default defineConfig({
     },
     build: {
         // ... while the files are written into the theme, which ships them.
-        outDir: resolve(themeDirectory, 'dist'),
+        outDir: resolve(themeDirectory, isSsrBuild ? 'ssr' : 'dist'),
         emptyOutDir: true,
     },
-});
+}));

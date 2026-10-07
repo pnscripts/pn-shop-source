@@ -62,7 +62,7 @@ php artisan pnshop:theme publish acme/aurora   # copy dist/ again after a rebuil
 
 - **Same props:** pages and components must keep the props of the files they replace. The page keys and props are the same for every theme: `home`, `shop/index`, `shop/show`, `cart/index`, `checkout/index`, `orders/show`, `cms/page`, `account/*`, `auth/*` and `settings/*`. Their TypeScript types are in the core's `resources/js/types`.
 - **Example:** `themes/pnshop/aurora` replaces only the product card and sets its own colour and corners.
-- **Server-side rendering:** SSR renders the built-in bundle, so it is switched off while another theme is active.
+- **Server-side rendering:** `npm run build:theme` also builds the theme's SSR bundle into `themes/<vendor>/<name>/ssr/` (skip it with `-- --no-ssr`). It is server code, so it is never published to `public/`. With SSR on (`INERTIA_SSR_ENABLED=true`) and the theme active, `php artisan inertia:start-ssr` runs the theme's bundle. After activating another theme, restart the SSR server (`php artisan inertia:stop-ssr`; your process manager starts it again). A theme built without `ssr/` is rendered in the browser only.
 
 ## Slots and plugin blocks
 

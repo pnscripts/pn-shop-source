@@ -158,6 +158,21 @@ final readonly class ThemeManifest
     }
 
     /** The bundle's folder under public/, for @vite(). */
+    /**
+     * The theme's server-side rendering bundle (npm run build:theme writes it to ssr/, next to
+     * dist/ but never published: it is server code), or null when the theme has none.
+     */
+    public function ssrBundle(): ?string
+    {
+        foreach (['ssr.js', 'ssr.mjs'] as $file) {
+            if (! $this->builtin && is_file($this->path.'/ssr/'.$file)) {
+                return $this->path.'/ssr/'.$file;
+            }
+        }
+
+        return null;
+    }
+
     public function buildDirectory(): string
     {
         return $this->builtin ? self::CORE_BUILD : 'themes/'.$this->id.'/build';

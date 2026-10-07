@@ -37,10 +37,14 @@ class ThemeServiceProvider extends ModuleServiceProvider
 
         $this->registerActiveThemeSettings($registry);
 
-        // Server-side rendering uses the built-in bundle; a theme's markup must come from its own bundle.
+        // Server-side rendering must use the active theme's own bundle (its markup); a theme
+        // built without one is rendered in the browser only.
         try {
-            if (! $this->app->make(ThemeManager::class)->active()->builtin) {
-                config(['inertia.ssr.enabled' => false]);
+            $theme = $this->app->make(ThemeManager::class)->active();
+
+            if (! $theme->builtin) {
+                $bundle = $theme->ssrBundle();
+                config($bundle === null ? ['inertia.ssr.enabled' => false] : ['inertia.ssr.bundle' => $bundle]);
             }
         } catch (Throwable) {
             // No database yet (installing): the built-in theme is used.

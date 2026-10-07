@@ -53,6 +53,24 @@ class ThemesTest extends AdminTestCase
         $this->assertSame('pnshop/default', $themes->active()->id);
     }
 
+    public function test_a_theme_renders_on_the_server_with_its_own_bundle_and_never_publishes_it(): void
+    {
+        $themes = app(ThemeManager::class);
+        $child = $themes->find('acme/child');
+
+        $this->assertNull($child->ssrBundle(), 'Built without ssr/: rendered in the browser only.');
+        $this->assertNull($themes->builtin()->ssrBundle(), 'The built-in storefront uses bootstrap/ssr.');
+
+        File::ensureDirectoryExists($child->path.'/ssr');
+        File::put($child->path.'/ssr/ssr.js', 'export default {};');
+        $this->assertSame($child->path.'/ssr/ssr.js', $child->ssrBundle());
+
+        // Publishing copies dist/ only: the server bundle never becomes a public file.
+        $themes->publish($child);
+        $this->assertFileDoesNotExist(public_path('themes/acme/child/build/ssr.js'));
+        $this->assertSame([], File::glob(public_path('themes/acme/child/build').'/**/ssr*'));
+    }
+
     public function test_the_built_in_storefront_comes_from_the_core_package(): void
     {
         // A 1.0 install keeps its old themes/pnshop/default folder; another theme claims to be built in.
