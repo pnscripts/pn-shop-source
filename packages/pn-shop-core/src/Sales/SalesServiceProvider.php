@@ -80,6 +80,7 @@ class SalesServiceProvider extends ModuleServiceProvider
             'Orders',
             new SettingDefinition('order_number_prefix', SettingType::String, 'Order number prefix', default: 'ORD-', help: 'Applies to new orders, e.g. ORD-000042.', rules: ['max:12']),
             new SettingDefinition('order_number_digits', SettingType::Integer, 'Order number digits', default: 6, required: true, help: 'The order id is padded with zeros to this length.', rules: ['min:1', 'max:12']),
+            new SettingDefinition('thresholds_after_discounts', SettingType::Boolean, 'Thresholds use the subtotal after discounts', default: false, help: 'Off: free-shipping minimums and customer group minimum orders compare with the subtotal before discounts. On: with the subtotal after discounts and coupons.'),
             new SettingDefinition('cancel_unpaid_after_hours', SettingType::Integer, 'Cancel unpaid orders after (hours)', default: 168, required: true, rules: ['min:0', 'max:8760'], help: 'Pending orders still unpaid after this time are cancelled and their stock released. Allow enough time for bank transfers. 0 turns this off.'),
             new SettingDefinition('invoice_on', SettingType::Select, 'Issue invoices', default: 'paid', required: true, options: [
                 'paid' => 'When the order is paid',

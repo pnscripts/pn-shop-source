@@ -17,7 +17,7 @@ A **shipping method** belongs to a zone and uses a **carrier**, which prices the
 | Carrier | Settings | Price |
 |---|---|---|
 | Flat rate (`flat_rate`) | price, once per order or per item | the price |
-| Free shipping (`free_shipping`) | minimum subtotal (optional) | free, offered only from the minimum |
+| Free shipping (`free_shipping`) | minimum subtotal (optional) | free, offered only from the minimum: the subtotal before discounts, or after them with *Thresholds use the subtotal after discounts* (Admin → Settings → Orders) |
 | Pickup (`pickup`) | price (usually 0), address and hours, stock location (optional) | the price; with a stock location, orders reserve their units there and checkout shows whether everything is in stock there ([details](stock-locations.md#store-pickup)) |
 | By weight (`weight_based`) | lines of `grams: price` | the first band at or above the order weight; heavier orders are not offered this method |
 | By order subtotal (`price_based`) | lines of `subtotal: price` | the band the subtotal falls into |

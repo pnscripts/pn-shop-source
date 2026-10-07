@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use PnShop\Cart\CartItemDTO;
 use PnShop\Cart\ShoppingCartService;
+use PnShop\Cart\Totals\ThresholdSubtotal;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Credit\CartBalances;
 use PnShop\Customer\Models\User;
@@ -41,7 +42,7 @@ class DeliveryQuote
     public function for(array $data, ?User $customer): array
     {
         $address = PostalAddress::fromArray($data);
-        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), $this->cart->getTotalPrice(), $address->country_code, $address->postcode, $customer));
+        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), app(ThresholdSubtotal::class)->of($this->cart->totals(['user' => $customer])), $address->country_code, $address->postcode, $customer));
 
         $selected = $quotes->first(fn (ShippingQuote $quote) => $quote->method->id === (int) ($data['shipping_method_id'] ?? 0)) ?? $quotes->first();
 

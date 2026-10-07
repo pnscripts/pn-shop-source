@@ -4,6 +4,7 @@ namespace PnShop\Shipping;
 
 use Closure;
 use PnShop\Cart\Totals\CartTotals;
+use PnShop\Cart\Totals\ThresholdSubtotal;
 use PnShop\Cart\Totals\TotalLine;
 use PnShop\Customer\PostalAddress;
 use PnShop\Shipping\Models\ShippingMethod;
@@ -26,7 +27,7 @@ class ApplyShipping
         if ($address instanceof PostalAddress && $method instanceof ShippingMethod && $address->country_code !== '') {
             $quote = $this->shipping->quote($method, new ShippingRequest(
                 $totals->items,
-                $totals->subtotal,
+                app(ThresholdSubtotal::class)->of($totals),
                 $address->country_code,
                 $address->postcode,
                 $totals->context['user'] ?? null,

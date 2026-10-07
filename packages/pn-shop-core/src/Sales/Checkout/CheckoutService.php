@@ -2,12 +2,12 @@
 
 namespace PnShop\Sales\Checkout;
 
-use Brick\Money\Money;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use PnShop\Cart\CartItemDTO;
 use PnShop\Cart\ShoppingCartService;
 use PnShop\Cart\Totals\CartCalculator;
+use PnShop\Cart\Totals\ThresholdSubtotal;
 use PnShop\Cart\Totals\TotalLine;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Pricing\PriceDisplay;
@@ -180,7 +180,7 @@ class CheckoutService
                 'email' => $data['email'],
             ]));
 
-            $minimum = app(PriceResolver::class)->customerGroup()?->minimumOrderShortfall($totals->subtotal);
+            $minimum = app(PriceResolver::class)->customerGroup()?->minimumOrderShortfall(app(ThresholdSubtotal::class)->of($totals));
 
             if ($minimum !== null) {
                 throw new CheckoutException(__('The minimum order is :amount. Please add more products.', ['amount' => $minimum->formatToLocale(app()->getLocale())]));
@@ -261,7 +261,7 @@ class CheckoutService
         }
 
         $method = ShippingMethod::query()->find((int) ($data['shipping_method_id'] ?? 0));
-        $subtotal = $items->reduce(fn (Money $total, CartItemDTO $item) => $total->plus($item->getTotalPrice()), Money::zero($currency));
+        $subtotal = app(ThresholdSubtotal::class)->of($this->calculator->calculate($items, $currency, $this->cart->context(['user' => $user])));
 
         if ($method === null || $this->shipping->quote($method, new ShippingRequest($items, $subtotal, $address->country_code, $address->postcode, $user)) === null) {
             throw new CheckoutException(__('Please choose a delivery option for this address.'));

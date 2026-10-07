@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use PnShop\Cart\Exceptions\CartException;
 use PnShop\Cart\Totals\CartCalculator;
 use PnShop\Cart\Totals\CartTotals;
+use PnShop\Cart\Totals\ThresholdSubtotal;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
@@ -260,7 +261,7 @@ class ShoppingCartService
             // {code, valid, applied, message} when a coupon code was entered.
             'coupon' => $totals->meta['coupon'] ?? null,
             // The customer group's minimum order, while the products fall short of it.
-            'minimum_order' => MoneyPresenter::present(app(PriceResolver::class)->customerGroup()?->minimumOrderShortfall($totals->subtotal)),
+            'minimum_order' => MoneyPresenter::present(app(PriceResolver::class)->customerGroup()?->minimumOrderShortfall(app(ThresholdSubtotal::class)->of($totals))),
         ];
 
         /** @var CartSummary $result */

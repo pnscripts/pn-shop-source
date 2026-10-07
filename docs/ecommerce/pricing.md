@@ -66,7 +66,7 @@ Admin → Sales → Customer groups → *Business customers*:
 | Option | Effect |
 |---|---|
 | **Show prices** | *Including tax*, *Excluding tax*, or as entered in the catalog. See below. |
-| **Minimum order** | The products (before shipping) must reach this amount. The cart shows the minimum instead of the checkout button, and checkout refuses smaller orders (web and Store API). |
+| **Minimum order** | The products (before shipping, and before discounts unless *Thresholds use the subtotal after discounts* is on in Admin → Settings → Orders) must reach this amount. The cart shows the minimum instead of the checkout button, and checkout refuses smaller orders (web and Store API). |
 
 Move a customer into a group from their customer page or with `PATCH /customers/{id}` in the Admin API.
 

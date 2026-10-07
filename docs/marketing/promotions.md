@@ -16,7 +16,7 @@ A **promotion** is a cart rule. When all of its **conditions** hold, its **actio
 
 | Type | Holds when |
 |---|---|
-| Cart subtotal is at least | the subtotal **before discounts** reaches the amount (as do free-shipping thresholds of shipping methods) |
+| Cart subtotal is at least | the subtotal **before discounts** reaches the amount |
 | Number of items is at least | the number of units reaches N (optionally counting only some products or categories) |
 | Cart contains products | a line is one of the products or in one of the categories (subcategories included) |
 | Customer group is | the signed-in customer is in one of the groups (guests never) |
