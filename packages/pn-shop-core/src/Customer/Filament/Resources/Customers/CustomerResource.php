@@ -13,8 +13,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rules\Unique;
+use PnShop\Channel\Models\Channel;
 use PnShop\Credit\Filament\RelationManagers\StoreCreditHistoryRelationManager;
 use PnShop\Credit\Filament\RelationManagers\StoreCreditRelationManager;
+use PnShop\Customer\CustomerAccounts;
 use PnShop\Customer\Filament\Resources\Customers\Pages\EditCustomer;
 use PnShop\Customer\Filament\Resources\Customers\Pages\ListCustomers;
 use PnShop\Customer\Filament\Resources\Customers\RelationManagers\AddressesRelationManager;
@@ -43,7 +47,9 @@ class CustomerResource extends Resource
         return $schema->components([
             Section::make()->columns(2)->schema([
                 TextInput::make('name')->required()->maxLength(255),
-                TextInput::make('email')->email()->required()->maxLength(255)->unique(ignoreRecord: true),
+                // Unique among the accounts it belongs to (shared, or one channel's own).
+                TextInput::make('email')->email()->required()->maxLength(255)
+                    ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, ?Model $record) => $rule->where('account_scope', (int) $record?->getAttribute('account_scope'))),
                 TextInput::make('phone')->tel()->maxLength(50),
                 Select::make('customer_group_id')->label('Customer group')->relationship('customerGroup', 'name')->required(),
             ]),
@@ -58,13 +64,34 @@ class CustomerResource extends Resource
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('email')->searchable(),
                 TextColumn::make('customerGroup.name')->label('Group')->badge(),
+                TextColumn::make('account_scope')->label('Accounts')->badge()->color('gray')
+                    ->formatStateUsing(fn (int $state) => self::accountsLabel($state))
+                    ->visible(fn () => self::separateChannels() !== []),
                 TextColumn::make('orders_count')->counts('orders')->label('Orders')->sortable(),
                 TextColumn::make('created_at')->label('Registered')->date()->sortable(),
             ])
             ->filters([
                 SelectFilter::make('customer_group_id')->label('Group')->relationship('customerGroup', 'name'),
+                SelectFilter::make('account_scope')->label('Accounts')
+                    ->options(fn () => [CustomerAccounts::SHARED => __('Shared by all channels')] + self::separateChannels())
+                    ->visible(fn () => self::separateChannels() !== []),
             ])
             ->recordActions([EditAction::make()]);
+    }
+
+    /**
+     * Channels with their own customer accounts, by id.
+     *
+     * @return array<int, string>
+     */
+    private static function separateChannels(): array
+    {
+        return once(fn () => Channel::query()->where('separate_accounts', true)->orderBy('position')->pluck('name', 'id')->all());
+    }
+
+    private static function accountsLabel(int $scope): string
+    {
+        return $scope === CustomerAccounts::SHARED ? __('Shared') : (self::separateChannels()[$scope] ?? '#'.$scope);
     }
 
     public static function getRelations(): array

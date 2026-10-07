@@ -21,8 +21,9 @@ class Registration
             'password' => Hash::make($password),
         ]);
 
-        // The storefront the account was opened on (accounts are shared by all channels).
-        $user->forceFill(['channel_id' => app(Channels::class)->current()->id])->save();
+        // The storefront the account was opened on, and whose accounts it belongs to (shared
+        // by all channels unless that channel keeps separate customer accounts).
+        $user->forceFill(['channel_id' => app(Channels::class)->current()->id, 'account_scope' => app(CustomerAccounts::class)->scope()])->save();
 
         event(new Registered($user));
 

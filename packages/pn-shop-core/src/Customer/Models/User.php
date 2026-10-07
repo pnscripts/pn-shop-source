@@ -31,6 +31,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $phone
  * @property int|null $customer_group_id
  * @property Carbon|null $email_verified_at
+ * @property int $account_scope 0 when shared by all channels, else the id of the channel with separate accounts
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -70,6 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'account_scope' => 'integer',
             'password' => 'hashed',
         ];
     }

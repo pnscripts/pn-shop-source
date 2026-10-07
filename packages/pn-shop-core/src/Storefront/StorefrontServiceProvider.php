@@ -18,6 +18,7 @@ use PnShop\Foundation\PnShop;
 use PnShop\Security\Http\Middleware\TrustAppHost;
 use PnShop\Storefront\Http\Middleware\HandleAppearance;
 use PnShop\Storefront\Http\Middleware\HandleInertiaRequests;
+use PnShop\Storefront\Http\Middleware\KeepCustomersInTheirChannel;
 
 /**
  * The default storefront: its routes (shop, cart, checkout, account, CMS pages), the
@@ -60,8 +61,9 @@ class StorefrontServiceProvider extends ModuleServiceProvider
 
         $router = $this->app->make(Router::class);
 
-        // AuthenticateSession signs other browsers out when the password changes.
-        foreach ([AuthenticateSession::class, HandleAppearance::class, HandleInertiaRequests::class, AddLinkHeadersForPreloadedAssets::class] as $middleware) {
+        // AuthenticateSession signs other browsers out when the password changes; customers of
+        // another channel's separate accounts are signed out here.
+        foreach ([AuthenticateSession::class, KeepCustomersInTheirChannel::class, HandleAppearance::class, HandleInertiaRequests::class, AddLinkHeadersForPreloadedAssets::class] as $middleware) {
             $router->pushMiddlewareToGroup('web', $middleware);
         }
     }

@@ -9,7 +9,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use PnShop\Customer\Models\User;
+use PnShop\Customer\CustomerAccounts;
 use PnShop\Customer\Registration;
 use PnShop\Security\BotTrap;
 use PnShop\Storefront\Http\Controllers\Controller;
@@ -33,7 +33,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', app(CustomerAccounts::class)->uniqueEmail()],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 

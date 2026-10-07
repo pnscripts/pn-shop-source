@@ -73,6 +73,10 @@ class ChannelResource extends Resource
                     ->helperText('Serve it under a path, e.g. example.com/trade. Empty: the domain\'s root.')
                     ->rule(fn () => self::pathRule()),
                 Toggle::make('is_active')->label('Active')->default(true)->disabled(fn (?Channel $record) => $record->is_default ?? false),
+                Toggle::make('separate_accounts')->label('Separate customer accounts')
+                    ->helperText('Customers of this channel get their own accounts (the same email can also have one in the other channels). Chosen when the channel is created; it cannot be changed later.')
+                    ->default(false)
+                    ->disabled(fn (?Channel $record) => $record !== null),
                 TextInput::make('position')->integer()->minValue(0)->default(0),
             ]),
             Section::make('Languages and currency')->columns(2)->schema([

@@ -4,8 +4,7 @@ namespace PnShop\Storefront\Http\Requests\Settings;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use PnShop\Customer\Models\User;
+use PnShop\Customer\CustomerAccounts;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -25,7 +24,7 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                app(CustomerAccounts::class)->uniqueEmail((int) $this->user()?->getAttribute('account_scope'))->ignore($this->user()?->getKey()),
             ],
         ];
     }

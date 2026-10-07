@@ -5,7 +5,9 @@ namespace PnShop\Channel\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 use PnShop\Channel\Channels;
+use PnShop\Customer\Models\User;
 
 /**
  * A storefront: where it answers (a domain, a path or both), its languages and currency,
@@ -19,6 +21,7 @@ use PnShop\Channel\Channels;
  * @property string|null $path e.g. "trade" for example.com/trade; null for the host's root
  * @property bool $is_default
  * @property bool $is_active
+ * @property bool $separate_accounts its own customer accounts (chosen when the channel is created)
  * @property string|null $default_locale
  * @property list<string>|null $locales
  * @property string|null $currency
@@ -45,7 +48,7 @@ class Channel extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'code', 'name', 'hostname', 'path', 'is_active', 'default_locale', 'locales', 'currency', 'settings',
+        'code', 'name', 'hostname', 'path', 'is_active', 'separate_accounts', 'default_locale', 'locales', 'currency', 'settings',
         'stock_location_ids', 'payment_method_ids', 'shipping_method_ids', 'position',
     ];
 
@@ -57,6 +60,7 @@ class Channel extends Model
         return [
             'is_default' => 'boolean',
             'is_active' => 'boolean',
+            'separate_accounts' => 'boolean',
             'locales' => 'array',
             'settings' => 'array',
             'stock_location_ids' => 'array',
@@ -71,6 +75,23 @@ class Channel extends Model
         static::saving(function (Channel $channel): void {
             $channel->hostname = self::normalizeHost($channel->hostname);
             $channel->path = self::normalizePath($channel->path);
+
+            // Chosen once: switching later would leave customers unable to sign in. The
+            // default channel (the main store) always uses the shared accounts.
+            if ($channel->exists && $channel->isDirty('separate_accounts')) {
+                $channel->separate_accounts = (bool) $channel->getOriginal('separate_accounts');
+            }
+
+            if ($channel->is_default) {
+                $channel->separate_accounts = false;
+            }
+        });
+
+        // Its customers could sign in nowhere else.
+        static::deleting(function (Channel $channel): void {
+            if ($channel->separate_accounts && User::modelClass()::query()->where('account_scope', $channel->getKey())->exists()) {
+                throw new LogicException(__('This channel has its own customer accounts. Deactivate it instead of deleting it.'));
+            }
         });
 
         static::saved(fn () => app(Channels::class)->flush());

@@ -14,6 +14,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 use PnShop\Api\Http\Controllers\ApiController;
 use PnShop\Api\Http\Middleware\StoreCustomer;
 use PnShop\Cart\CartRepository;
+use PnShop\Customer\CustomerAccounts;
 use PnShop\Customer\Models\User;
 use PnShop\Customer\Registration;
 
@@ -38,7 +39,7 @@ class AuthController extends ApiController
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', app(CustomerAccounts::class)->uniqueEmail()],
             'password' => ['required', Password::defaults()],
             'device_name' => ['nullable', 'string', 'max:100'],
         ]);
@@ -73,7 +74,7 @@ class AuthController extends ApiController
             throw ValidationException::withMessages(['email' => __('auth.throttle', ['seconds' => $seconds, 'minutes' => ceil($seconds / 60)])]);
         }
 
-        $user = User::modelClass()::query()->where('email', $data['email'])->first();
+        $user = User::modelClass()::query()->where('email', $data['email'])->where('account_scope', app(CustomerAccounts::class)->scope())->first();
 
         // Without an account the password is hashed anyway (about as slow as checking it), so
         // the response time does not reveal which emails have accounts.

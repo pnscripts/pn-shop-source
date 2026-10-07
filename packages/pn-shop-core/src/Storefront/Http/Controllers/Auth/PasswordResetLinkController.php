@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use PnShop\Customer\CustomerAccounts;
 use PnShop\Storefront\Http\Controllers\Controller;
 
 class PasswordResetLinkController extends Controller
@@ -34,7 +35,7 @@ class PasswordResetLinkController extends Controller
         ]);
 
         Password::sendResetLink(
-            $request->only('email')
+            app(CustomerAccounts::class)->credentials($request->only('email'))
         );
 
         return back()->with('status', __('A reset link will be sent if the account exists.'));

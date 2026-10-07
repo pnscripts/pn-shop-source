@@ -7,6 +7,8 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PnShop\Cart\CartRepository;
+use PnShop\Customer\CustomerAccounts;
+use PnShop\Customer\Models\User;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,7 +29,12 @@ class StoreCustomer
         Auth::shouldUse('store-api');
         $customer = Auth::guard('store-api')->user();
 
-        // A token that does not work is an error, not a silent guest visit.
+        // A token that does not work here is an error, not a silent guest visit; neither is a
+        // token of another channel's separate customer accounts.
+        if ($customer instanceof User && ! app(CustomerAccounts::class)->belongsHere($customer)) {
+            $customer = null;
+        }
+
         if ($customer === null && $request->bearerToken() !== null) {
             throw new AuthenticationException(guards: ['store-api']);
         }
