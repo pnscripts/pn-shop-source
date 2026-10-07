@@ -137,6 +137,79 @@ class RefundService
     }
 
     /**
+     * The payment provider reports that a refund it had accepted failed afterwards (e.g. a
+     * pending Stripe refund to a closed card): the money did not reach the customer. The
+     * refund is marked failed, its amount is taken off the payment again and the order's
+     * payment status follows; a note tells staff. Items and stock stay as they were, so staff
+     * refund the money again with an extra amount, or return it directly. Applied once.
+     */
+    public function failedAtProvider(Refund $refund, ?string $reason = null): void
+    {
+        $lock = Cache::lock('pnshop:refund:order:'.$refund->order_id, 120);
+
+        if (! $lock->block(15)) {
+            throw new OrderException(__('Another refund of this order is in progress. Try again in a moment.'));
+        }
+
+        try {
+            $reversed = DB::transaction(function () use ($refund, $reason): ?Refund {
+                $refund = Refund::query()->lockForUpdate()->find($refund->id);
+                $payment = $refund?->payment_id === null ? null : Payment::query()->lockForUpdate()->find($refund->payment_id);
+
+                if ($refund === null || $payment === null || $refund->status !== Refund::COMPLETED || $refund->destination !== Refund::TO_ORIGINAL) {
+                    return null;
+                }
+
+                $refund->forceFill(['status' => Refund::FAILED])->save();
+
+                $refunded = $payment->refunded_amount->minus($refund->amount);
+                $refunded = $refunded->isNegative() ? Money::zero($payment->currency) : $refunded;
+                $payment->forceFill([
+                    'refunded_amount' => $refunded,
+                    'status' => $refunded->isZero() ? PaymentState::Paid : PaymentState::PartiallyRefunded,
+                ])->save();
+
+                PaymentTransaction::query()->create([
+                    'payment_id' => $payment->id,
+                    'type' => 'refund_failed',
+                    'outcome' => PaymentOutcome::Failed->value,
+                    'currency' => $payment->currency,
+                    'amount' => $refund->amount,
+                    'reference' => $refund->reference,
+                    'message' => $reason,
+                ]);
+
+                return $refund;
+            });
+        } finally {
+            $lock->release();
+        }
+
+        if ($reversed === null) {
+            return;
+        }
+
+        $order = $reversed->order()->firstOrFail();
+        $payments = $order->payments()->get();
+        $status = match (true) {
+            $payments->every(fn (Payment $p) => ! in_array($p->status, [PaymentState::Paid, PaymentState::PartiallyRefunded], true)) => PaymentStatus::Refunded,
+            $payments->contains(fn (Payment $p) => in_array($p->status, [PaymentState::PartiallyRefunded, PaymentState::Refunded], true)) => PaymentStatus::PartiallyRefunded,
+            default => PaymentStatus::Paid,
+        };
+
+        $note = __('A refund of :amount failed at the payment provider:reason, so the money was not returned. Refund it again (as an extra amount) or return it to the customer directly. Items and stock were left as they were.', [
+            'amount' => $reversed->amount->formatToLocale(app()->getLocale()),
+            'reason' => $reason === null || $reason === '' ? '' : ' ('.$reason.')',
+        ]);
+
+        if ($order->payment_status !== $status) {
+            $this->workflow->transition($order, $status, note: $note);
+        } else {
+            $this->workflow->addNote($order, $note);
+        }
+    }
+
+    /**
      * @param  array<int, int>  $quantities
      * @return array{list<array{OrderItem, int, Money}>, Money}
      */

@@ -6,7 +6,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use PnShop\Payment\Models\Payment;
+use PnShop\Payment\Models\Refund;
 use PnShop\Payment\PaymentState;
+use PnShop\Payment\RefundService;
 use PnShop\Plugins\Stripe\StripeClient;
 use PnShop\Plugins\Stripe\StripeConfirmation;
 use PnShop\Plugins\Stripe\StripeException;
@@ -16,6 +18,9 @@ use PnShop\Settings\Settings;
 
 class StripeController
 {
+    /** Stripe's refund events; only a failed or canceled refund changes anything. */
+    public const REFUND_EVENTS = ['refund.updated', 'refund.failed', 'charge.refund.updated'];
+
     /**
      * The customer comes back from Stripe. The session is read from Stripe's API (never
      * trusted from the URL) before the order is marked paid.
@@ -56,6 +61,26 @@ class StripeController
     }
 
     /**
+     * A refund the shop recorded as done that Stripe could not complete after all (refunds
+     * can be pending, e.g. to some cards and bank debits, and fail later): undone in the
+     * shop so the order shows the money was not returned.
+     *
+     * @param  array<string, mixed>  $object  a Stripe Refund object
+     */
+    private function refundUpdated(array $object): void
+    {
+        if (! in_array($object['status'] ?? null, ['failed', 'canceled'], true) || ! is_string($object['id'] ?? null)) {
+            return;
+        }
+
+        $refund = Refund::query()->where('reference', $object['id'])->first();
+
+        if ($refund !== null && Payment::query()->whereKey($refund->payment_id)->where('gateway', 'stripe')->exists()) {
+            app(RefundService::class)->failedAtProvider($refund, is_string($object['failure_reason'] ?? null) ? $object['failure_reason'] : null);
+        }
+    }
+
+    /**
      * Whether this Checkout Session was the one started for the payment: its current reference
      * until it is confirmed, then the reference recorded when it was started.
      */
@@ -77,6 +102,13 @@ class StripeController
         }
 
         $event = json_decode($payload, true);
+
+        if (is_array($event) && in_array($event['type'] ?? null, self::REFUND_EVENTS, true)) {
+            $this->refundUpdated(is_array($event['data']['object'] ?? null) ? $event['data']['object'] : []);
+
+            return response('OK', 200);
+        }
+
         $session = $event['data']['object'] ?? null;
 
         if (! is_array($event) || ! is_array($session) || ! str_starts_with((string) ($event['type'] ?? ''), 'checkout.session.')) {

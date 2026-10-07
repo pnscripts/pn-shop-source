@@ -15,7 +15,8 @@ STRIPE_TEST_SECRET_KEY=sk_test_… ./vendor/bin/phpunit --group stripe-live
 - checkout creates a Checkout Session for the order total, currency, order number and payment;
 - returning before paying leaves the order unpaid;
 - cancelling the order expires the session on Stripe;
-- refunds of a card payment (Stripe's test card, paid through the API) reach Stripe, partly and then fully.
+- refunds of a card payment (Stripe's test card, paid through the API) reach Stripe, partly and then fully;
+- a refund Stripe fails later (test card `pm_card_refundFail`) is undone by the webhook. Stripe may take a few minutes to fail it; the test waits a minute and is marked incomplete if it has not happened yet.
 
 The objects stay in the account's test data; *Developers → Delete all test data* in the dashboard clears them.
 

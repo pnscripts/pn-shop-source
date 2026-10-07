@@ -53,8 +53,10 @@ enum PaymentStatus: string implements OrderState
             self::Unpaid => [self::Authorized, self::Paid, self::Failed],
             self::Authorized => [self::Paid, self::Unpaid, self::Failed],
             self::Paid => [self::PartiallyRefunded, self::Refunded],
-            self::PartiallyRefunded => [self::PartiallyRefunded, self::Refunded],
-            self::Refunded => [],
+            // Back to paid (or less refunded) only when the provider reports a refund failed
+            // (RefundService::failedAtProvider); never by hand, see ManualStateChanges.
+            self::PartiallyRefunded => [self::PartiallyRefunded, self::Refunded, self::Paid],
+            self::Refunded => [self::PartiallyRefunded, self::Paid],
             self::Failed => [self::Unpaid, self::Authorized, self::Paid],
         };
     }

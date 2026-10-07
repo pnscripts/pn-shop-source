@@ -106,5 +106,13 @@ class LedgerIntegrityTest extends TestCase
         $this->assertSame(Refund::COMPLETED, $refund->status);
         $this->assertSame('20.00', (string) $refund->amount->getAmount());
         $this->assertSame(1, $line->refresh()->quantity_refunded);
+
+        // Undoing a refund is never done by hand: only a provider's failed-refund report does it.
+        $this->assertNotContains(PaymentStatus::Paid, ManualStateChanges::allowed(PaymentStatus::PartiallyRefunded));
+        $this->assertNotContains(PaymentStatus::Paid, ManualStateChanges::allowed(PaymentStatus::Refunded));
+        $this->withToken($token)->postJson("/api/admin/v1/orders/{$order->id}/transitions", ['field' => 'payment_status', 'to' => 'paid'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.to.0', 'A refund is undone only when the payment provider reports that it failed.');
+        $this->assertSame(PaymentStatus::PartiallyRefunded, $order->refresh()->payment_status);
     }
 }

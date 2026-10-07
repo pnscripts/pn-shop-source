@@ -7,11 +7,13 @@ use PnShop\Catalog\Models\Product;
 use PnShop\Extension\ExtensionManager;
 use PnShop\Payment\Models\Payment;
 use PnShop\Payment\Models\PaymentMethod;
+use PnShop\Payment\Models\Refund;
 use PnShop\Payment\PaymentResult;
 use PnShop\Payment\PaymentService;
 use PnShop\Payment\PaymentState;
 use PnShop\Payment\RefundService;
 use PnShop\Plugins\Stripe\StripeClient;
+use PnShop\Plugins\Stripe\WebhookSignature;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\OrderStatus;
@@ -54,7 +56,7 @@ class StripeLiveTest extends AdminTestCase
         $manager->install('pnshop/stripe');
         $manager->enable('pnshop/stripe');
 
-        app(Settings::class)->set('plugin.pnshop_stripe', ['secret_key' => $key, 'webhook_secret' => 'whsec_unused']);
+        app(Settings::class)->set('plugin.pnshop_stripe', ['secret_key' => $key, 'webhook_secret' => 'whsec_live_test']);
         $this->stripe = app(StripeClient::class);
     }
 
@@ -128,16 +130,51 @@ class StripeLiveTest extends AdminTestCase
         $this->assertSame(2400, $this->stripe->get('payment_intents/'.$intent, ['expand' => ['latest_charge']])['latest_charge']['amount_refunded']);
     }
 
+    public function test_a_refund_stripe_fails_later_is_undone_by_the_webhook(): void
+    {
+        $order = $this->checkout();
+        $payment = $order->payments()->sole();
+        // Stripe's test card whose refunds succeed first and then fail.
+        $this->paidCardPayment($payment, 'pm_card_refundFail');
+
+        app(RefundService::class)->refund($order->fresh(), [$order->items->sole()->id => 1]);
+        $refund = Refund::query()->sole();
+        $this->assertSame(Refund::COMPLETED, $refund->status);
+
+        $object = null;
+        for ($i = 0; $i < 30; $i++) {
+            $object = $this->stripe->get('refunds/'.$refund->reference);
+
+            if ($object['status'] === 'failed') {
+                break;
+            }
+
+            sleep(2);
+        }
+
+        if (($object['status'] ?? null) !== 'failed') {
+            $this->markTestIncomplete('Stripe did not fail the test refund within a minute.');
+        }
+
+        // Stripe's event for it, signed with the shop's webhook secret.
+        $payload = (string) json_encode(['type' => 'charge.refund.updated', 'data' => ['object' => $object]]);
+        $this->call('POST', '/stripe/webhook', [], [], [], ['HTTP_STRIPE_SIGNATURE' => WebhookSignature::header($payload, 'whsec_live_test', time()), 'CONTENT_TYPE' => 'application/json'], $payload)->assertOk();
+
+        $this->assertSame(Refund::FAILED, $refund->fresh()->status);
+        $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+        $this->assertTrue($payment->fresh()->refunded_amount->isZero());
+    }
+
     /**
      * Pays the order's amount with Stripe's test card (a PaymentIntent confirmed through the
      * API, as Stripe Checkout would) and records it the way the return visit does.
      */
-    private function paidCardPayment(Payment $payment): string
+    private function paidCardPayment(Payment $payment, string $card = 'pm_card_visa'): string
     {
         $intent = $this->stripe->post('payment_intents', [
             'amount' => $payment->amount->getMinorAmount()->toInt(),
             'currency' => strtolower($payment->currency),
-            'payment_method' => 'pm_card_visa',
+            'payment_method' => $card,
             'confirm' => 'true',
             'automatic_payment_methods' => ['enabled' => 'true', 'allow_redirects' => 'never'],
             'metadata' => ['payment_id' => (string) $payment->id],

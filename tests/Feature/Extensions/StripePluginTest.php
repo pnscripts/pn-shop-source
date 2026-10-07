@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Extensions;
 
+use Brick\Money\Money;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -9,12 +10,14 @@ use PnShop\Catalog\Models\Product;
 use PnShop\Extension\ExtensionManager;
 use PnShop\Payment\Contracts\PaymentGateway;
 use PnShop\Payment\Models\PaymentMethod;
+use PnShop\Payment\Models\Refund;
 use PnShop\Payment\PaymentGatewayManager;
 use PnShop\Payment\PaymentState;
 use PnShop\Payment\RefundService;
 use PnShop\Payment\Testing\PaymentGatewayContractTests;
 use PnShop\Plugins\Stripe\WebhookSignature;
 use PnShop\Sales\Models\Order;
+use PnShop\Sales\Models\OrderHistory;
 use PnShop\Sales\OrderWorkflow;
 use PnShop\Sales\States\OrderStatus;
 use PnShop\Sales\States\PaymentStatus;
@@ -200,6 +203,41 @@ class StripePluginTest extends AdminTestCase
 
         Http::assertSent(fn (Request $request) => $request->url() === 'https://api.stripe.com/v1/refunds' && $request['payment_intent'] === 'pi_1' && $request['amount'] === 1200
             && $request->hasHeader('Idempotency-Key', 'pnshop-refund-pi_1-0-1200'));
+        $this->assertSame(PaymentStatus::PartiallyRefunded, $order->fresh()->payment_status);
+    }
+
+    public function test_a_refund_that_fails_later_on_stripe_is_undone(): void
+    {
+        $order = $this->checkout();
+        $payment = $order->payments()->sole();
+        Http::fake(['api.stripe.com/v1/checkout/sessions/cs_test_1' => Http::response($this->stripeSession($payment->id))]);
+        $this->get('/stripe/return/'.$payment->id.'?session_id=cs_test_1');
+        app(RefundService::class)->refund($order->fresh(), [$order->items->sole()->id => 1]);
+        $this->assertSame(PaymentStatus::PartiallyRefunded, $order->fresh()->payment_status);
+
+        $send = fn (array $refund, string $type = 'refund.updated') => $this->call('POST', '/stripe/webhook', [], [], [], [
+            'HTTP_STRIPE_SIGNATURE' => WebhookSignature::header($payload = (string) json_encode(['type' => $type, 'data' => ['object' => $refund]]), 'whsec_fake', time()),
+            'CONTENT_TYPE' => 'application/json',
+        ], $payload)->assertOk();
+
+        // Still pending or succeeded: nothing changes.
+        $send(['id' => 're_1', 'object' => 'refund', 'status' => 'succeeded']);
+        $this->assertSame(Refund::COMPLETED, Refund::query()->sole()->status);
+
+        // Failed (delivered twice, under both event names): undone once.
+        $send(['id' => 're_1', 'object' => 'refund', 'status' => 'failed', 'failure_reason' => 'expired_or_canceled_card'], 'refund.failed');
+        $send(['id' => 're_1', 'object' => 'refund', 'status' => 'failed', 'failure_reason' => 'expired_or_canceled_card'], 'charge.refund.updated');
+
+        $this->assertSame(Refund::FAILED, Refund::query()->sole()->status);
+        $this->assertSame(PaymentState::Paid, $payment->fresh()->status);
+        $this->assertTrue($payment->fresh()->refunded_amount->isZero());
+        $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+        $this->assertSame(1, $payment->transactions()->where('type', 'refund_failed')->count());
+        $this->assertSame(1, $order->items->sole()->fresh()->quantity_refunded, 'Items stay as they were.');
+        $this->assertTrue(OrderHistory::query()->where('order_id', $order->id)->where('note', 'like', '%failed at the payment provider (expired_or_canceled_card)%')->exists());
+
+        // The money can be refunded again, as an extra amount.
+        app(RefundService::class)->refund($order->fresh(), [], Money::of(12, 'USD'));
         $this->assertSame(PaymentStatus::PartiallyRefunded, $order->fresh()->payment_status);
     }
 

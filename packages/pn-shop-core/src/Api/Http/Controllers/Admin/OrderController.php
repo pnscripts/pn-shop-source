@@ -122,8 +122,10 @@ class OrderController extends AdminController
         $state = self::STATES[$data['field']]::tryFrom($data['to'])
             ?? throw ValidationException::withMessages(['to' => __('Unknown state.')]);
 
-        if (ManualStateChanges::recordedBy($state) !== null) {
-            throw ValidationException::withMessages(['to' => ManualStateChanges::recordedBy($state)]);
+        $reason = ManualStateChanges::recordedBy($state, $order->{$data['field']});
+
+        if ($reason !== null) {
+            throw ValidationException::withMessages(['to' => $reason]);
         }
 
         try {

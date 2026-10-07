@@ -56,7 +56,8 @@ The order page shows the gateway's payment instructions while the payment is pen
   - refunded units that **had shipped** are returns, put back on the shelf (movement `return`) when *Put returned items back in stock* is on.
 - **States:** the payment and the order become *partially refunded* or *refunded*. Every refund, including a gateway's refusal, is kept on the order's *Refunds* tab.
 - **Customer view:** customers see completed refunds under the order totals.
-- **Staff overrides:** *Update payment → Refunded* only changes the state and moves no money. Use *Refund* to return money.
+- **No overrides:** *Refunded* and *Partially refunded* are never set by hand, only by a refund that returns or records the money.
+- **Refunds that fail later:** a provider can accept a refund and fail it afterwards (Stripe reports pending refunds that fail, e.g. to a closed card). A gateway plugin then calls `RefundService::failedAtProvider($refund, $reason)`: the refund is marked failed, its amount is taken off the payment, the order goes back to *paid* or *partially refunded*, and a note asks staff to refund it again (as an additional amount) or return the money directly. Items and stock stay as they were. Only this report undoes a refund; staff cannot set *Paid* back by hand.
 
 ```php
 app(PnShop\Payment\RefundService::class)->refund($order, [$orderItemId => 1], Money::of('5.00', 'EUR'), restock: true, reason: 'Damaged', actor: $admin);

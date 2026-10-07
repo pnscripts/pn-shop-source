@@ -2,7 +2,7 @@
     "id": "pnshop/stripe",
     "name": "Stripe",
     "description": "Card and wallet payments with Stripe Checkout: redirect to Stripe, confirmation by webhook, refunds from the admin.",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "type": "plugin",
     "requires": { "pnshop": "^1.0", "php": ">=8.4" },
     "provider": "PnShop\\Plugins\\Stripe\\StripePlugin",

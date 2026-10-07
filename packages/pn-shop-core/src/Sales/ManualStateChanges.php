@@ -17,14 +17,18 @@ final class ManualStateChanges
     /** @return list<OrderState> */
     public static function allowed(OrderState $from): array
     {
-        return array_values(array_filter($from->transitions(), fn (OrderState $to) => self::recordedBy($to) === null));
+        return array_values(array_filter($from->transitions(), fn (OrderState $to) => self::recordedBy($to, $from) === null));
     }
 
     /**
      * Where staff make this change instead, when it cannot be set by hand.
      */
-    public static function recordedBy(OrderState $to): ?string
+    public static function recordedBy(OrderState $to, ?OrderState $from = null): ?string
     {
+        if ($to === PaymentStatus::Paid && in_array($from, [PaymentStatus::PartiallyRefunded, PaymentStatus::Refunded], true)) {
+            return (string) __('A refund is undone only when the payment provider reports that it failed.');
+        }
+
         $reason = match ($to) {
             PaymentStatus::PartiallyRefunded, PaymentStatus::Refunded => 'Refunds are made with "Refund", which returns the money and records it.',
             FulfillmentStatus::PartiallyFulfilled, FulfillmentStatus::Fulfilled => 'Shipping is recorded with "Create shipment", which takes the stock off the shelf.',
