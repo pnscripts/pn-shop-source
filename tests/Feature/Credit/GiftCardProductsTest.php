@@ -75,7 +75,8 @@ class GiftCardProductsTest extends TestCase
         $this->post('/checkout', $this->checkoutData($this->transfer->id))->assertSessionMissing('error');
         $order = $this->order();
         $this->assertSame('100.00', (string) $order->total->getAmount());
-        $this->assertSame([['email' => 'ana@example.test', 'name' => 'Ana', 'message' => 'Happy birthday!']], $order->items->sole()->gift_card_recipients);
+        // Compared without key order: MySQL's JSON type sorts object keys.
+        $this->assertEquals([['email' => 'ana@example.test', 'name' => 'Ana', 'message' => 'Happy birthday!']], $order->items->sole()->gift_card_recipients);
         $this->assertSame(0, GiftCard::query()->count(), 'Nothing is issued before payment.');
 
         app(OrderWorkflow::class)->transition($order, PaymentStatus::Paid);
