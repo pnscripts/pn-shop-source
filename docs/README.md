@@ -46,6 +46,7 @@ PN Shop is a self-hosted CMS and e-commerce platform by PN Scripts. These docume
 
 | Release | Notes |
 |---|---|
+| 1.10.0 | [upgrades/2026-10-release-1.10.md](upgrades/2026-10-release-1.10.md): separate customer accounts per channel, gift cards sold as products |
 | 1.9.0 | [upgrades/2026-10-release-1.9.md](upgrades/2026-10-release-1.9.md): thresholds after discounts, Store API email verification, theme SSR, failed refunds |
 | 1.8.2 | no upgrade steps beyond copying the Stripe plugin: the customer is thanked when the webhook confirms first (see the CHANGELOG) |
 | 1.8.1 | no upgrade steps beyond copying the Stripe and PayPal plugins: payment plugin fixes (see the CHANGELOG) |

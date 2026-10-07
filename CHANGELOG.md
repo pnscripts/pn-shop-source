@@ -2,7 +2,7 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
-## Unreleased
+## 1.10.0 (2026-10-07)
 
 Two migrations. See the [upgrade notes](docs/upgrades/2026-10-release-1.10.md).
 
