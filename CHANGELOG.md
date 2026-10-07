@@ -4,6 +4,8 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 
 ## Unreleased
 
+Two migrations. See the [upgrade notes](docs/upgrades/2026-10-release-1.10.md).
+
 ### Added
 
 - **Separate customer accounts per channel (option):** a channel created with *Separate customer accounts* has its own customers; the same email can have an account there and a shared one, and each signs in only where it belongs (website, password reset, Store API). Accounts stay shared by default. See [channels](docs/ecommerce/channels.md#orders-carts-and-customers).
