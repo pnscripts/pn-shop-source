@@ -5,7 +5,7 @@ Since 1.5, one PN Shop installation can run several storefronts, called **channe
 - a wholesale shop on `wholesale.example.com`;
 - a trade shop under `shop.example.com/trade`.
 
-They share the admin, the catalog, the stock and the customers. Each channel can have its own address, languages, currency, theme, store details, part of the catalog, stock locations, and payment and shipping methods.
+They share the admin, the catalog, the stock and (unless a channel keeps its own) the customer accounts. Each channel can have its own address, languages, currency, theme, store details, part of the catalog, stock locations, and payment and shipping methods.
 
 A shop with one store needs nothing new. The existing store is the **default channel**. It answers on every address, and all existing orders, carts and customers belong to it.
 
@@ -71,7 +71,14 @@ The admin and the Admin API always see everything.
 
 - **Orders** record their channel. The admin's order list has a *Channel* column and filter, and the dashboard can be narrowed to one channel (*Channel* filter, with *Sales today* per currency).
 - **Carts** belong to their channel. A customer has one cart per channel, and a guest's cart on one channel is not used on another.
-- **Customers** are shared: one account signs in on every channel, and the channel where an account was opened is recorded. Separate customer accounts per channel are not available yet.
+- **Customers** are shared by default: one account signs in on every channel, and the channel where an account was opened is recorded.
+- **Separate customer accounts:** a channel created with *Separate customer accounts* has its own customers (for example a trade store whose customers must not use the retail login).
+  - The same email address can have an account there and a shared one; each password signs in only where its account belongs. Registration, sign-in, password reset and the Store API all work within the channel's accounts.
+  - The choice is made when the channel is created and cannot be changed later (customers would lose their sign-in). The default channel always uses the shared accounts.
+  - Channels on a path share the browser session: a customer signed in on one is signed out on this device when they open a channel with other accounts. Channels on their own domain have separate sessions anyway.
+  - A Store API token works only on channels of its account; elsewhere it is refused (401).
+  - Admin → Customers shows which accounts a customer belongs to; the Admin API returns `accounts_channel_id` (null when shared).
+  - A channel whose customers have their own accounts cannot be deleted; deactivate it instead.
 - **Emails and links:** order emails use the order's channel, for its store name and for links to its address. Signed order links point at the channel the order was placed on.
 
 ## Admin API

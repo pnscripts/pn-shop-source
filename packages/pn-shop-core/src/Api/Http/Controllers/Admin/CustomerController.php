@@ -88,6 +88,8 @@ class CustomerController extends AdminController
             'email' => $customer->email,
             'phone' => $customer->phone,
             'customer_group_id' => $customer->customer_group_id,
+            // The channel whose separate customer accounts this is; null when shared by all channels.
+            'accounts_channel_id' => $customer->account_scope === 0 ? null : $customer->account_scope,
             'orders_count' => (int) $customer->getAttribute('orders_count'),
             'email_verified_at' => $customer->email_verified_at?->toIso8601String(),
             'created_at' => $customer->created_at?->toIso8601String(),
