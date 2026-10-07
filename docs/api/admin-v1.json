@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "PN Shop Admin API",
-        "version": "1.8.2",
+        "version": "1.9.0",
         "description": "Integrations (ERP, accounting, PIM) with staff tokens created under System \u2192 API tokens or with `php artisan pnshop:api-token`.\n\n* **Permissions:** a token's abilities are permission keys, so a call needs the token ability and the owner's permission.\n* **Errors:** `application/problem+json` with a stable `code`.\n* **Lists:** cursor-paginated, with `filter[updated_since]` for incremental sync."
     },
     "servers": [
@@ -12985,7 +12985,7 @@
                                             "properties": {
                                                 "pnshop_version": {
                                                     "type": "string",
-                                                    "const": "1.8.2"
+                                                    "const": "1.9.0"
                                                 }
                                             },
                                             "required": [
