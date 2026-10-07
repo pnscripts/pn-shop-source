@@ -95,4 +95,53 @@ class EmailVerificationTest extends TestCase
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
+
+    private function link(User $user, ?string $hash = null): string
+    {
+        return URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), ['id' => $user->id, 'hash' => $hash ?? sha1($user->email)]);
+    }
+
+    public function test_the_link_works_without_signing_in(): void
+    {
+        $user = User::factory()->unverified()->create();
+        Event::fake([Verified::class]);
+
+        $this->get($this->link($user))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', 'Your email address is verified. You can sign in now.');
+
+        Event::assertDispatched(Verified::class);
+        $this->assertNotNull($user->fresh()->email_verified_at);
+        $this->assertGuest('web');
+    }
+
+    public function test_the_link_is_refused_unsigned_with_a_wrong_hash_or_for_another_account(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $this->get(route('verification.verify', ['id' => $user->id, 'hash' => sha1($user->email)]))->assertForbidden();
+        $this->get($this->link($user, sha1('someone@example.test')))->assertForbidden();
+        $this->actingAs(User::factory()->unverified()->create())->get($this->link($user))->assertForbidden();
+
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_store_api_customers_see_their_status_and_can_resend_the_link(): void
+    {
+        Notification::fake();
+        $user = User::factory()->unverified()->create();
+        $token = $user->createToken('app', ['store'])->plainTextToken;
+
+        $this->withToken($token)->getJson('/api/store/v1/account')->assertOk()->assertJsonPath('data.email_verified', false);
+        $this->withToken($token)->postJson('/api/store/v1/account/email/verification-notification')
+            ->assertStatus(202)
+            ->assertJsonPath('data.sent', true);
+        Notification::assertSentTo($user, VerifyEmail::class);
+
+        $user->markEmailAsVerified();
+        $this->withToken($token)->postJson('/api/store/v1/account/email/verification-notification')
+            ->assertOk()
+            ->assertJsonPath('data.sent', false);
+        $this->withToken($token)->getJson('/api/store/v1/account')->assertJsonPath('data.email_verified', true);
+    }
 }

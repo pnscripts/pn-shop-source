@@ -55,6 +55,7 @@ Route::middleware('auth:store-api')->group(function () {
 
     Route::get('account', [AccountController::class, 'show'])->name('account.show');
     Route::patch('account', [AccountController::class, 'update'])->name('account.update');
+    Route::post('account/email/verification-notification', [AccountController::class, 'resendVerification'])->middleware('throttle:6,1')->name('account.verification.send');
     Route::get('account/orders', [AccountController::class, 'orders'])->name('account.orders');
     Route::get('account/addresses', [AccountController::class, 'addresses'])->name('account.addresses.index');
     Route::post('account/addresses', [AccountController::class, 'storeAddress'])->name('account.addresses.store');

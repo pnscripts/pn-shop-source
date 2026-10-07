@@ -26,6 +26,8 @@ class AccountController extends ApiController
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
+            // False only when the shop requires verified addresses and this one is not yet.
+            'email_verified' => $user->hasVerifiedEmail(),
         ];
     }
 
@@ -37,6 +39,26 @@ class AccountController extends ApiController
     public function show(Request $request): array
     {
         return ['data' => self::present($this->user($request))];
+    }
+
+    /**
+     * Resend the verification email
+     *
+     * When the shop requires verified email addresses, an unverified customer cannot place
+     * orders. This sends the link again; it opens on the shop's website and works without
+     * signing in there.
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $user = $this->user($request);
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['data' => ['sent' => false, 'email_verified' => true]]);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['data' => ['sent' => true, 'email_verified' => false]], 202);
     }
 
     /**
