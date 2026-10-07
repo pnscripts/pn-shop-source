@@ -89,16 +89,17 @@ The largest change. It builds on 1.3 (prices per channel and currency) and 1.4 (
 
 ### Alongside (no fixed release)
 
-- **Visual page editor:** a canvas over the existing section and block data, with live preview through the storefront's own renderers. The data model does not change, so it can ship whenever ready.
-- **Payment plugins:** PayPal first, with the payment gateway contract test kit.
-- **Stripe end-to-end test:** with real test-mode keys; it needs the owner's keys.
+- ~~**Visual page editor:**~~ shipped in 1.8.0. A canvas over the existing section and block data, with live preview through the storefront's own renderers. The data model does not change, so it can ship whenever ready.
+- ~~**Payment plugins:**~~ PayPal shipped in 1.7.0 (verified against a local stand-in; a run in PayPal's sandbox needs the owner's PayPal developer sign-in).
+- ~~**Stripe end-to-end test:**~~ done 2026-10-05/06 in Stripe test mode (fixes in 1.8.1 and 1.8.2).
 - **Tooling upgrades:**
-  - TypeScript 7 and Wayfinder (replacing Ziggy), each in its own change with the full gate set.
-  - ESLint 10 once eslint-plugin-react supports it. Dependabot holds these majors until then.
+  - TypeScript 7 once typescript-eslint supports it (it supports TypeScript below 6.1; checked 2026-10-07). `baseUrl`, removed in 7, is gone already.
+  - Wayfinder (replacing Ziggy) once it reaches 1.0 (0.1.x on 2026-10-07).
+  - ESLint 10 once eslint-plugin-react supports it (ESLint ≤ 9.7 on 2026-10-07). Dependabot holds these majors until then.
 - **Small follow-ups from 1.0:**
-  - an option for free-shipping and subtotal thresholds after discounts (today they use the subtotal before discounts, as documented);
-  - optional email verification before Store API accounts can order;
-  - SSR for non-default themes.
+  - ~~an option for free-shipping and subtotal thresholds after discounts~~ (1.9.0);
+  - ~~optional email verification before Store API accounts can order~~ (1.9.0: the link works without a website session, plus a resend endpoint);
+  - ~~SSR for non-default themes~~ (1.9.0).
 
 ### Not planned
 

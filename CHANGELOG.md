@@ -2,6 +2,22 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## Unreleased
+
+See the [upgrade notes](docs/upgrades/2026-10-release-1.9.md).
+
+### Added
+
+- **Thresholds after discounts (option):** *Settings → Orders → Thresholds use the subtotal after discounts* makes free-shipping minimums and customer group minimum orders compare with the subtotal after discounts and coupons. Off by default (unchanged behaviour).
+- **Email verification for Store API customers:** the verification link now works without signing in on the website, so customers of a headless storefront can verify. `GET /account` shows `email_verified`; `POST /account/email/verification-notification` sends the link again.
+- **Server-side rendering for themes:** `npm run build:theme` also builds a theme's SSR bundle (`themes/<vendor>/<name>/ssr`, never published). With SSR on, the active theme renders on the server with its own markup; before, SSR was switched off for every theme but the built-in one.
+- **Refunds that fail later are undone:** a payment provider can accept a refund and fail it afterwards. `RefundService::failedAtProvider()` then marks it failed, takes it off the payment, returns the order to *paid* or *partially refunded* and leaves a note for staff. The Stripe plugin (1.0.3) does this for `refund.updated` / `refund.failed` events: add `refund.updated` to the Stripe webhook's events.
+
+### Changed
+
+- **Refund states are never undone by hand:** *Paid* cannot be set by hand on a refunded or partly refunded order (admin and Admin API); only a provider's failed-refund report does it.
+- **TypeScript 7 readiness:** `tsconfig.json` no longer sets `baseUrl` (removed in TypeScript 7). The upgrade to TypeScript 7 waits for typescript-eslint, which supports TypeScript below 6.1 only.
+
 ## 1.8.2 (2026-10-06)
 
 No migrations; update with `composer update pnscripts/pn-shop-core` and `php artisan pnshop:update`, then copy `extensions/pnshop/stripe` from the [`pnscripts/pn-shop`](https://github.com/pnscripts/pn-shop) repository.
