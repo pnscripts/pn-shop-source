@@ -83,4 +83,4 @@ Start with [core modules](docs/development/core-modules.md) for the architecture
 
 ## License
 
-MIT © 2026 Petar Nikolov / PN Scripts
+MIT © 2026 ПН СКРИПТС ЕООД (PN Scripts)
