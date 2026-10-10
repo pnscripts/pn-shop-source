@@ -1,6 +1,6 @@
 # pnscripts/pn-shop-core
 
-The core of [PN Shop](https://pnscripts.com/products/pn-shop): the modules, the storefront (with its prebuilt bundle), the admin panel, the APIs and the installer, as a Composer package.
+The core of [PN Scripts Shop](https://pnscripts.com/products/pn-shop): the modules, the storefront (with its prebuilt bundle), the admin panel, the APIs and the installer, as a Composer package.
 
 Shops require it through the `pnscripts/pn-shop` project:
 

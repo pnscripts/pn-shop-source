@@ -1,6 +1,6 @@
-# PN Shop
+# PN Scripts Shop
 
-**PN Shop** is an open-source, self-hosted CMS and e-commerce platform by PN Scripts. It is built on **Laravel 13**, with a **React 19 / Inertia** storefront and a **Filament 5** admin panel. You can extend it with plugins and themes. It is MIT-licensed and free.
+**PN Scripts Shop** is an open-source, self-hosted CMS and e-commerce platform by PN Scripts. It is built on **Laravel 13**, with a **React 19 / Inertia** storefront and a **Filament 5** admin panel. You can extend it with plugins and themes. It is MIT-licensed and free.
 
 This is the source repository. Shops are created from the published packages `pnscripts/pn-shop` (the project) and `pnscripts/pn-shop-core` (the core). Documentation is in [docs/](docs/README.md), and the changes per release are in [CHANGELOG.md](CHANGELOG.md).
 
@@ -49,7 +49,7 @@ To update, run `composer update pnscripts/pn-shop-core --with-all-dependencies` 
 - A cron entry for the scheduler (it also sends the queued emails); on a server, a queue worker as well.
 - Node 22.12+ (24 recommended) only for building themes or developing the storefront.
 
-## Developing PN Shop
+## Developing PN Scripts Shop
 
 In this repository the core lives in `packages/pn-shop-core`. Composer links it into `vendor/` through a path repository.
 
@@ -77,7 +77,7 @@ Start with [core modules](docs/development/core-modules.md) for the architecture
 
 ## More from PN Scripts
 
-- [PN Invoice](https://github.com/pnscripts/pn-invoice): free PHP library to write and validate EN 16931 e-invoices (UBL and CII).
+- [PN Scripts Invoice](https://github.com/pnscripts/pn-invoice): free PHP library to write and validate EN 16931 e-invoices (UBL and CII).
 - [Laravel and Filament upgrades and care](https://pnscripts.com/services/laravel-filament-care): fixed-price upgrades to Laravel 13 and Filament 5, and monthly care plans.
 - All products: [pnscripts.com/products](https://pnscripts.com/products)
 

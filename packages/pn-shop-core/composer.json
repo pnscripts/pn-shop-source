@@ -1,7 +1,7 @@
 {
     "name": "pnscripts/pn-shop-core",
     "type": "library",
-    "description": "The PN Shop platform core: catalog, cart, checkout, orders, payments, shipping, tax, CMS, SEO, promotions, returns, plugins, themes, APIs and the installer.",
+    "description": "The PN Scripts Shop platform core: catalog, cart, checkout, orders, payments, shipping, tax, CMS, SEO, promotions, returns, plugins, themes, APIs and the installer.",
     "keywords": [
         "pn-shop",
         "laravel",

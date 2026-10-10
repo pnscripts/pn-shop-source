@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "pnscripts/pn-shop",
     "type": "project",
-    "description": "PN Shop: an open-source Laravel CMS and e-commerce platform with a React/Inertia storefront.",
+    "description": "PN Scripts Shop: an open-source Laravel CMS and e-commerce platform with a React/Inertia storefront.",
     "keywords": [
         "laravel",
         "react",

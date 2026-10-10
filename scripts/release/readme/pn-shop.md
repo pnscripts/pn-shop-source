@@ -1,6 +1,6 @@
-# PN Shop
+# PN Scripts Shop
 
-This is your [PN Shop](https://pnscripts.com/products/pn-shop) project: a self-hosted CMS and e-commerce platform on Laravel, with a React storefront and a Filament admin panel.
+This is your [PN Scripts Shop](https://pnscripts.com/products/pn-shop) project: a self-hosted CMS and e-commerce platform on Laravel, with a React storefront and a Filament admin panel.
 
 The core comes from the Composer package `pnscripts/pn-shop-core` (in `vendor/`). This project holds what is yours: configuration, `.env`, your own code in `app/`, routes in `routes/web.php`, plugins in `extensions/` and themes in `themes/`.
 
@@ -32,4 +32,4 @@ php artisan pnshop:update         # --dry-run first shows what will happen
 - [Plugins](https://github.com/pnscripts/pn-shop-source/blob/main/docs/extensions/plugins.md) and [themes](https://github.com/pnscripts/pn-shop-source/blob/main/docs/themes/themes.md)
 - [All documentation](https://github.com/pnscripts/pn-shop-source/tree/main/docs)
 
-PN Shop is MIT-licensed. Issues and contributions: [pnscripts/pn-shop-source](https://github.com/pnscripts/pn-shop-source).
+PN Scripts Shop is MIT-licensed. Issues and contributions: [pnscripts/pn-shop-source](https://github.com/pnscripts/pn-shop-source).
