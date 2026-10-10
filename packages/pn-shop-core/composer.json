@@ -13,8 +13,9 @@
     "homepage": "https://github.com/pnscripts/pn-shop-source",
     "authors": [
         {
-            "name": "Petar Nikolov",
-            "homepage": "https://github.com/petar-v-nikolov"
+            "name": "PN Scripts",
+            "email": "office@pnscripts.com",
+            "homepage": "https://pnscripts.com"
         }
     ],
     "require": {

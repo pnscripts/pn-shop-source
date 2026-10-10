@@ -4811,8 +4811,9 @@
             ],
             "authors": [
                 {
-                    "name": "Petar Nikolov",
-                    "homepage": "https://github.com/petar-v-nikolov"
+                    "name": "PN Scripts",
+                    "email": "office@pnscripts.com",
+                    "homepage": "https://pnscripts.com"
                 }
             ],
             "description": "The PN Shop platform core: catalog, cart, checkout, orders, payments, shipping, tax, CMS, SEO, promotions, returns, plugins, themes, APIs and the installer.",
