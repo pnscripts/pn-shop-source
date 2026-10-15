@@ -166,4 +166,4 @@ Legend: **Have**: usable as is. **Partial**: exists but needs redesign. **Missin
 8. CI doesn't fail on lint, and there's no static analysis.
 9. Hard-coded English strings in PHP and TSX.
 10. A known demo admin credential.
-11. Composer package name `petar-v-nikolov/laravel-react-shop` doesn't match the product or repo name.
+11. The old Composer package name (personal vendor, `laravel-react-shop`) doesn't match the product or repo name.
