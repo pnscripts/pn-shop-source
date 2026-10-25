@@ -49,7 +49,7 @@ final class SpeedyCarrier extends Carrier
     }
 
     /** Speedy's own tracking page unless the method sets another link. */
-    public function trackingUrl(string $trackingNumber, ShippingMethod $method): ?string
+    public function trackingUrl(string $trackingNumber, ShippingMethod $method): string
     {
         return parent::trackingUrl($trackingNumber, $method) ?? 'https://www.speedy.bg/bg/track-shipment?shipmentNumber='.rawurlencode($trackingNumber);
     }

@@ -13,7 +13,9 @@ class AuditFileCommand extends Command
 
     public function handle(AuditFile $file): int
     {
-        if (preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', (string) $this->argument('month'), $match) !== 1) {
+        $month = $this->argument('month');
+
+        if (! is_string($month) || preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $month, $match) !== 1) {
             $this->components->error('Give the month as YYYY-MM, e.g. 2026-10.');
 
             return self::INVALID;

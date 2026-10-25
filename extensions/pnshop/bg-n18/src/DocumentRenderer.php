@@ -19,7 +19,7 @@ final class DocumentRenderer
             ? (new QRCode(new QROptions(['outputType' => QROutputInterface::MARKUP_SVG, 'outputBase64' => true, 'addQuietzone' => true])))->render($data['qr'])
             : null;
 
-        return view('pnshop_bg_n18::document', [
+        return view()->file(dirname(__DIR__).'/resources/views/document.blade.php', [
             'document' => $document,
             'data' => $data,
             'issuedAt' => $document->issued_at->copy()->setTimezone((string) ($data['timezone'] ?? 'UTC')),

@@ -2,6 +2,7 @@
 
 namespace PnShop\Plugins\Econt;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Inertia\Inertia;
@@ -29,7 +30,7 @@ class EcontPlugin extends Plugin
 
         // The chosen office on the order page.
         Inertia::share('econtOffice', fn () => request()->routeIs('orders.show') && ($order = request()->route('order')) !== null
-            ? DB::table('pnshop_econt_order_offices')->where('order_id', is_object($order) ? $order->getKey() : (int) $order)->first(['office_code', 'office_name', 'office_address'])
+            ? DB::table('pnshop_econt_order_offices')->where('order_id', $order instanceof Model ? $order->getKey() : (int) $order)->first(['office_code', 'office_name', 'office_address'])
             : null);
     }
 }

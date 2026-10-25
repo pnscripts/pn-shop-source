@@ -12,6 +12,6 @@ final class RegularPriceAsPrior implements PriorPrices
 {
     public function priorPrice(PriceQuote $quote): ?Money
     {
-        return $quote->regular;
+        return $quote->isReduced() ? $quote->regular : null;
     }
 }

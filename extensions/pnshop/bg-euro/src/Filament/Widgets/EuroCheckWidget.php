@@ -3,6 +3,7 @@
 namespace PnShop\Plugins\BgEuro\Filament\Widgets;
 
 use Filament\Widgets\Widget;
+use Illuminate\Contracts\View\View;
 use PnShop\Plugins\BgEuro\EuroCheck;
 
 /**
@@ -10,8 +11,6 @@ use PnShop\Plugins\BgEuro\EuroCheck;
  */
 class EuroCheckWidget extends Widget
 {
-    protected string $view = 'pnshop_bg_euro::euro-check';
-
     protected static ?int $sort = 5;
 
     // A few cheap checks: shown with the page rather than loaded afterwards.
@@ -22,11 +21,8 @@ class EuroCheckWidget extends Widget
         return auth('admin')->user()?->can('store.localization.manage') ?? false;
     }
 
-    /**
-     * @return array{results: list<array{ok: bool, message: string}>}
-     */
-    protected function getViewData(): array
+    public function render(): View
     {
-        return ['results' => app(EuroCheck::class)->results()];
+        return view()->file(dirname(__DIR__, 3).'/resources/views/euro-check.blade.php', ['results' => app(EuroCheck::class)->results()]);
     }
 }

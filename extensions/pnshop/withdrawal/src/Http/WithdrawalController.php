@@ -74,7 +74,12 @@ class WithdrawalController extends Controller
             return redirect()->route('withdrawal.create');
         }
 
-        $withdrawal = $statements->submit($draft);
+        $withdrawal = $statements->submit([
+            'name' => (string) ($draft['name'] ?? ''),
+            'email' => (string) ($draft['email'] ?? ''),
+            'order_number' => (string) ($draft['order_number'] ?? ''),
+            'items' => isset($draft['items']) ? (string) $draft['items'] : null,
+        ]);
         $request->session()->put(self::SENT, ['reference' => $withdrawal->reference, 'email' => $withdrawal->email]);
 
         return redirect()->route('withdrawal.sent');

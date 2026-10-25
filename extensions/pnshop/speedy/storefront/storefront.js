@@ -22,6 +22,7 @@ function OfficePicker({ shippingMethodId, shipping }) {
     const [selected, setSelected] = useState(null);
     const [state, setState] = useState('idle');
     const active = speedy && speedy.office_method_ids.includes(String(shippingMethodId || ''));
+    const officesUrl = speedy ? speedy.offices_url : '';
 
     useEffect(() => {
         if (!active) {
@@ -32,7 +33,7 @@ function OfficePicker({ shippingMethodId, shipping }) {
         const timer = setTimeout(() => {
             setState('loading');
             const params = new URLSearchParams({ postcode, search });
-            fetch(`${speedy.offices_url}?${params}`, { headers: { Accept: 'application/json' }, signal: controller.signal })
+            fetch(`${officesUrl}?${params}`, { headers: { Accept: 'application/json' }, signal: controller.signal })
                 .then((response) => response.json().then((body) => ({ ok: response.ok, body })))
                 .then(({ ok, body }) => {
                     setOffices(body.offices || []);
@@ -46,7 +47,7 @@ function OfficePicker({ shippingMethodId, shipping }) {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [active, postcode, search]);
+    }, [active, officesUrl, postcode, search]);
 
     if (!active) {
         return null;

@@ -52,7 +52,7 @@ final class EcontCarrier extends Carrier
     }
 
     /** Econt's own tracking page unless the method sets another link. */
-    public function trackingUrl(string $trackingNumber, ShippingMethod $method): ?string
+    public function trackingUrl(string $trackingNumber, ShippingMethod $method): string
     {
         return parent::trackingUrl($trackingNumber, $method) ?? 'https://www.econt.com/services/track-shipment/'.rawurlencode($trackingNumber);
     }
@@ -94,7 +94,7 @@ final class EcontCarrier extends Carrier
         }
 
         $label = [
-            'senderClient' => ['name' => $this->setting('sender_name') ?: 'Shop', 'phones' => array_values(array_filter([$this->setting('sender_phone')]))],
+            'senderClient' => ['name' => $this->setting('sender_name') ?: 'Shop', 'phones' => array_filter([$this->setting('sender_phone')])],
             'receiverClient' => ['name' => $request->customer !== null ? (string) $request->customer->name : 'Customer'],
             'packCount' => 1,
             'shipmentType' => 'PACK',
