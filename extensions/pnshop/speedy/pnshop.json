@@ -1,0 +1,19 @@
+{
+    "id": "pnshop/speedy",
+    "name": "Speedy",
+    "description": "Speedy delivery for shops in Bulgaria: live prices from Speedy's API to an address or to a Speedy office, office choice at checkout, and the chosen office on the order.",
+    "version": "1.0.0",
+    "type": "plugin",
+    "requires": { "pnshop": "^1.11", "php": ">=8.4" },
+    "provider": "PnShop\\Plugins\\Speedy\\SpeedyPlugin",
+    "autoload": { "psr-4": { "PnShop\\Plugins\\Speedy\\": "src/" } },
+    "settings": [
+        { "key": "username", "type": "string", "label": "API username", "help": "The API user Speedy gives with your contract (test accounts on request from Speedy)." },
+        { "key": "password", "type": "secret", "label": "API password", "help": "Stored encrypted and never shown again." },
+        { "key": "service_id", "type": "integer", "label": "Service", "default": 505, "required": true, "help": "Speedy service id from your contract, e.g. 505 (standard 24 hours)." },
+        { "key": "dropoff_office_id", "type": "integer", "label": "Drop-off office id", "help": "When you hand parcels in at a Speedy office. Empty: Speedy uses your contract address." }
+    ],
+    "author": "PN Scripts",
+    "license": "MIT",
+    "storefront": "storefront/storefront.js"
+}

@@ -31,6 +31,7 @@ parameters:
         - extensions/pnshop/withdrawal/database/migrations
         - extensions/pnshop/bg-n18/database/migrations
         - extensions/pnshop/econt/database/migrations
+        - extensions/pnshop/speedy/database/migrations
     stubFiles:
         - stubs/phpstan/kalnoy-nestedset.stub
     paths:
