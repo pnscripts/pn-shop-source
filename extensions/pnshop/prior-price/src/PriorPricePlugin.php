@@ -12,7 +12,9 @@ class PriorPricePlugin extends Plugin
     public function register(): void
     {
         $this->app->singleton(PriceHistory::class);
-        $this->app->bind(PriorPrices::class, LowestPriorPrice::class);
+        // One per request: it remembers which prices it could not prove (for the note).
+        $this->app->scoped(LowestPriorPrice::class);
+        $this->app->bind(PriorPrices::class, fn ($app) => $app->make(LowestPriorPrice::class));
     }
 
     protected function bootPlugin(): void
@@ -25,7 +27,10 @@ class PriorPricePlugin extends Plugin
         });
 
         // For the note under the price on product pages (storefront/storefront.js).
-        Inertia::share('priorPrice', fn () => request()->routeIs('shop.show') ? ['days' => (int) ($this->setting('days') ?? 30)] : null);
+        Inertia::share('priorPrice', fn () => request()->routeIs('shop.show') ? [
+            'days' => (int) ($this->setting('days') ?? 30),
+            'unproven' => $this->app->make(LowestPriorPrice::class)->unproven(),
+        ] : null);
     }
 
     public function install(): void

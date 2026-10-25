@@ -6,7 +6,7 @@ function PriorPriceNote({ variant }) {
     const { priorPrice } = sdk.inertia.usePage().props;
     const t = sdk.useTranslations();
 
-    if (!priorPrice || !variant || !variant.sale_price || !variant.prior_price) {
+    if (!priorPrice || !variant || !variant.sale_price || !variant.prior_price || (priorPrice.unproven || []).includes(variant.id)) {
         return null;
     }
 

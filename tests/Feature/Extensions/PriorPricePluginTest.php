@@ -94,6 +94,8 @@ class PriorPricePluginTest extends ShippedPluginTestCase
 
         app(Settings::class)->set('plugin.pnshop_prior_price', ['without_history' => 'regular']);
         $this->assertShown('80.00', '100.00');
+        // The note under the price does not call an unproven price the lowest.
+        $this->get(route('shop.show', $this->product->slug))->assertInertia(fn (Assert $page) => $page->where('priorPrice.unproven', [$this->variant->id]));
     }
 
     public function test_the_storefront_note_is_translated(): void

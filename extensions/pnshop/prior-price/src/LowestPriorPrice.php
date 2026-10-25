@@ -16,7 +16,21 @@ use PnShop\Settings\Settings;
  */
 final class LowestPriorPrice implements PriorPrices
 {
+    /** @var array<int, true> variants shown with the regular price for lack of history (this request) */
+    private array $unproven = [];
+
     public function __construct(private PriceHistory $history, private Settings $settings) {}
+
+    /**
+     * Variants whose struck-through price is the regular price because the history does not
+     * reach back to before their sale: the storefront note must not call it the lowest.
+     *
+     * @return list<int>
+     */
+    public function unproven(): array
+    {
+        return array_keys($this->unproven);
+    }
 
     public function priorPrice(PriceQuote $quote): ?Money
     {
@@ -31,7 +45,13 @@ final class LowestPriorPrice implements PriorPrices
         );
 
         if ($found === null) {
-            return $this->setting('without_history') === 'regular' ? $quote->regular : null;
+            if ($this->setting('without_history') !== 'regular') {
+                return null;
+            }
+
+            $this->unproven[$quote->variant->id] = true;
+
+            return $quote->regular;
         }
 
         return app(CurrencyConverter::class)->convert($found['price'], $quote->unit->getCurrency()->getCurrencyCode());
