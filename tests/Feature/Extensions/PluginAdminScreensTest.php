@@ -13,7 +13,7 @@ use Tests\Feature\Admin\AdminTestCase;
  */
 class PluginAdminScreensTest extends AdminTestCase
 {
-    private const PLUGINS = ['pnshop/withdrawal', 'pnshop/bg-euro'];
+    private const PLUGINS = ['pnshop/withdrawal', 'pnshop/bg-euro', 'pnshop/bg-n18'];
 
     private static string $cache;
 
@@ -93,5 +93,17 @@ class PluginAdminScreensTest extends AdminTestCase
     {
         $this->actingAsStaff(['catalog.products.view']);
         $this->get('/admin')->assertOk()->assertDontSee('Euro check (Bulgaria)');
+    }
+
+    public function test_sales_documents_are_listed_for_staff_with_the_permission_only(): void
+    {
+        $this->actingAsStaff(['sales.orders.view']);
+        $this->get('/admin/sales-documents')->assertForbidden();
+    }
+
+    public function test_staff_with_the_permission_see_the_sales_documents(): void
+    {
+        $this->actingAsStaff(['n18.manage']);
+        $this->get('/admin/sales-documents')->assertOk()->assertSee('NRA audit file');
     }
 }
