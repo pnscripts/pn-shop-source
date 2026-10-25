@@ -1,0 +1,18 @@
+{
+    "id": "pnshop/prior-price",
+    "name": "30-day prior price",
+    "description": "Shows the lowest price of the 30 days before a reduction as the struck-through price, as EU price-indication rules ask (Directive 98/6/EC art. 6a; in Bulgaria ЗЗП чл. 65). Keeps a history of every variant's price.",
+    "version": "1.0.0",
+    "type": "plugin",
+    "requires": { "pnshop": "^1.11", "php": ">=8.4" },
+    "provider": "PnShop\\Plugins\\PriorPrice\\PriorPricePlugin",
+    "autoload": { "psr-4": { "PnShop\\Plugins\\PriorPrice\\": "src/" } },
+    "settings": [
+        { "key": "days", "type": "integer", "label": "Days looked back", "default": 30, "required": true, "help": "The prior price is the lowest price of this many days before the reduction. 30 in the EU." },
+        { "key": "progressive", "type": "boolean", "label": "Count back-to-back reductions as one", "default": true, "help": "On: when a sale price is lowered again during a sale, the prior price stays the one from before the first reduction." },
+        { "key": "without_history", "type": "select", "label": "Reductions older than the price history", "default": "hide", "required": true, "options": { "hide": "Show the price without a reduction", "regular": "Strike through the regular price" }, "help": "The history starts when the plugin is installed. For a sale that began before that, the shop cannot prove the lowest earlier price." }
+    ],
+    "author": "PN Scripts",
+    "license": "MIT",
+    "storefront": "storefront/storefront.js"
+}
