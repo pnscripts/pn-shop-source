@@ -11,7 +11,7 @@ For e-shops in Bulgaria that sell under the alternative regime of Наредба
 
 ## Settings
 
-Seller data, the e-shop number NRA gave at registration (Приложение 33), the payment code of each gateway (`stripe=4`, `paypal=4`, `bank_transfer=1`, `cod=3` …), the payment providers' identifiers for the audit file, the virtual POS number, and the first document number when continuing from another program. Until the seller data and e-shop number are filled in, no document is issued and an error is logged.
+Seller data, the e-shop number NRA gave at registration (Приложение 33), the payment code of each gateway (`stripe=4`, `paypal=4`, `bank_transfer=1`, `cash_on_delivery=3` …), the payment providers' identifiers for the audit file, the virtual POS number, and the first document number when continuing from another program. Until the seller data and e-shop number are filled in, no document is issued and an error is logged.
 
 ## What the shop still does
 

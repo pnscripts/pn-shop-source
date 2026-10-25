@@ -134,7 +134,7 @@ class BgN18PluginTest extends ShippedPluginTestCase
     public function test_cash_on_delivery_gets_its_document_when_shipped(): void
     {
         Notification::fake();
-        $order = $this->order('cod', 'ORD-7');
+        $order = $this->order('cash_on_delivery', 'ORD-7');
 
         app(ShipmentService::class)->ship($order);
 
@@ -152,12 +152,12 @@ class BgN18PluginTest extends ShippedPluginTestCase
         $card = $this->order('stripe', 'ORD-1');
         app(OrderWorkflow::class)->transition($card, PaymentStatus::Paid);
         app(ShipmentService::class)->ship($card);
-        $cod = $this->order('cod', 'ORD-2');
+        $cod = $this->order('cash_on_delivery', 'ORD-2');
         app(ShipmentService::class)->ship($cod);
         $card->refunds()->create(['currency' => 'EUR', 'amount' => '6.00', 'status' => 'completed', 'destination' => 'original']);
         // Delivered next month: not in October's file.
         Carbon::setTestNow('2026-11-02 10:00');
-        app(ShipmentService::class)->ship($this->order('cod', 'ORD-3'));
+        app(ShipmentService::class)->ship($this->order('cash_on_delivery', 'ORD-3'));
 
         $xml = simplexml_load_string(app(AuditFile::class)->xml(2026, 10));
 
