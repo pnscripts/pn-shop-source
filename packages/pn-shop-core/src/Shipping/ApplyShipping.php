@@ -31,6 +31,7 @@ class ApplyShipping
                 $address->country_code,
                 $address->postcode,
                 $totals->context['user'] ?? null,
+                $address->city,
             ));
 
             if ($quote !== null) {

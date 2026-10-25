@@ -16,10 +16,10 @@ class OfficeController extends Controller
 {
     public function index(Request $request, EcontLocations $locations, SelectedOffice $selected): JsonResponse
     {
-        $request->validate(['postcode' => ['nullable', 'string', 'max:12'], 'search' => ['nullable', 'string', 'max:100']]);
+        $request->validate(['postcode' => ['nullable', 'string', 'max:12'], 'city' => ['nullable', 'string', 'max:100'], 'search' => ['nullable', 'string', 'max:100']]);
 
         try {
-            $city = $locations->cityByPostcode((string) $request->query('postcode', ''));
+            $city = $locations->cityByPostcode((string) $request->query('postcode', ''), (string) $request->query('city', ''));
             $offices = $city !== null ? $locations->offices($city['id']) : [];
             $search = mb_strtolower(trim((string) $request->query('search', '')));
 

@@ -23,9 +23,9 @@ function xsrfToken(): string {
 
 /**
  * Delivery options and totals for the address being entered. Asks the server (POST, so the
- * postcode stays out of URLs) shortly after the country, postcode or chosen method changes.
+ * postcode stays out of URLs) shortly after the country, postcode, town or chosen method changes.
  */
-export function useShippingQuote(countryCode: string, postcode: string, shippingMethodId: string, initialTotals: Totals) {
+export function useShippingQuote(countryCode: string, postcode: string, shippingMethodId: string, initialTotals: Totals, city: string = '') {
     const [quote, setQuote] = useState<Quote | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -41,7 +41,7 @@ export function useShippingQuote(countryCode: string, postcode: string, shipping
             fetch(route('checkout.quote'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': xsrfToken() },
-                body: JSON.stringify({ country_code: countryCode, postcode, shipping_method_id: shippingMethodId || null }),
+                body: JSON.stringify({ country_code: countryCode, postcode, city: city || null, shipping_method_id: shippingMethodId || null }),
                 signal: controller.signal,
                 credentials: 'same-origin',
             })
@@ -55,7 +55,7 @@ export function useShippingQuote(countryCode: string, postcode: string, shipping
             window.clearTimeout(timer);
             controller.abort();
         };
-    }, [countryCode, postcode, shippingMethodId]);
+    }, [countryCode, postcode, city, shippingMethodId]);
 
     return {
         options: quote?.options ?? null,

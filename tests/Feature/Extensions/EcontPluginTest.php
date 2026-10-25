@@ -43,8 +43,9 @@ class EcontPluginTest extends ShippedPluginTestCase
     {
         Http::fake([
             self::DEMO.'Nomenclatures/NomenclaturesService.getCities.json' => Http::response(['cities' => [
-                ['id' => 41, 'name' => 'София', 'postCode' => '1000'],
-                ['id' => 77, 'name' => 'Пловдив', 'postCode' => '4000'],
+                ['id' => 41, 'name' => 'София', 'nameEn' => 'Sofia', 'postCode' => '1000'],
+                ['id' => 77, 'name' => 'Пловдив', 'nameEn' => 'Plovdiv', 'postCode' => '4000'],
+                ['id' => 90, 'name' => 'Банкя', 'nameEn' => 'Bankya', 'postCode' => '1320'],
             ]]),
             self::DEMO.'Nomenclatures/NomenclaturesService.getOffices.json' => function (Request $request) {
                 $all = [
@@ -101,6 +102,24 @@ class EcontPluginTest extends ShippedPluginTestCase
                 && $label['packCount'] === 1
                 && abs($label['weight'] - 2.4) < 0.0001;
         });
+    }
+
+    public function test_postcodes_econt_lists_under_no_town_are_matched_by_the_town_name(): void
+    {
+        $this->fakeEcont('5.62', 'USD');
+        $method = $this->method('address');
+        $item = new CartItemDTO(1, 1, 'Mug', 'mug', '', null, Money::of('20.00', 'USD'), null, null, null, 1, 800);
+
+        // Sofia has many postcodes; Econt lists it under 1000 only.
+        $this->assertNull(app(EcontCarrier::class)->quote(new ShippingRequest(collect([$item]), Money::of('20.00', 'USD'), 'BG', '1404'), $method));
+        $this->assertSame('5.62', (string) app(EcontCarrier::class)->quote(new ShippingRequest(collect([$item]), Money::of('20.00', 'USD'), 'BG', '1404', null, 'гр. София'), $method)?->getAmount());
+        Http::assertSent(fn (Request $request) => str_ends_with($request->url(), 'createLabel.json') && $request['label']['receiverAddress']['city']['id'] === 41);
+
+        // The checkout sends the town with the postcode.
+        $product = Product::factory()->active()->create(['price' => '20.00', 'sale_price' => null, 'stock' => 5]);
+        $this->post(route('cart.store'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->postJson(route('checkout.quote'), ['country_code' => 'BG', 'postcode' => '1407', 'city' => 'Sofia', 'shipping_method_id' => $method->id])
+            ->assertOk()->assertJsonPath('options.0.name', 'Econt address');
     }
 
     public function test_office_delivery_uses_the_chosen_office(): void

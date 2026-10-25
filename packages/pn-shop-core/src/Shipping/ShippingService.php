@@ -87,7 +87,7 @@ class ShippingService
         $converter = app(CurrencyConverter::class);
         $currency = $request->currency();
         $default = app(Localization::class)->defaultCurrency()->code;
-        $asked = $currency === $default ? $request : new ShippingRequest($request->items, $converter->convert($request->subtotal, $default), $request->countryCode, $request->postcode, $request->customer);
+        $asked = $currency === $default ? $request : new ShippingRequest($request->items, $converter->convert($request->subtotal, $default), $request->countryCode, $request->postcode, $request->customer, $request->city);
 
         try {
             $price = $carrier->quote($asked, $method);

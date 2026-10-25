@@ -3,6 +3,8 @@
 namespace Tests\Feature\Extensions;
 
 use Filament\Resources\Resource;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use PnShop\Extension\ExtensionManager;
@@ -45,6 +47,17 @@ abstract class ShippedPluginTestCase extends AdminTestCase
 
         $manager->install($id);
         $manager->enable($id);
+
+        // MySQL commits implicitly on DDL (the plugin's migrations), ending the test's
+        // transaction: open it again, or a later rolled-back savepoint (a refused checkout)
+        // fails with "SAVEPOINT trans2 does not exist". What was committed (the plugin's
+        // tables and record) is cleared by migrating afresh before the next test.
+        $connection = DB::connection();
+
+        if (in_array($connection->getDriverName(), ['mysql', 'mariadb'], true)) {
+            $connection->getPdo()->exec('START TRANSACTION');
+            $this->beforeApplicationDestroyed(fn () => RefreshDatabaseState::$migrated = false);
+        }
     }
 
     /**

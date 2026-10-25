@@ -17,6 +17,7 @@ function OfficePicker({ shippingMethodId, shipping }) {
     const { econt } = sdk.inertia.usePage().props;
     const t = sdk.useTranslations();
     const postcode = (shipping && shipping.postcode) || '';
+    const town = (shipping && shipping.city) || '';
     const [search, setSearch] = useState('');
     const [offices, setOffices] = useState([]);
     const [selected, setSelected] = useState(null);
@@ -32,7 +33,7 @@ function OfficePicker({ shippingMethodId, shipping }) {
         const controller = new AbortController();
         const timer = setTimeout(() => {
             setState('loading');
-            const params = new URLSearchParams({ postcode, search });
+            const params = new URLSearchParams({ postcode, city: town, search });
             fetch(`${officesUrl}?${params}`, { headers: { Accept: 'application/json' }, signal: controller.signal })
                 .then((response) => response.json().then((body) => ({ ok: response.ok, body })))
                 .then(({ ok, body }) => {
@@ -47,7 +48,7 @@ function OfficePicker({ shippingMethodId, shipping }) {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [active, officesUrl, postcode, search]);
+    }, [active, officesUrl, postcode, town, search]);
 
     if (!active) {
         return null;

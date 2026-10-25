@@ -87,7 +87,7 @@ final class EcontCarrier extends Carrier
      */
     public function labelFor(ShippingRequest $request, ShippingMethod $method): ?array
     {
-        $city = $this->locations->cityByPostcode((string) $request->postcode);
+        $city = $this->locations->cityByPostcode((string) $request->postcode, $request->city);
 
         if ($city === null) {
             return null;

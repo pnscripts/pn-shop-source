@@ -266,7 +266,7 @@ class CheckoutService
         $method = ShippingMethod::query()->find((int) ($data['shipping_method_id'] ?? 0));
         $subtotal = app(ThresholdSubtotal::class)->of($this->calculator->calculate($items, $currency, $this->cart->context(['user' => $user])));
 
-        if ($method === null || $this->shipping->quote($method, new ShippingRequest($items, $subtotal, $address->country_code, $address->postcode, $user)) === null) {
+        if ($method === null || $this->shipping->quote($method, new ShippingRequest($items, $subtotal, $address->country_code, $address->postcode, $user, $address->city)) === null) {
             throw new CheckoutException(__('Please choose a delivery option for this address.'));
         }
 

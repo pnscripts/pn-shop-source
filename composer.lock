@@ -3872,16 +3872,16 @@
         },
         {
             "name": "livewire/livewire",
-            "version": "v4.4.7",
+            "version": "v4.4.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "5976d18b1c808287017a17337d9e68dc1ca64ca2"
+                "reference": "8d7f8fc6138274a2f3384c9db354ca012215a259"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/5976d18b1c808287017a17337d9e68dc1ca64ca2",
-                "reference": "5976d18b1c808287017a17337d9e68dc1ca64ca2",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/8d7f8fc6138274a2f3384c9db354ca012215a259",
+                "reference": "8d7f8fc6138274a2f3384c9db354ca012215a259",
                 "shasum": ""
             },
             "require": {
@@ -3936,7 +3936,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v4.4.7"
+                "source": "https://github.com/livewire/livewire/tree/v4.4.8"
             },
             "funding": [
                 {
@@ -3944,7 +3944,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-28T18:12:51+00:00"
+            "time": "2026-10-21T12:53:46+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -4775,7 +4775,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/pn-shop-core",
-                "reference": "8429d2748186fe83239c6aa2141c4c1fb94c853e"
+                "reference": "208d64d0bd03f4e4ffe88cb804506833e94339b5"
             },
             "require": {
                 "brick/money": "^0.15.2",
@@ -4816,7 +4816,7 @@
                     "homepage": "https://pnscripts.com"
                 }
             ],
-            "description": "The PN Shop platform core: catalog, cart, checkout, orders, payments, shipping, tax, CMS, SEO, promotions, returns, plugins, themes, APIs and the installer.",
+            "description": "The PN Scripts Shop platform core: catalog, cart, checkout, orders, payments, shipping, tax, CMS, SEO, promotions, returns, plugins, themes, APIs and the installer.",
             "homepage": "https://github.com/pnscripts/pn-shop-source",
             "keywords": [
                 "cms",

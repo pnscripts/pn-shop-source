@@ -21,6 +21,8 @@ final readonly class ShippingRequest
         public string $countryCode,
         public ?string $postcode = null,
         public ?User $customer = null,
+        /** The town, when known (since 1.11): couriers whose towns share a postcode range need it. */
+        public ?string $city = null,
     ) {}
 
     /** Total weight in grams; lines without a weight count as zero. */

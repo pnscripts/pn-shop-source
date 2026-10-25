@@ -12,6 +12,7 @@ No core migrations (the new plugins bring their own). See the [upgrade notes](do
 - **Plugin pages:** the storefront page `extension` shows a plugin's own screen in the shop's layout (slot `page.<screen>`).
 - **Money decorators:** plugins can change the formatted text of storefront and API amounts (`MoneyDecorators`), e.g. to show a second currency.
 - **Plugin settings rules:** settings in `pnshop.json` may declare extra validation `rules`.
+- **Town in delivery quotes:** `ShippingRequest` has an optional `city`; checkout quotes (storefront and Store API `city`) and orders pass it, for couriers whose towns share postcode ranges.
 - **Checkout slot data:** `checkout.before_submit` also gets the chosen shipping method and the address being entered.
 - **New plugins** (off until enabled; see [compliance and delivery plugins](docs/extensions/plugins.md#compliance-and-delivery-plugins-bulgaria-and-the-eu)):
   - `pnshop/prior-price`: the lowest price of the 30 days before a sale as the struck-through price.
@@ -22,6 +23,7 @@ No core migrations (the new plugins bring their own). See the [upgrade notes](do
 
 ### Security
 
+- **Dependency:** livewire/livewire 4.4.8 (GHSA-mhf7-xp6r-6qrc, authorization bypass in `#[Authorize]`).
 - **Strict authorization in the admin:** the panel runs in Filament's strict authorization mode, and every resource and relation manager has a policy. Payments, refunds, shipments, order history, stock movements, balance ledgers, page revisions and the activity log are read-only for generic admin actions. Before, a screen whose model had no policy, or whose policy lacked an ability (for example `delete`), was allowed for every staff account. `PermissionPolicy` gains `forceDelete`, `forceDeleteAny`, `replicate` and `reorder`; new base `ReadOnlyPolicy` for plugins.
 
 ## 1.10.1 (2026-10-15)

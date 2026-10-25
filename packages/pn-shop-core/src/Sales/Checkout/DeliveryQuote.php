@@ -29,6 +29,7 @@ class DeliveryQuote
     public const RULES = [
         'country_code' => ['required', 'string', 'size:2'],
         'postcode' => ['nullable', 'string', 'max:32'],
+        'city' => ['nullable', 'string', 'max:255'],
         'shipping_method_id' => ['nullable', 'integer'],
     ];
 
@@ -42,7 +43,7 @@ class DeliveryQuote
     public function for(array $data, ?User $customer): array
     {
         $address = PostalAddress::fromArray($data);
-        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), app(ThresholdSubtotal::class)->of($this->cart->totals(['user' => $customer])), $address->country_code, $address->postcode, $customer));
+        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), app(ThresholdSubtotal::class)->of($this->cart->totals(['user' => $customer])), $address->country_code, $address->postcode, $customer, $address->city));
 
         $selected = $quotes->first(fn (ShippingQuote $quote) => $quote->method->id === (int) ($data['shipping_method_id'] ?? 0)) ?? $quotes->first();
 
