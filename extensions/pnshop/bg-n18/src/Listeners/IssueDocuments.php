@@ -18,14 +18,29 @@ final class IssueDocuments
     public function paid(OrderStateChanged $event): void
     {
         if ($event->to === PaymentStatus::Paid) {
-            $this->documents->issueSaleDocument($event->order);
+            $this->safely(fn () => $this->documents->issueSaleDocument($event->order));
         }
     }
 
     public function shipped(ShipmentCreated $event): void
     {
-        if ($event->shipment->order !== null) {
-            $this->documents->issueCashOnDeliveryDocument($event->shipment->order);
+        $order = $event->shipment->order;
+
+        if ($order !== null) {
+            $this->safely(fn () => $this->documents->issueCashOnDeliveryDocument($order));
+        }
+    }
+
+    /**
+     * A document that cannot be issued must not stop the payment or shipment: it is
+     * reported, and issuing again later (it is idempotent) completes it.
+     */
+    private function safely(\Closure $issue): void
+    {
+        try {
+            $issue();
+        } catch (\Throwable $e) {
+            report($e);
         }
     }
 }

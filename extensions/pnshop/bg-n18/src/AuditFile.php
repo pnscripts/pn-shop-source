@@ -176,6 +176,7 @@ final class AuditFile
 
     private function element(XMLWriter $xml, string $name, string $value): void
     {
-        $xml->writeElement($name, $value);
+        // XML 1.0 has no place for control characters (e.g. pasted into a product title).
+        $xml->writeElement($name, (string) preg_replace('/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}]/u', '', $value));
     }
 }

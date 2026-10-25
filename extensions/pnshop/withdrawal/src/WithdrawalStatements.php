@@ -5,6 +5,7 @@ namespace PnShop\Plugins\Withdrawal;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use PnShop\Channel\Channels;
 use PnShop\Plugins\Withdrawal\Models\Withdrawal;
 use PnShop\Plugins\Withdrawal\Notifications\WithdrawalForStaff;
@@ -47,8 +48,14 @@ final class WithdrawalStatements
             return $withdrawal;
         });
 
-        // Confirmation on a durable medium (email), sent right away, and the staff copy.
-        Notification::route('mail', $withdrawal->email)->notify(new WithdrawalReceived($withdrawal));
+        // Confirmation on a durable medium (email), sent right away, and the staff copy. At
+        // most 3 confirmations a day go to one address, so the form cannot be used to send
+        // mail to strangers; every statement is still recorded and reaches staff.
+        $key = 'pnshop-withdrawal-mail:'.hash('sha256', mb_strtolower($withdrawal->email));
+
+        if (RateLimiter::attempt($key, 3, fn () => true, 86400)) {
+            Notification::route('mail', $withdrawal->email)->notify(new WithdrawalReceived($withdrawal));
+        }
 
         if (($staff = $this->staffEmail()) !== '') {
             Notification::route('mail', $staff)->notify(new WithdrawalForStaff($withdrawal));

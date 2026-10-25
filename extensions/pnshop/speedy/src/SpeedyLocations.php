@@ -25,12 +25,15 @@ final class SpeedyLocations
             return null;
         }
 
-        return Cache::remember('pnshop.speedy.'.md5($this->client->baseUrl()).'.site.'.$postcode, now()->addMonth(), function () use ($postcode) {
+        $site = Cache::remember('pnshop.speedy.'.md5($this->client->baseUrl()).'.site.'.$postcode, now()->addMonth(), function () use ($postcode) {
             $sites = (array) ($this->client->call('location/site', ['countryId' => SpeedyClient::BULGARIA, 'postCode' => $postcode])['sites'] ?? []);
             $site = is_array($sites[0] ?? null) ? $sites[0] : null;
 
-            return $site === null ? null : ['id' => (int) $site['id'], 'name' => (string) ($site['name'] ?? '')];
+            // "Not found" is cached too (as id 0), so unknown postcodes are asked once a month.
+            return $site === null ? ['id' => 0, 'name' => ''] : ['id' => (int) $site['id'], 'name' => (string) ($site['name'] ?? '')];
         });
+
+        return $site['id'] > 0 ? $site : null;
     }
 
     /**

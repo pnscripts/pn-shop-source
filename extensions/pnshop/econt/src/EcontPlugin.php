@@ -2,9 +2,12 @@
 
 namespace PnShop\Plugins\Econt;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Inertia;
 use PnShop\Extension\Plugin;
 use PnShop\Plugins\Econt\Listeners\RecordOffice;
@@ -17,6 +20,8 @@ class EcontPlugin extends Plugin
     protected function bootPlugin(): void
     {
         $this->app->make(ShippingCarrierManager::class)->register(EcontCarrier::class);
+        // The office picker's own limit (typing a search sends a request), apart from checkout's.
+        RateLimiter::for('pnshop-econt', fn (Request $request) => Limit::perMinute(60)->by('econt|'.$request->ip()));
         Event::listen(OrderPlacing::class, RecordOffice::class);
 
         // For the office picker at checkout (storefront/storefront.js).

@@ -20,6 +20,9 @@ class WithdrawalController extends Controller
 
     private const SENT = 'pnshop_withdrawal.sent';
 
+    /** Web addresses have no place in a statement and would travel in the shop's emails. */
+    private const NO_LINKS = '/(:\/\/|www\.)/i';
+
     public function create(Request $request): Response
     {
         $customer = $request->user();
@@ -39,10 +42,10 @@ class WithdrawalController extends Controller
     public function review(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'not_regex:/[\r\n]/', 'not_regex:'.self::NO_LINKS],
             'email' => ['required', 'email', 'max:255'],
-            'order_number' => ['required', 'string', 'max:64'],
-            'items' => ['nullable', 'string', 'max:2000'],
+            'order_number' => ['required', 'string', 'max:64', 'not_regex:/[\r\n]/', 'not_regex:'.self::NO_LINKS],
+            'items' => ['nullable', 'string', 'max:2000', 'not_regex:'.self::NO_LINKS],
         ], [], [
             'name' => __('name'),
             'email' => __('email'),

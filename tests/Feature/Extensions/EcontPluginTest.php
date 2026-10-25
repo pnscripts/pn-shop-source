@@ -128,6 +128,18 @@ class EcontPluginTest extends ShippedPluginTestCase
         $this->assertSame('6.50', (string) app(EcontCarrier::class)->quote($this->request(), $this->method('address', ['fallback_price' => '6.50']))?->getAmount());
     }
 
+    public function test_after_a_failure_econt_is_left_alone_for_a_minute(): void
+    {
+        Http::fake([self::DEMO.'*' => Http::response('', 503)]);
+        $method = $this->method('address', ['fallback_price' => '6.50']);
+
+        app(EcontCarrier::class)->quote($this->request(), $method);
+        app(EcontCarrier::class)->quote($this->request(), $method);
+        $this->getJson(route('econt.offices', ['postcode' => '4000']))->assertStatus(503);
+
+        Http::assertSentCount(1);
+    }
+
     public function test_only_bulgaria_and_never_without_credentials(): void
     {
         $this->fakeEcont();

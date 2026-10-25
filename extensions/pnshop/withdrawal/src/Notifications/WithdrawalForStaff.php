@@ -8,6 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use PnShop\Localization\Localization;
 use PnShop\Plugins\Withdrawal\Models\Withdrawal;
+use PnShop\Plugins\Withdrawal\PlainText;
 use PnShop\Sales\Notifications\RetriesDelivery;
 use PnShop\Sales\Notifications\StoreMailIdentity;
 
@@ -39,7 +40,7 @@ class WithdrawalForStaff extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject(__('Withdrawal from contract :reference (order :number)', ['reference' => $w->reference, 'number' => $w->order_number]))
-            ->line(__(':name (:email) withdrew from the contract for order :number.', ['name' => $w->name, 'email' => $w->email, 'number' => $w->order_number]))
+            ->line(__(':name (:email) withdrew from the contract for order :number.', ['name' => PlainText::of($w->name), 'email' => $w->email, 'number' => PlainText::of($w->order_number)]))
             ->line($w->order_id !== null ? __('The order number and email match an order.') : __('No order matches this order number and email: please check it.'))
             ->action(__('Open in the admin'), route('filament.admin.resources.withdrawals.index'));
     }

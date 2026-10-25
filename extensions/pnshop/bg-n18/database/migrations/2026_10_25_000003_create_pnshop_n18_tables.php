@@ -14,7 +14,8 @@ return new class extends Migration
             $table->string('type', 10);
             // The 10-digit sale document number (sale documents only); unique in the business.
             $table->unsignedBigInteger('number')->nullable()->unique();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+            // Issued documents are a fiscal record: an order with one cannot be deleted.
+            $table->foreignId('order_id')->constrained()->restrictOnDelete();
             $table->timestamp('issued_at');
             $table->unsignedTinyInteger('payment_code');
             $table->string('transaction_ref')->nullable();

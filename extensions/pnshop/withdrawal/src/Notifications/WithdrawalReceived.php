@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use PnShop\Plugins\Withdrawal\Models\Withdrawal;
+use PnShop\Plugins\Withdrawal\PlainText;
 use PnShop\Sales\Notifications\RetriesDelivery;
 use PnShop\Sales\Notifications\StoreMailIdentity;
 use PnShop\Settings\Settings;
@@ -37,21 +38,23 @@ class WithdrawalReceived extends Notification implements ShouldQueue
     {
         StoreMailIdentity::apply();
         $w = $this->withdrawal;
+        $name = PlainText::of($w->name);
+        $number = PlainText::of($w->order_number);
         $timezone = (string) (app(Settings::class)->get('localization.timezone') ?: config('app.timezone', 'UTC'));
         $at = $w->submitted_at->copy()->setTimezone($timezone);
 
         $mail = (new MailMessage)
             ->subject(__('We received your withdrawal from the contract (:reference)', ['reference' => $w->reference]))
-            ->greeting(__('Hello :name,', ['name' => $w->name]))
+            ->greeting(__('Hello :name,', ['name' => $name]))
             ->line(__('We received your statement that you withdraw from the contract. This email confirms it.'))
             ->line(__('Reference: :reference', ['reference' => $w->reference]))
             ->line(__('Sent on :date at :time (:timezone).', ['date' => $at->format('d.m.Y'), 'time' => $at->format('H:i:s'), 'timezone' => $timezone]))
-            ->line(__('Statement: I withdraw from the contract for order :number.', ['number' => $w->order_number]))
-            ->line(__('Name: :name', ['name' => $w->name]))
+            ->line(__('Statement: I withdraw from the contract for order :number.', ['number' => $number]))
+            ->line(__('Name: :name', ['name' => $name]))
             ->line(__('Email for this confirmation: :email', ['email' => $w->email]));
 
         if ($w->items !== null) {
-            $mail->line(__('Products concerned: :items', ['items' => $w->items]));
+            $mail->line(__('Products concerned: :items', ['items' => PlainText::of($w->items)]));
         }
 
         return $mail->line(__('We will tell you how to return the goods, if any, and refund you as the law provides.'));

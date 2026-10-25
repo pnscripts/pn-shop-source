@@ -3,6 +3,7 @@
 namespace PnShop\Plugins\Econt;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PnShop\Settings\Settings;
 
@@ -45,6 +46,14 @@ final class EcontClient
             throw new EcontException('Econt is not set up: enter the username and password in the plugin settings.');
         }
 
+        // After a failure, wait a minute before asking again: public pages (checkout, office
+        // search) must not pile up slow calls while the courier is down.
+        $down = 'pnshop.econt.down.'.md5($this->baseUrl());
+
+        if (Cache::has($down)) {
+            throw new EcontException('Econt did not answer a moment ago; trying again shortly.');
+        }
+
         try {
             $response = Http::withBasicAuth((string) $this->setting('username'), (string) $this->setting('password'))
                 ->acceptJson()
@@ -53,7 +62,13 @@ final class EcontClient
                 ->timeout(10)
                 ->post($this->baseUrl().ltrim($service, '/'), (object) $payload);
         } catch (ConnectionException $e) {
+            Cache::put($down, true, 60);
+
             throw new EcontException('Econt did not answer: '.$e->getMessage(), previous: $e);
+        }
+
+        if ($response->serverError()) {
+            Cache::put($down, true, 60);
         }
 
         $data = $response->json();

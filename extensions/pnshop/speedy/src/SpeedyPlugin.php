@@ -2,9 +2,12 @@
 
 namespace PnShop\Plugins\Speedy;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Inertia;
 use PnShop\Extension\Plugin;
 use PnShop\Plugins\Speedy\Listeners\RecordOffice;
@@ -17,6 +20,8 @@ class SpeedyPlugin extends Plugin
     protected function bootPlugin(): void
     {
         $this->app->make(ShippingCarrierManager::class)->register(SpeedyCarrier::class);
+        // The office picker's own limit (typing a search sends a request), apart from checkout's.
+        RateLimiter::for('pnshop-speedy', fn (Request $request) => Limit::perMinute(60)->by('speedy|'.$request->ip()));
         Event::listen(OrderPlacing::class, RecordOffice::class);
 
         // For the office picker at checkout (storefront/storefront.js).

@@ -151,4 +151,36 @@ class WithdrawalPluginTest extends ShippedPluginTestCase
         $this->assertSame('Ana Petrova', $withdrawal->refresh()->name);
         $this->assertSame('Return label sent', $withdrawal->staff_note);
     }
+
+    public function test_typed_text_cannot_put_links_into_the_shops_emails(): void
+    {
+        Notification::fake();
+
+        $this->post(route('withdrawal.review'), $this->statement(['name' => '[Your refund is blocked](https://evil.example)']))->assertSessionHasErrors('name');
+        $this->post(route('withdrawal.review'), $this->statement(['items' => 'see www.evil.example']))->assertSessionHasErrors('items');
+        $this->post(route('withdrawal.review'), $this->statement(['order_number' => "ORD-1\r\nBcc: x@example.com"]))->assertSessionHasErrors('order_number');
+
+        $this->post(route('withdrawal.review'), $this->statement(['name' => '[Click](mailto:x@evil.example) <b>Ana</b>']));
+        $this->post(route('withdrawal.store'));
+
+        Notification::assertSentTo(new AnonymousNotifiable, WithdrawalReceived::class, function (WithdrawalReceived $notification, array $channels, AnonymousNotifiable $notifiable) {
+            $html = (string) $notification->toMail($notifiable)->render();
+
+            return ! str_contains($html, '<a href="mailto:x@evil.example"') && ! str_contains($html, '<b>Ana</b>') && str_contains($html, 'Click');
+        });
+    }
+
+    public function test_one_address_gets_at_most_three_confirmations_a_day(): void
+    {
+        Notification::fake();
+
+        // (The routes' own per-IP limits stop a single visitor sooner.)
+        foreach (range(1, 4) as $attempt) {
+            app(WithdrawalStatements::class)->submit(['name' => 'Ana', 'email' => 'Ana@Example.com', 'order_number' => 'ORD-'.$attempt]);
+        }
+
+        $this->assertSame(4, Withdrawal::query()->count());
+        Notification::assertSentTimes(WithdrawalReceived::class, 3);
+        Notification::assertSentTimes(WithdrawalForStaff::class, 4);
+    }
 }

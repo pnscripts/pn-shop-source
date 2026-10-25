@@ -3,6 +3,7 @@
 namespace PnShop\Plugins\Speedy;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PnShop\Settings\Settings;
 
@@ -45,10 +46,24 @@ final class SpeedyClient
 
         $body = ['userName' => (string) $this->setting('username'), 'password' => (string) $this->setting('password'), 'language' => app()->getLocale() === 'bg' ? 'BG' : 'EN', ...$payload];
 
+        // After a failure, wait a minute before asking again: public pages (checkout, office
+        // search) must not pile up slow calls while the courier is down.
+        $down = 'pnshop.speedy.down.'.md5($this->baseUrl());
+
+        if (Cache::has($down)) {
+            throw new SpeedyException('Speedy did not answer a moment ago; trying again shortly.');
+        }
+
         try {
             $response = Http::acceptJson()->asJson()->connectTimeout(5)->timeout(10)->post($this->baseUrl().'/'.ltrim($path, '/'), $body);
         } catch (ConnectionException $e) {
+            Cache::put($down, true, 60);
+
             throw new SpeedyException('Speedy did not answer: '.$e->getMessage(), previous: $e);
+        }
+
+        if ($response->serverError()) {
+            Cache::put($down, true, 60);
         }
 
         $data = $response->json();

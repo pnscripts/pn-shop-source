@@ -112,15 +112,10 @@ final class SalesDocuments
     private function nextNumber(): int
     {
         $first = max(1, (int) ($this->settings->get('first_number') ?? 1));
+        // The row exists before it is locked, so two first documents cannot both insert it.
+        DB::table('pnshop_n18_counters')->insertOrIgnore(['name' => self::COUNTER, 'last' => 0]);
         $row = DB::table('pnshop_n18_counters')->where('name', self::COUNTER)->lockForUpdate()->first();
-
-        if ($row === null) {
-            DB::table('pnshop_n18_counters')->insert(['name' => self::COUNTER, 'last' => $first]);
-
-            return $first;
-        }
-
-        $next = max((int) $row->last + 1, $first);
+        $next = max((int) ($row->last ?? 0) + 1, $first);
 
         if ($next > 9_999_999_999) {
             throw new \OverflowException('Н-18 sale document numbers are used up (10 digits).');
