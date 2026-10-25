@@ -1,0 +1,20 @@
+{
+    "id": "pnshop/withdrawal",
+    "name": "Withdrawal button",
+    "description": "The online withdrawal function for distance contracts (EU Directive 2023/2673; in Bulgaria ЗЗП чл. 52а, in force from 24.09.2026): a \"Withdraw from contract here\" link, a two-step statement for guests and customers, an email confirmation with date and time, and a list for staff.",
+    "version": "1.0.0",
+    "type": "plugin",
+    "requires": { "pnshop": "^1.11", "php": ">=8.4" },
+    "provider": "PnShop\\Plugins\\Withdrawal\\WithdrawalPlugin",
+    "autoload": { "psr-4": { "PnShop\\Plugins\\Withdrawal\\": "src/" } },
+    "permissions": [
+        { "key": "withdrawal.manage", "label": "See and handle withdrawals from contracts", "group": "Sales" }
+    ],
+    "settings": [
+        { "key": "period_days", "type": "integer", "label": "Withdrawal period (days)", "default": 14, "required": true, "help": "14 days in the EU, counted from delivery. Used to mark statements that look late; every statement is accepted and confirmed." },
+        { "key": "notify_email", "type": "email", "label": "Send statements to", "help": "Staff address for new statements. Empty: the staff notification address, or the store's contact email." }
+    ],
+    "author": "PN Scripts",
+    "license": "MIT",
+    "storefront": "storefront/storefront.js"
+}

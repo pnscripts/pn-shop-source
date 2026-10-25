@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Extensions;
 
+use Filament\Resources\Resource;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use PnShop\Extension\ExtensionManager;
 use Tests\Feature\Admin\AdminTestCase;
 
@@ -43,5 +45,28 @@ abstract class ShippedPluginTestCase extends AdminTestCase
 
         $manager->install($id);
         $manager->enable($id);
+    }
+
+    /**
+     * Every admin resource of the plugin has a policy once it is enabled (the panel's
+     * strict authorization would refuse the screen otherwise).
+     */
+    protected function assertScreensHavePolicies(string $id, string $namespace): void
+    {
+        $directory = base_path("extensions/{$id}/src/Filament/Resources");
+        $resources = 0;
+
+        foreach (File::allFiles($directory) as $file) {
+            if (! str_ends_with($file->getFilename(), 'Resource.php')) {
+                continue;
+            }
+
+            $class = $namespace.'\\Filament\\Resources\\'.str_replace(['/', '.php'], ['\\', ''], $file->getRelativePathname());
+            /** @var class-string<resource> $class */
+            $this->assertNotNull(Gate::getPolicyFor($class::getModel()), "{$class} has no policy.");
+            $resources++;
+        }
+
+        $this->assertGreaterThan(0, $resources);
     }
 }
