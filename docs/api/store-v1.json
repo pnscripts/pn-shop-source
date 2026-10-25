@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "PN Shop Store API",
-        "version": "1.10.1",
+        "version": "1.11.0",
         "description": "Catalog, content, cart, checkout and customer accounts for headless storefronts and apps.\n\n* **Authentication:** optional. Customers sign in with `POST /auth/login` and send `Authorization: Bearer <token>`.\n* **Guest carts:** send the cart `token` from cart responses as the `X-Cart-Token` header.\n* **Language:** set with `?locale=` or `Accept-Language`.\n* **Errors:** `application/problem+json` with a stable `code`.\n* **Retries:** send `Idempotency-Key` when placing orders."
     },
     "servers": [
@@ -1104,7 +1104,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1130,7 +1131,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1156,7 +1158,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1238,7 +1241,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1307,7 +1311,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -1338,7 +1343,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -1372,7 +1378,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -1402,7 +1409,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -1449,7 +1457,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -1643,7 +1652,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1669,7 +1679,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1695,7 +1706,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1777,7 +1789,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1846,7 +1859,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -1877,7 +1891,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -1911,7 +1926,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -1941,7 +1957,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -1988,7 +2005,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -2148,7 +2166,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2174,7 +2193,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2200,7 +2220,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2282,7 +2303,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2351,7 +2373,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -2382,7 +2405,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -2416,7 +2440,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -2446,7 +2471,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -2493,7 +2519,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -2631,7 +2658,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2657,7 +2685,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2683,7 +2712,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2765,7 +2795,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -2834,7 +2865,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -2865,7 +2897,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -2899,7 +2932,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -2929,7 +2963,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -2976,7 +3011,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -3125,7 +3161,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3151,7 +3188,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3177,7 +3215,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3259,7 +3298,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3328,7 +3368,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -3359,7 +3400,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -3393,7 +3435,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -3423,7 +3466,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -3470,7 +3514,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -3600,7 +3645,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3626,7 +3672,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3652,7 +3699,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3734,7 +3782,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -3803,7 +3852,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -3834,7 +3884,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -3868,7 +3919,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -3898,7 +3950,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -3945,7 +3998,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -4094,7 +4148,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4120,7 +4175,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4146,7 +4202,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4228,7 +4285,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4297,7 +4355,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -4328,7 +4387,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -4362,7 +4422,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -4392,7 +4453,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -4439,7 +4501,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -4579,7 +4642,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4605,7 +4669,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4631,7 +4696,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4713,7 +4779,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -4782,7 +4849,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -4813,7 +4881,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -4847,7 +4916,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -4877,7 +4947,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -4924,7 +4995,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -5072,7 +5144,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -5098,7 +5171,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -5124,7 +5198,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -5206,7 +5281,8 @@
                                                                                 "type": "string"
                                                                             },
                                                                             "formatted": {
-                                                                                "type": "string"
+                                                                                "type": "string",
+                                                                                "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                             }
                                                                         },
                                                                         "required": [
@@ -5275,7 +5351,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -5306,7 +5383,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -5340,7 +5418,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -5370,7 +5449,8 @@
                                                                             "type": "string"
                                                                         },
                                                                         "formatted": {
-                                                                            "type": "string"
+                                                                            "type": "string",
+                                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                         }
                                                                     },
                                                                     "required": [
@@ -5417,7 +5497,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -5636,6 +5717,13 @@
                                         ],
                                         "maxLength": 32
                                     },
+                                    "city": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 255
+                                    },
                                     "shipping_method_id": {
                                         "type": [
                                             "integer",
@@ -5693,7 +5781,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -5723,7 +5812,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -5760,7 +5850,8 @@
                                                             "type": "string"
                                                         },
                                                         "formatted": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                         }
                                                     },
                                                     "required": [
@@ -6081,7 +6172,8 @@
                                                             "type": "string"
                                                         },
                                                         "formatted": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                         }
                                                     },
                                                     "required": [
@@ -6192,7 +6284,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -6222,7 +6315,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -6786,7 +6880,8 @@
                                                             "type": "string"
                                                         },
                                                         "formatted": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                         }
                                                     },
                                                     "required": [
@@ -6897,7 +6992,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -6927,7 +7023,8 @@
                                                                     "type": "string"
                                                                 },
                                                                 "formatted": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                                 }
                                                             },
                                                             "required": [
@@ -7201,7 +7298,8 @@
                                                             "type": "string"
                                                         },
                                                         "formatted": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "description": "Plugins may add to the text (MoneyDecorators), e.g. a second currency."
                                                         }
                                                     },
                                                     "required": [
