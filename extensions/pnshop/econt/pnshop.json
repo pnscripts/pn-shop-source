@@ -1,0 +1,24 @@
+{
+    "id": "pnshop/econt",
+    "name": "Econt",
+    "description": "Econt Express delivery for shops in Bulgaria: live prices from Econt's API to an address or to an Econt office, office choice at checkout, and the chosen office on the order. Works with Econt's demo service until production credentials are entered.",
+    "version": "1.0.0",
+    "type": "plugin",
+    "requires": { "pnshop": "^1.11", "php": ">=8.4" },
+    "provider": "PnShop\\Plugins\\Econt\\EcontPlugin",
+    "autoload": { "psr-4": { "PnShop\\Plugins\\Econt\\": "src/" } },
+    "settings": [
+        { "key": "environment", "type": "select", "label": "Environment", "default": "demo", "required": true, "options": { "demo": "Demo (testing)", "production": "Production" }, "help": "Demo uses https://demo.econt.com/ee/services/ with Econt's public demo account; production uses https://ee.econt.com/services/ with your e-Econt account." },
+        { "key": "username", "type": "string", "label": "Username", "help": "Your e-Econt user for the environment above." },
+        { "key": "password", "type": "secret", "label": "Password", "help": "Stored encrypted and never shown again." },
+        { "key": "sender_name", "type": "string", "label": "Sender name", "help": "The shop or company that sends the parcels." },
+        { "key": "sender_phone", "type": "string", "label": "Sender phone" },
+        { "key": "sender_office_code", "type": "string", "label": "Sending office code", "help": "When you hand parcels in at an Econt office. Empty: they are picked up from the address below." },
+        { "key": "sender_city", "type": "string", "label": "Sender city" },
+        { "key": "sender_postcode", "type": "string", "label": "Sender postcode" },
+        { "key": "sender_street", "type": "string", "label": "Sender street and number" }
+    ],
+    "author": "PN Scripts",
+    "license": "MIT",
+    "storefront": "storefront/storefront.js"
+}

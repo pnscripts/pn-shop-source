@@ -117,7 +117,7 @@ window.PnShop.registerBlock('testimonial', ({ quote }) => …);       // render 
 |---|---|
 | `product.after_price` | `product`, `variant` |
 | `cart.after_totals` | `cart` |
-| `checkout.before_submit` | `cart`, `totals` |
+| `checkout.before_submit` | `cart`, `totals`, `shippingMethodId` (the chosen method's id as a string, since 1.11), `shipping` (the address being entered, since 1.11) |
 | `order.after_totals` | `order` |
 | `footer.top` | — |
 | `page.<screen>` | the `data` of a plugin page (below) |

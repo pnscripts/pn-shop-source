@@ -300,7 +300,10 @@ export default function Checkout({
                     </ul>
                     <TotalsBreakdown totals={delivery.totals} />
                     <BalanceLines lines={balanceLines} amountDue={amountDue} />
-                    <Slot name="checkout.before_submit" props={{ cart, totals: delivery.totals }} />
+                    <Slot
+                        name="checkout.before_submit"
+                        props={{ cart, totals: delivery.totals, shippingMethodId: data.shipping_method_id, shipping: data.shipping }}
+                    />
                     <Button type="submit" className="w-full" disabled={processing || (shippingRequired && data.shipping_method_id === '')}>
                         {t('Place order')}
                     </Button>
