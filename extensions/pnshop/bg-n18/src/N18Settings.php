@@ -57,7 +57,7 @@ final class N18Settings
     {
         $payment = $order->payments()->whereNotNull('reference')->latest('id')->first() ?? $order->payments()->latest('id')->first();
 
-        return (string) ($payment->gateway ?? $order->paymentMethod?->gateway ?? '');
+        return (string) ($payment->gateway ?? $order->paymentMethod->gateway ?? '');
     }
 
     /** The payment service provider's identifier and name for the gateway (PROC_ID). */

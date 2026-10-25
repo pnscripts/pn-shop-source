@@ -132,6 +132,19 @@ window.PnShop.registerBlock('testimonial', ({ quote }) => …);       // render 
 - **"Was" prices:** the price struck through next to a reduced one comes from `PnShop\Catalog\Pricing\Contracts\PriorPrices` (default: the regular price). Bind your own in `register()` to show, for example, the lowest price of the last 30 days; return null to show the price without a reduction. Storefront and API product data carry it as `prior_price` (null when no reduction is shown). Themes should strike through `wasPrice()` from `@/lib/prices`.
 - **Money text:** `app(PnShop\Money\MoneyDecorators::class)->add(fn (string $text, Money $money, string $locale) => …)` changes the `formatted` text of every amount in storefront props and API responses, e.g. to add a second currency.
 
+## Compliance and delivery plugins (Bulgaria and the EU)
+
+Shipped with 1.11, off until installed and enabled. Each has a README with its legal basis and setup.
+
+| Plugin | What it does |
+|---|---|
+| `pnshop/prior-price` | Records every public price change and strikes through the lowest price of the 30 days before a sale (EU price-indication rules; ЗЗП чл. 65). |
+| `pnshop/withdrawal` | The online withdrawal function required from 2026 (Directive 2023/2673; ЗЗП чл. 52а): a "Withdraw from contract here" link, a two-step statement, a dated email confirmation, and Sales → Withdrawals for staff. |
+| `pnshop/bg-euro` | Euro check for Bulgarian shops after the changeover, and optional lev amounts next to euro prices at 1.95583. |
+| `pnshop/bg-n18` | Наредба Н-18 alternative regime for e-shops: numbered sale documents with QR code, documents for cash on delivery as a postal money order, and the monthly NRA audit file (Приложение 38). |
+| `pnshop/econt` | Econt Express prices to an address or office, office picker at checkout, demo and production. |
+| `pnshop/speedy` | Speedy prices to an address or office, office picker at checkout. |
+
 ## Stripe
 
 `extensions/pnshop/stripe` is the first official payment plugin. It provides card and wallet payments through Stripe Checkout:

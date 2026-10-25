@@ -4,11 +4,21 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 
 ## Unreleased (1.11.0)
 
+No core migrations (the new plugins bring their own). See the [upgrade notes](docs/upgrades/2026-10-release-1.11.md).
+
 ### Added
 
 - **"Was" prices from plugins:** product data carries `prior_price`, the price shown struck through next to a reduced price (the regular price by default). Plugins bind `PriorPrices` to supply it, e.g. the lowest price of the last 30 days, or hide the reduction. The default theme and Aurora (1.0.1, which now also shows it on its cards) strike through this price.
 - **Plugin pages:** the storefront page `extension` shows a plugin's own screen in the shop's layout (slot `page.<screen>`).
 - **Money decorators:** plugins can change the formatted text of storefront and API amounts (`MoneyDecorators`), e.g. to show a second currency.
+- **Plugin settings rules:** settings in `pnshop.json` may declare extra validation `rules`.
+- **Checkout slot data:** `checkout.before_submit` also gets the chosen shipping method and the address being entered.
+- **New plugins** (off until enabled; see [compliance and delivery plugins](docs/extensions/plugins.md#compliance-and-delivery-plugins-bulgaria-and-the-eu)):
+  - `pnshop/prior-price`: the lowest price of the 30 days before a sale as the struck-through price.
+  - `pnshop/withdrawal`: the online withdrawal function ("Withdraw from contract here", two steps, dated email confirmation, admin list).
+  - `pnshop/bg-euro`: euro check and optional lev amounts at the fixed rate.
+  - `pnshop/bg-n18`: Наредба Н-18 sale documents with QR code, cash-on-delivery documents and the monthly NRA audit file.
+  - `pnshop/econt` and `pnshop/speedy`: live courier prices to an address or an office, office picker at checkout.
 
 ### Security
 

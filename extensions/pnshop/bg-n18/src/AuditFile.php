@@ -100,7 +100,7 @@ final class AuditFile
     {
         $document = SalesDocument::query()->where('order_id', $order->id)->where('type', SalesDocument::SALE)->first();
         $snapshot = $document !== null ? $document->data : OrderSnapshot::of($order);
-        $code = $document?->payment_code ?? $this->settings->paymentCodeFor($order);
+        $code = $document->payment_code ?? $this->settings->paymentCodeFor($order);
         $gateway = $this->settings->gatewayOf($order);
 
         $xml->startElement('orderenum');
@@ -138,7 +138,7 @@ final class AuditFile
             $this->element($xml, 'pos_n', $this->settings->string('pos_number'));
         }
 
-        $reference = $document?->transaction_ref ?? $order->payments->whereNotNull('reference')->sortByDesc('id')->first()?->reference;
+        $reference = $document->transaction_ref ?? $order->payments->whereNotNull('reference')->sortByDesc('id')->first()?->reference;
 
         if (in_array($code, N18Settings::DOCUMENT_CODES, true)) {
             $this->element($xml, 'trans_n', (string) $reference);
