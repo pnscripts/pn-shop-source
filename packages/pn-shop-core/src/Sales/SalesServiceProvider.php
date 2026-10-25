@@ -22,10 +22,12 @@ use PnShop\Sales\Invoices\InvoiceRenderer;
 use PnShop\Sales\Invoices\IssueInvoiceAutomatically;
 use PnShop\Sales\Models\Invoice;
 use PnShop\Sales\Models\Order;
+use PnShop\Sales\Models\OrderHistory;
 use PnShop\Sales\Models\OrderItem;
 use PnShop\Sales\Notifications\OrderMail;
 use PnShop\Sales\Notifications\SendOrderNotifications;
 use PnShop\Sales\Policies\OrderPolicy;
+use PnShop\Sales\Policies\OrderRecordPolicy;
 use PnShop\Settings\SettingDefinition;
 use PnShop\Settings\SettingsRegistry;
 use PnShop\Settings\SettingsSchema;
@@ -56,6 +58,7 @@ class SalesServiceProvider extends ModuleServiceProvider
     protected function bootModule(): void
     {
         Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(OrderHistory::class, OrderRecordPolicy::class);
 
         // Order emails are written as the order's storefront: its name, address and links.
         $entered = [];

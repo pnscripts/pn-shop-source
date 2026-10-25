@@ -8,6 +8,7 @@ use PnShop\Cart\Totals\CartCalculator;
 use PnShop\Foundation\Extension\Permission;
 use PnShop\Foundation\Extension\PipelineRegistry;
 use PnShop\Foundation\ModuleServiceProvider;
+use PnShop\Sales\Policies\OrderRecordPolicy;
 use PnShop\Shipping\Carriers\FlatRate;
 use PnShop\Shipping\Carriers\FreeShipping;
 use PnShop\Shipping\Carriers\PriceBased;
@@ -53,6 +54,7 @@ class ShippingServiceProvider extends ModuleServiceProvider
     {
         Gate::policy(ShippingZone::class, ShippingPolicy::class);
         Gate::policy(ShippingMethod::class, ShippingPolicy::class);
+        Gate::policy(Shipment::class, OrderRecordPolicy::class);
 
         $this->app->make(PipelineRegistry::class)->stage(CartCalculator::PIPELINE, ApplyShipping::class, ApplyShipping::PRIORITY);
     }

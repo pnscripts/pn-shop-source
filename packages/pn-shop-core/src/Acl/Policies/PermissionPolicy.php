@@ -52,4 +52,24 @@ abstract class PermissionPolicy
     {
         return $admin->can($this->permission);
     }
+
+    public function forceDelete(AdminUser $admin, Model $model): bool
+    {
+        return $admin->can($this->permission);
+    }
+
+    public function forceDeleteAny(AdminUser $admin): bool
+    {
+        return $admin->can($this->permission);
+    }
+
+    public function replicate(AdminUser $admin, Model $model): bool
+    {
+        return $admin->can($this->permission);
+    }
+
+    public function reorder(AdminUser $admin): bool
+    {
+        return $admin->can($this->permission);
+    }
 }

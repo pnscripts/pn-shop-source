@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use PnShop\Customer\Models\CustomerAddress;
 use PnShop\Customer\Models\CustomerGroup;
 use PnShop\Customer\Models\User;
+use PnShop\Customer\Policies\CustomerAddressPolicy;
 use PnShop\Customer\Policies\CustomerGroupPolicy;
 use PnShop\Customer\Policies\CustomerPolicy;
 use PnShop\Foundation\Extension\Permission;
@@ -43,6 +44,7 @@ class CustomerServiceProvider extends ModuleServiceProvider
     {
         Gate::policy(User::class, CustomerPolicy::class);
         Gate::policy(CustomerGroup::class, CustomerGroupPolicy::class);
+        Gate::policy(CustomerAddress::class, CustomerAddressPolicy::class);
 
         $this->app->make(SettingsRegistry::class)->register(new SettingsSchema(
             'customers',

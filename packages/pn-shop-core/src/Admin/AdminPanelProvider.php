@@ -57,7 +57,10 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([Authenticate::class]);
+            ->authMiddleware([Authenticate::class])
+            // Every resource, relation manager and action must be covered by a policy: a
+            // screen without one fails closed instead of being open to all staff.
+            ->strictAuthorization();
 
         foreach (glob(dirname(__DIR__).'/*/Filament', GLOB_ONLYDIR) ?: [] as $directory) {
             $module = basename(dirname($directory));

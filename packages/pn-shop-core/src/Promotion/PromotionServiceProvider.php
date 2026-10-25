@@ -18,6 +18,7 @@ use PnShop\Promotion\Conditions\ProductsCondition;
 use PnShop\Promotion\Conditions\QuantityCondition;
 use PnShop\Promotion\Conditions\ShippingCountryCondition;
 use PnShop\Promotion\Conditions\SubtotalCondition;
+use PnShop\Promotion\Models\Coupon;
 use PnShop\Promotion\Models\Promotion;
 use PnShop\Promotion\Policies\PromotionPolicy;
 use PnShop\Sales\Events\OrderPlacing;
@@ -63,5 +64,6 @@ class PromotionServiceProvider extends ModuleServiceProvider
         Event::listen(OrderReopening::class, [Redemptions::class, 'retakeOnReopen']);
 
         Gate::policy(Promotion::class, PromotionPolicy::class);
+        Gate::policy(Coupon::class, PromotionPolicy::class);
     }
 }

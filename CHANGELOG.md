@@ -2,6 +2,12 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## Unreleased (1.11.0)
+
+### Security
+
+- **Strict authorization in the admin:** the panel runs in Filament's strict authorization mode, and every resource and relation manager has a policy. Payments, refunds, shipments, order history, stock movements, balance ledgers, page revisions and the activity log are read-only for generic admin actions. Before, a screen whose model had no policy, or whose policy lacked an ability (for example `delete`), was allowed for every staff account. `PermissionPolicy` gains `forceDelete`, `forceDeleteAny`, `replicate` and `reorder`; new base `ReadOnlyPolicy` for plugins.
+
 ## 1.10.1 (2026-10-15)
 
 No migrations; update with `composer update pnscripts/pn-shop-core`.

@@ -10,6 +10,7 @@ How PN Shop protects the shop, and the settings that matter in production.
   - Roles carry permission keys. The `administrator` role holds every permission.
   - Staff can only give what they hold themselves: they cannot assign roles or add permissions beyond their own.
   - Staff who manage accounts can only change (email, password, roles) or delete accounts that hold nothing they do not hold themselves. Only administrators can change administrator accounts.
+  - **Strict authorization:** the admin panel runs in Filament's strict authorization mode. Every resource and relation manager (core and plugins) has a policy; payments, refunds, shipments, order history, stock movements, ledgers and the activity log use read-only policies and change only through their services. A screen or action without a policy fails closed. `tests/Feature/Security/AdminAuthorizationCoverageTest.php` walks every registered screen.
   - Stock changes need `catalog.inventory.manage`, in the product and variant forms and in the Admin API's `stock` fields as well as its stock endpoint.
 - **API tokens:** Admin API tokens carry a chosen subset of their owner's permissions, and every call also checks the owner's current permissions.
   - Store API tokens are customer-only.

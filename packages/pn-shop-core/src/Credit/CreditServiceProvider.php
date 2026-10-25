@@ -10,6 +10,7 @@ use PnShop\Credit\Gateways\StoreCreditGateway;
 use PnShop\Credit\Models\BalanceTransaction;
 use PnShop\Credit\Models\CreditAccount;
 use PnShop\Credit\Models\GiftCard;
+use PnShop\Credit\Policies\BalanceTransactionPolicy;
 use PnShop\Credit\Policies\CreditAccountPolicy;
 use PnShop\Credit\Policies\GiftCardPolicy;
 use PnShop\Credit\Stages\AddBalancesToCart;
@@ -93,6 +94,7 @@ class CreditServiceProvider extends ModuleServiceProvider
 
         Gate::policy(GiftCard::class, GiftCardPolicy::class);
         Gate::policy(CreditAccount::class, CreditAccountPolicy::class);
+        Gate::policy(BalanceTransaction::class, BalanceTransactionPolicy::class);
 
         // A customer's store credit (set up here, so the Customer module does not depend on this one).
         User::resolveRelationUsing('creditAccounts', fn (User $user) => $user->hasMany(CreditAccount::class, 'user_id'));

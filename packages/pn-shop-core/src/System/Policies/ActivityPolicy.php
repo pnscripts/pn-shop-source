@@ -2,21 +2,12 @@
 
 namespace PnShop\System\Policies;
 
-use PnShop\Acl\Models\AdminUser;
-use Spatie\Activitylog\Models\Activity;
+use PnShop\Acl\Policies\ReadOnlyPolicy;
 
 /**
  * The activity log is read-only.
  */
-class ActivityPolicy
+class ActivityPolicy extends ReadOnlyPolicy
 {
-    public function viewAny(AdminUser $admin): bool
-    {
-        return $admin->can('system.activity.view');
-    }
-
-    public function view(AdminUser $admin, Activity $activity): bool
-    {
-        return $admin->can('system.activity.view');
-    }
+    protected string $permission = 'system.activity.view';
 }

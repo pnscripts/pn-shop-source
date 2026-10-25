@@ -197,7 +197,7 @@ Loaded from the plugin folder when present:
 | `lang` | translations as `acme_store_notice::file.key`, and JSON translations |
 | `src/Filament/{Resources,Pages,Widgets}` | admin screens, discovered like core modules |
 
-- **Admin screens need authorization:** give every resource's model a policy (`Gate::policy()` in `bootPlugin()`), and every custom page a `canAccess()` check against your plugin's permissions. A resource without a policy is open to every staff account.
+- **Admin screens need authorization:** give every resource's model, and the model of every relation manager, a policy (`Gate::policy()` in `bootPlugin()`; extend `PnShop\Acl\Policies\PermissionPolicy` or `ReadOnlyPolicy`), and every custom page a `canAccess()` check against your plugin's permissions. The admin panel runs in strict authorization mode (since 1.11): a screen or action whose model has no policy, or whose policy lacks the ability, fails with an error instead of opening to every staff account.
 - **Commands, scheduled tasks and event listeners:** a plugin is a service provider, so register them in `bootPlugin()`:
 
   ```php

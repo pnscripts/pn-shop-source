@@ -18,7 +18,10 @@ use PnShop\Catalog\Policies\CategoryPolicy;
 use PnShop\Catalog\Policies\OptionPolicy;
 use PnShop\Catalog\Policies\PriceListPolicy;
 use PnShop\Catalog\Policies\ProductPolicy;
+use PnShop\Catalog\Policies\ProductVariantPolicy;
+use PnShop\Catalog\Policies\StockMovementPolicy;
 use PnShop\Catalog\Pricing\Models\PriceList;
+use PnShop\Catalog\Pricing\Models\PriceListEntry;
 use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Catalog\Pricing\Stages\PriceListPrice;
@@ -26,6 +29,7 @@ use PnShop\Catalog\Pricing\Stages\SalePrice;
 use PnShop\Foundation\Extension\Permission;
 use PnShop\Foundation\Extension\PipelineRegistry;
 use PnShop\Foundation\ModuleServiceProvider;
+use PnShop\Inventory\Models\StockMovement;
 
 /**
  * Catalog module: products, categories, attributes and their admin screens.
@@ -77,5 +81,8 @@ class CatalogServiceProvider extends ModuleServiceProvider
         Gate::policy(PriceList::class, PriceListPolicy::class);
         Gate::policy(Option::class, OptionPolicy::class);
         Gate::policy(ProductAttribute::class, AttributePolicy::class);
+        Gate::policy(ProductVariant::class, ProductVariantPolicy::class);
+        Gate::policy(PriceListEntry::class, PriceListPolicy::class);
+        Gate::policy(StockMovement::class, StockMovementPolicy::class);
     }
 }

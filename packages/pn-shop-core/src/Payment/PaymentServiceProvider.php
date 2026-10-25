@@ -16,6 +16,7 @@ use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Payment\Models\Refund;
 use PnShop\Payment\Policies\PaymentMethodPolicy;
 use PnShop\Sales\Events\OrderStateChanged;
+use PnShop\Sales\Policies\OrderRecordPolicy;
 
 /**
  * Payment gateways, payment methods and the payment ledger.
@@ -50,6 +51,8 @@ class PaymentServiceProvider extends ModuleServiceProvider
     protected function bootModule(): void
     {
         Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
+        Gate::policy(Payment::class, OrderRecordPolicy::class);
+        Gate::policy(Refund::class, OrderRecordPolicy::class);
 
         Event::listen(OrderStateChanged::class, SyncPaymentsWithOrder::class);
     }

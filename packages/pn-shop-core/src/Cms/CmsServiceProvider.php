@@ -19,8 +19,10 @@ use PnShop\Cms\Blocks\Types\VideoBlock;
 use PnShop\Cms\Models\Menu;
 use PnShop\Cms\Models\MenuItem;
 use PnShop\Cms\Models\Page;
+use PnShop\Cms\Models\PageRevision;
 use PnShop\Cms\Policies\MenuPolicy;
 use PnShop\Cms\Policies\PagePolicy;
+use PnShop\Cms\Policies\PageRevisionPolicy;
 use PnShop\Foundation\Extension\Permission;
 use PnShop\Foundation\ModuleServiceProvider;
 use PnShop\Settings\SettingDefinition;
@@ -62,6 +64,7 @@ class CmsServiceProvider extends ModuleServiceProvider
         Gate::policy(Page::class, PagePolicy::class);
         Gate::policy(Menu::class, MenuPolicy::class);
         Gate::policy(MenuItem::class, MenuPolicy::class);
+        Gate::policy(PageRevision::class, PageRevisionPolicy::class);
 
         // Menus link to these; a change to one can change a menu.
         foreach ([Page::class, Category::class, Brand::class, Product::class] as $model) {
