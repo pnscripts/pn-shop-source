@@ -120,10 +120,17 @@ window.PnShop.registerBlock('testimonial', ({ quote }) => …);       // render 
 | `checkout.before_submit` | `cart`, `totals` |
 | `order.after_totals` | `order` |
 | `footer.top` | — |
+| `page.<screen>` | the `data` of a plugin page (below) |
 
 - **Errors:** a component that throws is caught and left out.
 - **Data:** plugins share their own data with `Inertia::share()` in `bootPlugin()`.
 - **Translations:** a plugin's `lang/<locale>.json` strings reach the storefront's `t()`.
+- **Pages of their own (since 1.11):** a plugin route can render the storefront page `extension` with `Inertia::render('extension', ['screen' => 'acme-notice', 'title' => __('Notice'), 'data' => [...]])`. The page has the shop's layout and title and shows the component the plugin registered for the slot `page.acme-notice`, with `data` as its props.
+
+### Prices and money (since 1.11)
+
+- **"Was" prices:** the price struck through next to a reduced one comes from `PnShop\Catalog\Pricing\Contracts\PriorPrices` (default: the regular price). Bind your own in `register()` to show, for example, the lowest price of the last 30 days; return null to show the price without a reduction. Storefront and API product data carry it as `prior_price` (null when no reduction is shown). Themes should strike through `wasPrice()` from `@/lib/prices`.
+- **Money text:** `app(PnShop\Money\MoneyDecorators::class)->add(fn (string $text, Money $money, string $locale) => …)` changes the `formatted` text of every amount in storefront props and API responses, e.g. to add a second currency.
 
 ## Stripe
 

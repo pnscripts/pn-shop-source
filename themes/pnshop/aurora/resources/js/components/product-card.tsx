@@ -1,4 +1,5 @@
 import { useTranslations } from '@/hooks/use-translations';
+import { wasPrice } from '@/lib/prices';
 import { type ProductCard as ProductCardType } from '@/types';
 import { Link } from '@inertiajs/react';
 
@@ -9,6 +10,7 @@ import { Link } from '@inertiajs/react';
 export function ProductCard({ product }: { product: ProductCardType }) {
     const t = useTranslations();
     const price = product.sale_price ?? product.price;
+    const was = wasPrice(product);
 
     return (
         <Link
@@ -33,9 +35,10 @@ export function ProductCard({ product }: { product: ProductCardType }) {
                     <span className="bg-primary text-primary-foreground absolute bottom-3 left-3 rounded-full px-3 py-1 text-sm font-semibold shadow">
                         {product.price_from && `${t('from')} `}
                         {price.formatted}
+                        {was && <span className="ml-1.5 text-xs font-normal line-through opacity-80">{was.formatted}</span>}
                     </span>
                 )}
-                {product.sale_price && (
+                {was && (
                     <span className="absolute top-3 right-3 rounded-full bg-rose-600 px-2 py-0.5 text-xs font-semibold text-white">{t('Sale')}</span>
                 )}
             </div>

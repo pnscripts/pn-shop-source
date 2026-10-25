@@ -14,6 +14,7 @@ use PnShop\Localization\Models\Country;
 use PnShop\Localization\Models\Currency;
 use PnShop\Localization\Models\Language;
 use PnShop\Localization\Policies\LocalizationPolicy;
+use PnShop\Money\MoneyDecorators;
 use PnShop\Settings\SettingDefinition;
 use PnShop\Settings\SettingsRegistry;
 use PnShop\Settings\SettingsSchema;
@@ -25,6 +26,7 @@ class LocalizationServiceProvider extends ModuleServiceProvider
     {
         $this->app->singleton(Localization::class);
         $this->app->scoped(CurrencyConverter::class);
+        $this->app->singleton(MoneyDecorators::class);
     }
 
     protected function permissions(): array

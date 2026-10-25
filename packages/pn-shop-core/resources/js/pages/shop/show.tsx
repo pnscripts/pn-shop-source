@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from '@/hooks/use-translations';
 import StorefrontLayout from '@/layouts/storefront-layout';
+import { wasPrice } from '@/lib/prices';
 import { type Money, type ProductCard as ProductCardType, type ProductImage } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
@@ -20,6 +21,8 @@ type Variant = {
     /** Null when the shop shows prices to signed-in customers only. */
     price: Money | null;
     sale_price: Money | null;
+    /** The price shown struck through; null when no reduction is shown. */
+    prior_price?: Money | null;
     /** Lower prices from a quantity on, for this customer. */
     tiers?: { min_quantity: number; price: Money }[];
     stock: number | null;
@@ -148,7 +151,7 @@ export default function ShopShow({ product, related }: { product: ProductShow; r
                     ) : variant?.price ? (
                         <div className="mb-6 flex items-baseline gap-3">
                             <span className="text-2xl font-semibold">{(variant.sale_price ?? variant.price).formatted}</span>
-                            {variant.sale_price && <span className="text-muted-foreground line-through">{variant.price.formatted}</span>}
+                            {wasPrice(variant) && <span className="text-muted-foreground line-through">{wasPrice(variant)?.formatted}</span>}
                             {product.price_includes_tax === false && <span className="text-muted-foreground text-sm">{t('excl. tax')}</span>}
                         </div>
                     ) : (

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use PnShop\Catalog\Pricing\Contracts\PriorPrices;
 use PnShop\Catalog\Pricing\PriceResolver;
 use PnShop\Inventory\InventoryService;
 use PnShop\Inventory\Models\StockLevel;
@@ -118,6 +119,24 @@ class ProductVariant extends Model
     public function isOnSale(int $quantity = 1): bool
     {
         return app(PriceResolver::class)->quote($this, $quantity)->isReduced();
+    }
+
+    /**
+     * The price shown struck through when the current customer pays less ("was"), or null
+     * when no reduction is shown: the regular price, unless a plugin binds other
+     * PriorPrices (e.g. the lowest price of the last 30 days). Never below what they pay.
+     */
+    public function priorPrice(int $quantity = 1): ?Money
+    {
+        $quote = app(PriceResolver::class)->quote($this, $quantity);
+
+        if (! $quote->isReduced()) {
+            return null;
+        }
+
+        $prior = app(PriorPrices::class)->priorPrice($quote);
+
+        return $prior !== null && $prior->isGreaterThan($quote->unit) ? $prior : null;
     }
 
     /**

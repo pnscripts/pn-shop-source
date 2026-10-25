@@ -32,6 +32,8 @@ final class ProductCardPresenter
             // As this customer sees prices: null when hidden from guests, with or without tax.
             'price' => $display->present($variant?->regularPrice(), $product->tax_class_id),
             'sale_price' => $variant?->isOnSale() ? $display->present($variant->unitPrice(), $product->tax_class_id) : null,
+            // The price shown struck through ("was"), or null when no reduction is shown.
+            'prior_price' => $display->present($variant?->priorPrice(), $product->tax_class_id),
             'price_includes_tax' => $display->includesTax(),
             'price_from' => $product->hasVaryingPrices(),
             'image' => self::mainImage($product),

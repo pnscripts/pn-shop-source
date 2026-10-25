@@ -20,10 +20,12 @@ use PnShop\Catalog\Policies\PriceListPolicy;
 use PnShop\Catalog\Policies\ProductPolicy;
 use PnShop\Catalog\Policies\ProductVariantPolicy;
 use PnShop\Catalog\Policies\StockMovementPolicy;
+use PnShop\Catalog\Pricing\Contracts\PriorPrices;
 use PnShop\Catalog\Pricing\Models\PriceList;
 use PnShop\Catalog\Pricing\Models\PriceListEntry;
 use PnShop\Catalog\Pricing\PriceDisplay;
 use PnShop\Catalog\Pricing\PriceResolver;
+use PnShop\Catalog\Pricing\RegularPriceAsPrior;
 use PnShop\Catalog\Pricing\Stages\PriceListPrice;
 use PnShop\Catalog\Pricing\Stages\SalePrice;
 use PnShop\Foundation\Extension\Permission;
@@ -56,6 +58,7 @@ class CatalogServiceProvider extends ModuleServiceProvider
         // One per request or queued job: it knows the customer and keeps their quotes.
         $this->app->scoped(PriceResolver::class);
         $this->app->scoped(PriceDisplay::class);
+        $this->app->bindIf(PriorPrices::class, RegularPriceAsPrior::class);
 
         Relation::morphMap([
             'product' => Product::class,

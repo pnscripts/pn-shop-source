@@ -88,6 +88,8 @@ export interface ProductCard {
     /** Null when the shop shows prices to signed-in customers only. */
     price: Money | null;
     sale_price: Money | null;
+    /** The price shown struck through next to a reduced price; null when no reduction is shown. */
+    prior_price?: Money | null;
     price_from: boolean;
     /** Whether the prices shown include tax (customer groups can see net prices). */
     price_includes_tax?: boolean;

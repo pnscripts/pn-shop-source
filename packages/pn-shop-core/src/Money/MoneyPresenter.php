@@ -18,11 +18,14 @@ final class MoneyPresenter
             return null;
         }
 
+        $locale ??= app()->getLocale();
+
         return [
             'amount' => (string) $money->getAmount(),
             'minor' => $money->getMinorAmount()->toInt(),
             'currency' => $money->getCurrency()->getCurrencyCode(),
-            'formatted' => $money->formatToLocale($locale ?? app()->getLocale()),
+            // Plugins may add to the text (MoneyDecorators), e.g. a second currency.
+            'formatted' => app(MoneyDecorators::class)->apply($money->formatToLocale($locale), $money, $locale),
         ];
     }
 }

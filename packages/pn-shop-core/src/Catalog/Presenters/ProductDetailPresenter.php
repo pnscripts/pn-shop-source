@@ -92,6 +92,8 @@ final class ProductDetailPresenter
                 'price' => $display->present($variant->regularPrice(), $product->tax_class_id),
                 // What this customer pays for one (sale price, or their group's price).
                 'sale_price' => $variant->isOnSale() ? $display->present($variant->unitPrice(), $product->tax_class_id) : null,
+                // The price shown struck through ("was"), or null when no reduction is shown.
+                'prior_price' => $display->present($variant->priorPrice(), $product->tax_class_id),
                 'tiers' => self::tiers($variant),
                 'stock' => $variant->available(),
                 'can_backorder' => $variant->allow_backorder,

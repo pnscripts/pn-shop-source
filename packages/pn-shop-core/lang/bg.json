@@ -390,5 +390,6 @@
     ":name sent you a gift card.": ":name ви изпрати ваучер за подарък.",
     "Bought in order :number": "Закупен с поръчка :number",
     "{1} Issued 1 gift card and emailed it.|[2,*] Issued :count gift cards and emailed them.": "{1} Издаден е 1 ваучер и е изпратен по имейл.|[2,*] Издадени са :count ваучера и са изпратени по имейл.",
-    "Gift card :card had been used: :left of :amount was left when it was cancelled.": "Ваучер :card е бил използван: при анулирането са оставали :left от :amount."
+    "Gift card :card had been used: :left of :amount was left when it was cancelled.": "Ваучер :card е бил използван: при анулирането са оставали :left от :amount.",
+    "Loading…": "Зареждане…"
 }

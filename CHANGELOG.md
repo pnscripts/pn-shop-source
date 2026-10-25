@@ -4,6 +4,12 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 
 ## Unreleased (1.11.0)
 
+### Added
+
+- **"Was" prices from plugins:** product data carries `prior_price`, the price shown struck through next to a reduced price (the regular price by default). Plugins bind `PriorPrices` to supply it, e.g. the lowest price of the last 30 days, or hide the reduction. The default theme and Aurora (1.0.1, which now also shows it on its cards) strike through this price.
+- **Plugin pages:** the storefront page `extension` shows a plugin's own screen in the shop's layout (slot `page.<screen>`).
+- **Money decorators:** plugins can change the formatted text of storefront and API amounts (`MoneyDecorators`), e.g. to show a second currency.
+
 ### Security
 
 - **Strict authorization in the admin:** the panel runs in Filament's strict authorization mode, and every resource and relation manager has a policy. Payments, refunds, shipments, order history, stock movements, balance ledgers, page revisions and the activity log are read-only for generic admin actions. Before, a screen whose model had no policy, or whose policy lacked an ability (for example `delete`), was allowed for every staff account. `PermissionPolicy` gains `forceDelete`, `forceDeleteAny`, `replicate` and `reorder`; new base `ReadOnlyPolicy` for plugins.

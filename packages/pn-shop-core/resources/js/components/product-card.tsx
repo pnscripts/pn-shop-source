@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from '@/hooks/use-translations';
+import { wasPrice } from '@/lib/prices';
 import { type ProductCard as ProductCardType } from '@/types';
 import { Link } from '@inertiajs/react';
 
@@ -37,7 +38,7 @@ export function ProductCard({ product }: { product: ProductCardType }) {
                         <div className="flex items-baseline gap-2">
                             {product.price_from && <span className="text-muted-foreground text-sm">{t('from')}</span>}
                             <span className="font-semibold">{(product.sale_price ?? product.price).formatted}</span>
-                            {product.sale_price && <span className="text-muted-foreground text-sm line-through">{product.price.formatted}</span>}
+                            {wasPrice(product) && <span className="text-muted-foreground text-sm line-through">{wasPrice(product)?.formatted}</span>}
                             {product.price_includes_tax === false && <span className="text-muted-foreground text-xs">{t('excl. tax')}</span>}
                         </div>
                     ) : (
