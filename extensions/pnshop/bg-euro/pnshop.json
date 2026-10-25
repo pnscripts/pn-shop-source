@@ -1,0 +1,16 @@
+{
+    "id": "pnshop/bg-euro",
+    "name": "Euro prices (Bulgaria)",
+    "description": "For shops in Bulgaria after the euro changeover: checks that the shop sells in euro only, and can show prices in leva next to the euro at the fixed rate 1.95583 (ЗВЕРБ: mandatory 08.08.2025–08.08.2026, optional since).",
+    "version": "1.0.0",
+    "type": "plugin",
+    "requires": { "pnshop": "^1.11", "php": ">=8.4" },
+    "provider": "PnShop\\Plugins\\BgEuro\\BgEuroPlugin",
+    "autoload": { "psr-4": { "PnShop\\Plugins\\BgEuro\\": "src/" } },
+    "settings": [
+        { "key": "show_leva", "type": "boolean", "label": "Also show prices in leva", "default": false, "help": "Adds the amount in leva after every euro price, e.g. \"10,00 € (19,56 лв.)\", same size and colour. Required in Bulgaria from 08.08.2025 to 08.08.2026; optional since." },
+        { "key": "show_leva_until", "type": "string", "label": "Stop showing leva after", "help": "Optional date (YYYY-MM-DD). Empty: as long as the setting above is on.", "rules": ["date_format:Y-m-d"] }
+    ],
+    "author": "PN Scripts",
+    "license": "MIT"
+}

@@ -13,7 +13,7 @@ use Tests\Feature\Admin\AdminTestCase;
  */
 class PluginAdminScreensTest extends AdminTestCase
 {
-    private const PLUGINS = ['pnshop/withdrawal'];
+    private const PLUGINS = ['pnshop/withdrawal', 'pnshop/bg-euro'];
 
     private static string $cache;
 
@@ -78,5 +78,20 @@ class PluginAdminScreensTest extends AdminTestCase
         $this->actingAsAdministrator();
 
         $this->get('/admin/withdrawals')->assertOk()->assertSee('W-TEST0001');
+    }
+
+    public function test_the_euro_check_is_on_the_dashboard_and_on_the_command_line(): void
+    {
+        $this->actingAsStaff(['store.localization.manage']);
+        $this->get('/admin')->assertOk()->assertSee('Euro check (Bulgaria)');
+
+        // Tests run in USD: the check fails until the shop sells in euro.
+        $this->artisan('pnshop:euro-check')->assertFailed();
+    }
+
+    public function test_the_euro_check_is_hidden_from_other_staff(): void
+    {
+        $this->actingAsStaff(['catalog.products.view']);
+        $this->get('/admin')->assertOk()->assertDontSee('Euro check (Bulgaria)');
     }
 }

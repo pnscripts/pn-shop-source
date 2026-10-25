@@ -170,6 +170,8 @@ final class PluginLoader
                     required: (bool) ($setting['required'] ?? false),
                     help: isset($setting['help']) ? (string) $setting['help'] : null,
                     options: (array) ($setting['options'] ?? []),
+                    // Extra validation rules, e.g. ["date_format:Y-m-d"] (since 1.11).
+                    rules: array_values(array_filter((array) ($setting['rules'] ?? []), 'is_string')),
                 ), $manifest->settings),
             ));
         }

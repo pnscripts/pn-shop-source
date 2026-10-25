@@ -1,0 +1,9 @@
+{
+    "Euro prices (Bulgaria)": "Цени в евро (България)",
+    "Prices are entered in euro (the default currency is EUR).": "Цените се въвеждат в евро (основната валута е EUR).",
+    "The default currency is :code: prices must be in euro. Convert them at 1.95583 BGN = 1 EUR and make EUR the default currency.": "Основната валута е :code: цените трябва да са в евро. Преизчислете ги по курс 1,95583 лв. = 1 евро и направете EUR основна валута.",
+    "No storefront sells in leva.": "Нито един магазин не продава в левове.",
+    "These storefronts still sell in leva: :names.": "Тези магазини все още продават в левове: :names.",
+    "The lev is active at the fixed rate 1.95583.": "Левът е активен по фиксирания курс 1,95583.",
+    "The lev is active at the rate :rate instead of the fixed 1.95583.": "Левът е активен с курс :rate вместо фиксирания 1,95583."
+}
