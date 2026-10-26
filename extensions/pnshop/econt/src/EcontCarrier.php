@@ -144,7 +144,7 @@ final class EcontCarrier extends Carrier implements ProvidesShippingLabels
             throw new EcontException('Econt did not return a waybill number.');
         }
 
-        // Econt's print link (http on the demo service); it opens in e-Econt for the same user.
+        // Econt hosts the PDF (the link carries its own key); the demo service answers with http.
         $pdf = (string) preg_replace('#^http://([a-z0-9.-]*\.)?econt\.com/#i', 'https://$1econt.com/', (string) ($answer['label']['pdfURL'] ?? ''));
 
         return new ShippingLabel($number, str_starts_with($pdf, 'https://') ? $pdf : null, price: $this->price($answer, $request->cashOnDelivery?->getCurrency()->getCurrencyCode() ?? 'EUR'));
