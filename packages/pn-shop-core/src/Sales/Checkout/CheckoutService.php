@@ -175,10 +175,14 @@ class CheckoutService
                 }
             }
 
+            $method = isset($data['payment_method_id']) ? PaymentMethod::query()->find((int) $data['payment_method_id']) : null;
+
             $totals = $this->calculator->calculate($items, $currency, $this->cart->context([
                 'shipping_address' => $shipping,
                 'billing_address' => $billing,
                 'shipping_method' => $shippingMethod,
+                // Cash on delivery: couriers that charge for collecting add their fee.
+                'payment_method' => $method,
                 'user' => $user,
                 'email' => $data['email'],
             ]));
@@ -192,7 +196,6 @@ class CheckoutService
             // Gift cards and store credit pay first; the payment method pays the rest.
             $balances = app(CartBalances::class);
             $due = $totals->total()->minus($balances->covered($totals->total(), $user));
-            $method = isset($data['payment_method_id']) ? PaymentMethod::query()->find((int) $data['payment_method_id']) : null;
 
             if ($due->isPositive()) {
                 if ($method === null) {

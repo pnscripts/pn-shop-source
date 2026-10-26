@@ -39,4 +39,5 @@ parameters:
         - tests/Feature/Payment/CashOnDeliveryContractTest.php
         - tests/Feature/Shipping/FlatRateContractTest.php
         - tests/Feature/Returns/ReturnLabelsTest.php
+        - tests/Feature/Shipping/WaybillsTest.php
     level: 7

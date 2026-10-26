@@ -20,20 +20,29 @@ use PnShop\Sales\Models\Order;
  * @property string|null $carrier_name
  * @property string|null $tracking_number
  * @property string|null $tracking_url
+ * @property string|null $label_url where the carrier hosts the waybill
+ * @property string|null $label_path the waybill PDF on the local disk (private)
+ * @property int|null $cash_on_delivery minor units of the order's currency the courier collects
  * @property string|null $note
  * @property Carbon|null $shipped_at
  */
 class Shipment extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['order_id', 'shipping_method_id', 'stock_location_id', 'carrier_name', 'tracking_number', 'tracking_url', 'note', 'shipped_at', 'actor_type', 'actor_id'];
+    protected $fillable = ['order_id', 'shipping_method_id', 'stock_location_id', 'carrier_name', 'tracking_number', 'tracking_url', 'label_url', 'label_path', 'cash_on_delivery', 'note', 'shipped_at', 'actor_type', 'actor_id'];
 
     /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return ['shipped_at' => 'datetime'];
+        return ['shipped_at' => 'datetime', 'cash_on_delivery' => 'integer'];
+    }
+
+    /** Whether staff can download a waybill for this parcel. */
+    public function hasWaybill(): bool
+    {
+        return $this->label_url !== null || $this->label_path !== null;
     }
 
     /**

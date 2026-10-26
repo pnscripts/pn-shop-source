@@ -1,7 +1,7 @@
 {
     "id": "pnshop/speedy",
     "name": "Speedy",
-    "description": "Speedy delivery for shops in Bulgaria: live prices from Speedy's API to an address or to a Speedy office, office choice at checkout, and the chosen office on the order.",
+    "description": "Speedy delivery for shops in Bulgaria: live prices from Speedy's API to an address or to a Speedy office, office choice at checkout, the chosen office on the order, cash-on-delivery fees in the price, and waybills (PDF) from the admin.",
     "version": "1.0.0",
     "type": "plugin",
     "requires": { "pnshop": "^1.11", "php": ">=8.4" },

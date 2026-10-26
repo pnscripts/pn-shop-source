@@ -1,7 +1,7 @@
 {
     "id": "pnshop/econt",
     "name": "Econt",
-    "description": "Econt Express delivery for shops in Bulgaria: live prices from Econt's API to an address or to an Econt office, office choice at checkout, and the chosen office on the order. Works with Econt's demo service until production credentials are entered.",
+    "description": "Econt Express delivery for shops in Bulgaria: live prices from Econt's API to an address or to an Econt office, office choice at checkout, the chosen office on the order, cash-on-delivery fees in the price, and waybills from the admin. Works with Econt's demo service until production credentials are entered.",
     "version": "1.0.0",
     "type": "plugin",
     "requires": { "pnshop": "^1.11", "php": ">=8.4" },

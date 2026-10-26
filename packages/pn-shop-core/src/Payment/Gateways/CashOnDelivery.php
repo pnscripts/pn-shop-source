@@ -2,14 +2,23 @@
 
 namespace PnShop\Payment\Gateways;
 
+use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Settings\SettingDefinition;
 use PnShop\Settings\SettingType;
 
 final class CashOnDelivery extends ManualGateway
 {
+    public const CODE = 'cash_on_delivery';
+
+    /** Whether the courier collects the payment for orders paid with this method. */
+    public static function collects(?PaymentMethod $method): bool
+    {
+        return $method !== null && $method->gateway === self::CODE;
+    }
+
     public function code(): string
     {
-        return 'cash_on_delivery';
+        return self::CODE;
     }
 
     public function label(): string

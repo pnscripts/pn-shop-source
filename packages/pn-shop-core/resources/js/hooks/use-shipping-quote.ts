@@ -23,9 +23,17 @@ function xsrfToken(): string {
 
 /**
  * Delivery options and totals for the address being entered. Asks the server (POST, so the
- * postcode stays out of URLs) shortly after the country, postcode, town or chosen method changes.
+ * postcode stays out of URLs) shortly after the country, postcode, town, chosen method or
+ * payment method changes (cash on delivery may add the courier's fee).
  */
-export function useShippingQuote(countryCode: string, postcode: string, shippingMethodId: string, initialTotals: Totals, city: string = '') {
+export function useShippingQuote(
+    countryCode: string,
+    postcode: string,
+    shippingMethodId: string,
+    initialTotals: Totals,
+    city: string = '',
+    paymentMethodId: string = '',
+) {
     const [quote, setQuote] = useState<Quote | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -41,7 +49,13 @@ export function useShippingQuote(countryCode: string, postcode: string, shipping
             fetch(route('checkout.quote'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': xsrfToken() },
-                body: JSON.stringify({ country_code: countryCode, postcode, city: city || null, shipping_method_id: shippingMethodId || null }),
+                body: JSON.stringify({
+                    country_code: countryCode,
+                    postcode,
+                    city: city || null,
+                    shipping_method_id: shippingMethodId || null,
+                    payment_method_id: paymentMethodId || null,
+                }),
                 signal: controller.signal,
                 credentials: 'same-origin',
             })
@@ -55,7 +69,7 @@ export function useShippingQuote(countryCode: string, postcode: string, shipping
             window.clearTimeout(timer);
             controller.abort();
         };
-    }, [countryCode, postcode, city, shippingMethodId]);
+    }, [countryCode, postcode, city, shippingMethodId, paymentMethodId]);
 
     return {
         options: quote?.options ?? null,

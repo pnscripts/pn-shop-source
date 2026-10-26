@@ -14,6 +14,8 @@ use PnShop\Customer\Models\User;
 use PnShop\Customer\PostalAddress;
 use PnShop\Inventory\InventoryService;
 use PnShop\Money\MoneyPresenter;
+use PnShop\Payment\Gateways\CashOnDelivery;
+use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Shipping\Carriers\StorePickup;
 use PnShop\Shipping\ShippingQuote;
 use PnShop\Shipping\ShippingRequest;
@@ -31,6 +33,7 @@ class DeliveryQuote
         'postcode' => ['nullable', 'string', 'max:32'],
         'city' => ['nullable', 'string', 'max:255'],
         'shipping_method_id' => ['nullable', 'integer'],
+        'payment_method_id' => ['nullable', 'integer'],
     ];
 
     public function __construct(private ShoppingCartService $cart, private ShippingService $shipping, private InventoryService $inventory) {}
@@ -43,7 +46,10 @@ class DeliveryQuote
     public function for(array $data, ?User $customer): array
     {
         $address = PostalAddress::fromArray($data);
-        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), app(ThresholdSubtotal::class)->of($this->cart->totals(['user' => $customer])), $address->country_code, $address->postcode, $customer, $address->city));
+        // With cash on delivery, couriers that charge for collecting add their fee.
+        $payment = isset($data['payment_method_id']) ? PaymentMethod::query()->active()->find((int) $data['payment_method_id']) : null;
+        $subtotal = app(ThresholdSubtotal::class)->of($this->cart->totals(['user' => $customer]));
+        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), $subtotal, $address->country_code, $address->postcode, $customer, $address->city, CashOnDelivery::collects($payment) ? $subtotal : null));
 
         $selected = $quotes->first(fn (ShippingQuote $quote) => $quote->method->id === (int) ($data['shipping_method_id'] ?? 0)) ?? $quotes->first();
 
@@ -53,6 +59,7 @@ class DeliveryQuote
         $totals = $this->cart->totals([
             'shipping_address' => $address,
             'shipping_method' => $selected?->method,
+            'payment_method' => $payment,
             'user' => $customer,
         ]);
 

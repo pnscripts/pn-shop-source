@@ -63,7 +63,14 @@ export default function Checkout({
         ...botTrap,
     });
     const fieldErrors = errors as Record<string, string | undefined>;
-    const delivery = useShippingQuote(data.shipping.country_code, data.shipping.postcode, data.shipping_method_id, cart.totals, data.shipping.city);
+    const delivery = useShippingQuote(
+        data.shipping.country_code,
+        data.shipping.postcode,
+        data.shipping_method_id,
+        cart.totals,
+        data.shipping.city,
+        data.payment_method_id,
+    );
     // Gift cards and store credit (from the quote once there is one, else from the cart).
     const balanceLines = delivery.balances ?? [
         ...(cart.gift_cards ?? []).filter((card) => card.applied).map((card) => ({ label: card.label, amount: card.applied! })),

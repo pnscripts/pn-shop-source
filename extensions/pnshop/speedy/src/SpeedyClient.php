@@ -3,6 +3,7 @@
 namespace PnShop\Plugins\Speedy;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PnShop\Settings\Settings;
@@ -44,6 +45,52 @@ final class SpeedyClient
             throw new SpeedyException('Speedy is not set up: enter the API username and password in the plugin settings.');
         }
 
+        $data = $this->send($path, $payload)->json();
+
+        if (! is_array($data)) {
+            throw new SpeedyException('Speedy refused the request.');
+        }
+
+        if (is_array($data['error'] ?? null)) {
+            throw new SpeedyException('Speedy refused the request: '.trim((string) ($data['error']['message'] ?? 'unknown error')));
+        }
+
+        return $data;
+    }
+
+    /**
+     * A document Speedy returns as a file (e.g. /print): the PDF bytes.
+     *
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws SpeedyException
+     */
+    public function pdf(string $path, array $payload): string
+    {
+        if (! $this->isConfigured()) {
+            throw new SpeedyException('Speedy is not set up: enter the API username and password in the plugin settings.');
+        }
+
+        $response = $this->send($path, $payload, 'application/pdf, application/json');
+        $body = $response->body();
+
+        if (! str_starts_with($body, '%PDF-')) {
+            $data = $response->json();
+            $message = is_array($data) && is_array($data['error'] ?? null) ? trim((string) ($data['error']['message'] ?? '')) : '';
+
+            throw new SpeedyException('Speedy did not return the waybill'.($message !== '' ? ': '.$message : '.'));
+        }
+
+        return $body;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws SpeedyException when Speedy cannot be reached or answers with an HTTP error.
+     */
+    private function send(string $path, array $payload, string $accept = 'application/json'): Response
+    {
         $body = ['userName' => (string) $this->setting('username'), 'password' => (string) $this->setting('password'), 'language' => app()->getLocale() === 'bg' ? 'BG' : 'EN', ...$payload];
 
         // After a failure, wait a minute before asking again: public pages (checkout, office
@@ -55,7 +102,7 @@ final class SpeedyClient
         }
 
         try {
-            $response = Http::acceptJson()->asJson()->connectTimeout(5)->timeout(10)->post($this->baseUrl().'/'.ltrim($path, '/'), $body);
+            $response = Http::accept($accept)->asJson()->connectTimeout(5)->timeout($accept === 'application/json' ? 10 : 20)->post($this->baseUrl().'/'.ltrim($path, '/'), $body);
         } catch (ConnectionException $e) {
             Cache::put($down, true, 60);
 
@@ -66,17 +113,14 @@ final class SpeedyClient
             Cache::put($down, true, 60);
         }
 
-        $data = $response->json();
+        if (! $response->successful()) {
+            $data = $response->json();
+            $message = is_array($data) && is_array($data['error'] ?? null) ? trim((string) ($data['error']['message'] ?? '')) : '';
 
-        if (! $response->successful() || ! is_array($data)) {
-            throw new SpeedyException('Speedy refused the request (HTTP '.$response->status().').');
+            throw new SpeedyException('Speedy refused the request'.($message !== '' ? ': '.$message : ' (HTTP '.$response->status().').'));
         }
 
-        if (is_array($data['error'] ?? null)) {
-            throw new SpeedyException('Speedy refused the request: '.trim((string) ($data['error']['message'] ?? 'unknown error')));
-        }
-
-        return $data;
+        return $response;
     }
 
     private function setting(string $key): mixed

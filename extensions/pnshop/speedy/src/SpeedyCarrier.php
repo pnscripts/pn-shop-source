@@ -6,22 +6,30 @@ use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PnShop\Localization\CurrencyConverter;
 use PnShop\Settings\SettingDefinition;
 use PnShop\Settings\Settings;
 use PnShop\Settings\SettingType;
 use PnShop\Shipping\Carriers\Carrier;
+use PnShop\Shipping\Contracts\ProvidesShippingLabels;
 use PnShop\Shipping\Models\ShippingMethod;
+use PnShop\Shipping\ShippingLabel;
+use PnShop\Shipping\ShippingLabelRequest;
 use PnShop\Shipping\ShippingRequest;
 use Throwable;
 
 /**
  * Speedy: the price from Speedy's /calculate, to the customer's address or to a Speedy
  * office. Bulgaria only. When Speedy cannot be asked, the method's fallback price is used,
- * or the method is not offered when it has none.
+ * or the method is not offered when it has none. With cash on delivery, the price includes
+ * Speedy's fee for collecting the amount.
+ *
+ * Waybills: staff create them from the shipment form (/shipment, then /print); the PDF is
+ * kept with the shipment.
  */
-final class SpeedyCarrier extends Carrier
+final class SpeedyCarrier extends Carrier implements ProvidesShippingLabels
 {
     public const CODE = 'speedy';
 
@@ -45,6 +53,7 @@ final class SpeedyCarrier extends Carrier
             new SettingDefinition('delivery', SettingType::Select, 'Deliver to', default: 'address', required: true, options: ['address' => "The customer's address", 'office' => 'A Speedy office the customer picks']),
             new SettingDefinition('fallback_price', SettingType::Decimal, 'Price when Speedy does not answer', help: 'Empty: the method is not offered while Speedy cannot be asked.', rules: ['min:0']),
             new SettingDefinition('default_weight', SettingType::Decimal, 'Weight of products without one (kg)', default: '1', rules: ['min:0.01', 'max:1000']),
+            new SettingDefinition('waybill_paper', SettingType::Select, 'Waybill paper', default: 'A4', required: true, options: ['A4' => 'A4 page', 'A6' => 'A6 sticker']),
         ];
     }
 
@@ -105,20 +114,133 @@ final class SpeedyCarrier extends Carrier
             $recipient = ['privatePerson' => true, 'addressLocation' => ['countryId' => SpeedyClient::BULGARIA, 'siteId' => $site['id']]];
         }
 
-        $calculation = [
+        return [
             'recipient' => $recipient,
-            'service' => ['autoAdjustPickupDate' => true, 'serviceIds' => [(int) ($this->setting('service_id') ?: 505)]],
+            'service' => ['autoAdjustPickupDate' => true, 'serviceIds' => [$this->serviceId()], ...$this->cashOnDelivery($request->cashOnDelivery)],
             'content' => ['parcelsCount' => 1, 'totalWeight' => $this->weight($request, $method)],
             'payment' => ['courierServicePayer' => 'SENDER'],
+            ...$this->sender(),
         ];
+    }
 
-        $dropoff = (int) $this->setting('dropoff_office_id');
+    /**
+     * Book the parcel with Speedy (/shipment) and fetch its waybill (/print).
+     *
+     * @throws SpeedyException when Speedy is not set up, the address cannot be found or Speedy refuses.
+     */
+    public function shippingLabel(ShippingLabelRequest $request, ShippingMethod $method): ShippingLabel
+    {
+        $answer = $this->client->call('shipment', $this->shipmentFor($request, $method));
+        $number = trim((string) ($answer['id'] ?? ''));
+        $parcels = array_values(array_filter(array_map(fn ($parcel) => is_array($parcel) ? (string) ($parcel['id'] ?? '') : '', (array) ($answer['parcels'] ?? []))));
 
-        if ($dropoff > 0) {
-            $calculation['sender'] = ['privatePerson' => false, 'dropoffOfficeId' => $dropoff];
+        if ($number === '') {
+            throw new SpeedyException('Speedy did not return a shipment number.');
         }
 
-        return $calculation;
+        $pdf = $this->client->pdf('print', [
+            'paperSize' => $method->setting('waybill_paper') === 'A6' ? 'A6' : 'A4',
+            'parcels' => array_map(fn (string $id) => ['parcel' => ['id' => $id]], $parcels === [] ? [$number] : $parcels),
+        ]);
+
+        $currency = $request->cashOnDelivery?->getCurrency()->getCurrencyCode() ?? 'EUR';
+        $price = is_array($answer['price'] ?? null) ? $this->price(['calculations' => [['price' => $answer['price']]]], $currency) : null;
+
+        return new ShippingLabel($number, pdf: $pdf, price: $price);
+    }
+
+    /**
+     * The /shipment request (without credentials).
+     *
+     * @return array<string, mixed>
+     *
+     * @throws SpeedyException when the destination cannot be found.
+     */
+    public function shipmentFor(ShippingLabelRequest $request, ShippingMethod $method): array
+    {
+        $to = $request->to;
+        $company = $to->company !== null && $to->company !== '';
+        $phone = trim((string) preg_replace('/[^\d+ ]/', '', (string) $to->phone));
+        $recipient = array_filter([
+            'clientName' => mb_substr($company ? (string) $to->company : $to->fullName(), 0, 60),
+            'contactName' => $company ? mb_substr($to->fullName(), 0, 60) : null,
+            'privatePerson' => ! $company,
+            'phone1' => $phone !== '' ? ['number' => mb_substr($phone, 0, 20)] : null,
+            'email' => $request->email,
+        ], fn ($value) => $value !== null);
+
+        $office = $request->order !== null ? DB::table('pnshop_speedy_order_offices')->where('order_id', $request->order->id)->value('office_id') : null;
+
+        if ($method->setting('delivery') === 'office' || $office !== null) {
+            if ($office === null) {
+                throw new SpeedyException('The order has no Speedy office.');
+            }
+
+            $recipient['pickupOfficeId'] = (int) $office;
+        } else {
+            $site = $this->locations->siteByPostcode((string) $to->postcode);
+
+            if ($site === null) {
+                throw new SpeedyException('Speedy does not know the town of postcode '.$to->postcode.'.');
+            }
+
+            $recipient['address'] = [
+                'countryId' => SpeedyClient::BULGARIA,
+                'siteId' => $site['id'],
+                'postCode' => (string) $to->postcode,
+                'addressNote' => mb_substr(trim($to->line1.($to->line2 !== null && $to->line2 !== '' ? ', '.$to->line2 : '')), 0, 200),
+            ];
+        }
+
+        return [
+            'recipient' => $recipient,
+            'service' => ['autoAdjustPickupDate' => true, 'serviceId' => $this->serviceId(), ...$this->cashOnDelivery($request->cashOnDelivery)],
+            'content' => [
+                'parcelsCount' => 1,
+                'totalWeight' => $this->kilograms(array_map(fn (array $item) => [$item['weight'], $item['quantity']], $request->items), $method),
+                'contents' => $request->contents(100),
+                'package' => 'BOX',
+            ],
+            'payment' => ['courierServicePayer' => 'SENDER'],
+            'ref1' => mb_substr($request->reference, 0, 30),
+            ...$this->sender(),
+        ];
+    }
+
+    private function serviceId(): int
+    {
+        return (int) ($this->setting('service_id') ?: 505);
+    }
+
+    /**
+     * The shop's drop-off office, when it hands parcels in at one.
+     *
+     * @return array<string, mixed>
+     */
+    private function sender(): array
+    {
+        $dropoff = (int) $this->setting('dropoff_office_id');
+
+        return $dropoff > 0 ? ['sender' => ['privatePerson' => false, 'dropoffOfficeId' => $dropoff]] : [];
+    }
+
+    /**
+     * Speedy's cash-on-delivery service: Speedy collects the amount in cash and charges a
+     * fee for it, which the price then includes.
+     *
+     * @return array<string, mixed>
+     */
+    private function cashOnDelivery(?Money $amount): array
+    {
+        if ($amount === null || ! $amount->isPositive()) {
+            return [];
+        }
+
+        return ['additionalServices' => ['cod' => [
+            'amount' => (float) (string) $amount->getAmount(),
+            'currencyCode' => $amount->getCurrency()->getCurrencyCode(),
+            'processingType' => 'CASH',
+        ]]];
     }
 
     /**
@@ -156,11 +278,22 @@ final class SpeedyCarrier extends Carrier
     /** Kilograms, at least 0.1. */
     private function weight(ShippingRequest $request, ShippingMethod $method): float
     {
-        $default = (float) ($method->setting('default_weight') ?: 1);
+        return $this->kilograms($request->items->map(fn ($item) => [(int) $item->weight, (int) $item->quantity])->all(), $method);
+    }
+
+    /**
+     * Kilograms of [grams, quantity] lines, at least 0.1; lines without a weight count the
+     * method's default weight.
+     *
+     * @param  array<int, array{int, int}>  $lines
+     */
+    private function kilograms(array $lines, ShippingMethod $method): float
+    {
+        $default = (int) round((float) ($method->setting('default_weight') ?: 1) * 1000);
         $grams = 0;
 
-        foreach ($request->items as $item) {
-            $grams += ($item->weight > 0 ? $item->weight : (int) round($default * 1000)) * $item->quantity;
+        foreach ($lines as [$weight, $quantity]) {
+            $grams += ($weight > 0 ? $weight : $default) * $quantity;
         }
 
         return max(0.1, round($grams / 1000, 3));

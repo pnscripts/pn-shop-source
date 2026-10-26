@@ -8,14 +8,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use PnShop\Cart\CartItemDTO;
 use PnShop\Catalog\Models\Product;
+use PnShop\Customer\PostalAddress;
 use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Plugins\Econt\EcontCarrier;
 use PnShop\Sales\Models\Order;
 use PnShop\Settings\Settings;
+use PnShop\Shipping\Contracts\ShippingCarrier;
 use PnShop\Shipping\Models\ShippingMethod;
 use PnShop\Shipping\Models\ShippingZone;
 use PnShop\Shipping\ShippingCarrierManager;
+use PnShop\Shipping\ShippingLabelRequest;
 use PnShop\Shipping\ShippingRequest;
+use PnShop\Shipping\Testing\ShippingLabelContractTests;
 
 /**
  * The Econt plugin (extensions/pnshop/econt) against a stand-in for Econt's demo service
@@ -23,6 +27,20 @@ use PnShop\Shipping\ShippingRequest;
  */
 class EcontPluginTest extends ShippedPluginTestCase
 {
+    use ShippingLabelContractTests;
+
+    protected function carrier(): ShippingCarrier
+    {
+        $this->fakeEcont();
+
+        return app(EcontCarrier::class);
+    }
+
+    protected function shippingLabelSettings(): array
+    {
+        return ['delivery' => 'address'];
+    }
+
     private const DEMO = 'https://demo.econt.com/ee/services/';
 
     protected function setUp(): void
@@ -55,7 +73,12 @@ class EcontPluginTest extends ShippedPluginTestCase
 
                 return Http::response(['offices' => array_values(array_filter($all, fn ($office) => ! isset($request['cityID']) || $office['address']['city']['id'] === $request['cityID']))]);
             },
-            self::DEMO.'Shipments/LabelService.createLabel.json' => Http::response(['label' => ['totalPrice' => (float) $price, 'currency' => $currency, 'senderDueAmount' => (float) $price]]),
+            self::DEMO.'Shipments/LabelService.createLabel.json' => fn (Request $request) => Http::response(['label' => [
+                'totalPrice' => (float) $price + (isset($request['label']['services']['cdAmount']) ? 1.5 : 0),
+                'currency' => $currency,
+                'senderDueAmount' => (float) $price,
+                ...($request['mode'] === 'create' ? ['shipmentNumber' => '1051234567', 'pdfURL' => 'http://demo.econt.com/ee/services/print/1051234567.pdf'] : []),
+            ]]),
         ]);
     }
 
@@ -194,7 +217,71 @@ class EcontPluginTest extends ShippedPluginTestCase
         $this->post(route('checkout.store'), $this->checkoutData($payment->id, ['shipping_method_id' => $method->id, 'shipping' => ['postcode' => '4000', 'city' => 'Plovdiv']]))->assertSessionMissing('error');
 
         $order = Order::query()->sole();
-        $this->assertSame('4.10', (string) Money::ofMinor(collect($order->totals)->firstWhere('code', 'shipping')['amount'] ?? 0, $order->currency)->getAmount());
+        // 4.10 for the parcel + 1.50 Econt charges for collecting cash on delivery.
+        $this->assertSame('5.60', (string) Money::ofMinor(collect($order->totals)->firstWhere('code', 'shipping')['amount'] ?? 0, $order->currency)->getAmount());
         $this->assertSame('Пловдив Тракия', DB::table('pnshop_econt_order_offices')->where('order_id', $order->id)->value('office_name'));
+    }
+
+    public function test_cash_on_delivery_adds_econts_fee_to_the_price(): void
+    {
+        $this->fakeEcont('7.40', 'USD');
+        $method = $this->method('address');
+        $request = $this->request('4000');
+        $cod = new ShippingRequest($request->items, $request->subtotal, 'BG', '4000', cashOnDelivery: Money::of('40.00', 'USD'));
+
+        $this->assertSame('7.40', (string) app(EcontCarrier::class)->quote($request, $method)?->getAmount());
+        $this->assertSame('8.90', (string) app(EcontCarrier::class)->quote($cod, $method)?->getAmount());
+        Http::assertSent(fn (Request $sent) => str_ends_with($sent->url(), 'createLabel.json')
+            && ($sent['label']['services'] ?? null) == ['cdAmount' => 40, 'cdType' => 'get', 'cdCurrency' => 'USD']);
+    }
+
+    public function test_waybills_are_created_with_the_receiver_and_the_amount_to_collect(): void
+    {
+        $this->fakeEcont('7.40', 'EUR');
+        $to = PostalAddress::fromArray(['first_name' => 'Ana', 'last_name' => 'Petrova', 'line1' => 'ul. Pример 5', 'line2' => 'ap. 3', 'city' => 'Plovdiv', 'postcode' => '4000', 'country_code' => 'BG', 'phone' => '0888123456']);
+
+        $label = app(EcontCarrier::class)->shippingLabel(new ShippingLabelRequest('100042', $to, null, [['title' => 'Mug', 'quantity' => 2, 'weight' => 0]], Money::of('47.40', 'EUR'), 'ana@example.com'), $this->method('address'));
+
+        $this->assertSame('1051234567', $label->trackingNumber);
+        $this->assertSame('https://demo.econt.com/ee/services/print/1051234567.pdf', $label->labelUrl);
+        $this->assertSame('8.90', (string) $label->price?->getAmount());
+        Http::assertSent(function (Request $request) {
+            $label = $request['label'] ?? [];
+
+            return ($request['mode'] ?? null) === 'create'
+                && $label['receiverClient'] === ['name' => 'Ana Petrova', 'phones' => ['0888123456'], 'email' => 'ana@example.com']
+                && $label['receiverAddress']['city']['id'] === 77
+                && $label['receiverAddress']['fullAddress'] === 'ul. Pример 5, ap. 3'
+                && $label['orderNumber'] === '100042'
+                && $label['shipmentDescription'] === '2 × Mug'
+                && abs($label['weight'] - 1.0) < 0.0001
+                && $label['services'] == ['cdAmount' => 47.4, 'cdType' => 'get', 'cdCurrency' => 'EUR'];
+        });
+    }
+
+    public function test_office_orders_get_a_waybill_to_their_office_and_refusals_reach_staff(): void
+    {
+        $this->fakeEcont('4.10', 'USD');
+        $method = $this->method('office');
+        $payment = PaymentMethod::factory()->create(['gateway' => 'cash_on_delivery']);
+        $product = Product::factory()->active()->create(['price' => '20.00', 'sale_price' => null, 'stock' => 5]);
+        $this->post(route('cart.store'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->postJson(route('econt.office'), ['code' => '4001'])->assertOk();
+        $this->post(route('checkout.store'), $this->checkoutData($payment->id, ['shipping_method_id' => $method->id, 'shipping' => ['postcode' => '4000', 'city' => 'Plovdiv']]))->assertSessionMissing('error');
+        $order = Order::query()->sole();
+
+        $label = app(EcontCarrier::class)->shippingLabel(new ShippingLabelRequest((string) $order->number, PostalAddress::fromArray(['first_name' => 'Jane', 'last_name' => 'Doe', 'line1' => 'x', 'city' => 'Plovdiv', 'postcode' => '4000', 'country_code' => 'BG']), null, [], null, null, $order), $method);
+
+        $this->assertSame('1051234567', $label->trackingNumber);
+        Http::assertSent(fn (Request $request) => ($request['mode'] ?? null) === 'create' && $request['label']['receiverOfficeCode'] === '4001' && ! isset($request['label']['receiverAddress']));
+    }
+
+    public function test_econts_refusal_reaches_staff(): void
+    {
+        Http::fake([self::DEMO.'*' => Http::response(['type' => 'ExInvalidParam', 'message' => 'Невалиден телефон'], 400)]);
+        $to = PostalAddress::fromArray(['first_name' => 'Ana', 'last_name' => 'Petrova', 'line1' => 'x', 'city' => 'Plovdiv', 'postcode' => '4000', 'country_code' => 'BG']);
+
+        $this->expectExceptionMessage('Econt refused the request: Невалиден телефон');
+        app(EcontCarrier::class)->shippingLabel(new ShippingLabelRequest('1', $to, null, [], null), $this->method('address'));
     }
 }

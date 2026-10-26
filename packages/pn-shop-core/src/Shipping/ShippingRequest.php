@@ -23,6 +23,12 @@ final readonly class ShippingRequest
         public ?User $customer = null,
         /** The town, when known (since 1.11): couriers whose towns share a postcode range need it. */
         public ?string $city = null,
+        /**
+         * What the courier collects when the customer pays cash on delivery (since 1.11), so
+         * couriers that charge for collecting can add their fee; null otherwise. Checkout
+         * quotes pass the order value before delivery.
+         */
+        public ?Money $cashOnDelivery = null,
     ) {}
 
     /** Total weight in grams; lines without a weight count as zero. */
