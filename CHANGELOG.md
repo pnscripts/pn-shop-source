@@ -21,6 +21,12 @@ No core migrations (the new plugins bring their own). See the [upgrade notes](do
   - `pnshop/bg-n18`: Наредба Н-18 sale documents with QR code, cash-on-delivery documents and the monthly NRA audit file.
   - `pnshop/econt` and `pnshop/speedy`: live courier prices to an address or an office, office picker at checkout.
 
+### Fixed
+
+- **Storefront header on phones:** at 390 px wide the header no longer runs off the screen. Below 640 px the cart, dashboard and sign-in links become icons (with labels for screen readers); Register stays in the menu and on the sign-in page. The default theme and Aurora (1.0.2) both get it.
+- **Shop search on phones:** the search box takes its own row and the sort menu the next one, instead of squeezing the box to a few pixels.
+- **Default logo:** the storefront and sign-in pages show PN Shop's own shopping-bag mark instead of the framework starter kit's logo.
+
 ### Security
 
 - **Dependency:** livewire/livewire 4.4.8 (GHSA-mhf7-xp6r-6qrc, authorization bypass in `#[Authorize]`).

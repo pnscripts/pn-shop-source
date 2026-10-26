@@ -91,7 +91,7 @@ export default function ShopIndex({
             </div>
 
             <div className="mb-6 flex flex-wrap items-center gap-3">
-                <form role="search" onSubmit={submitSearch} className="flex min-w-0 flex-1 gap-2">
+                <form role="search" onSubmit={submitSearch} className="flex w-full min-w-0 gap-2 sm:w-auto sm:flex-1">
                     <label htmlFor="shop-search" className="sr-only">
                         {t('Search products')}
                     </label>
@@ -102,19 +102,19 @@ export default function ShopIndex({
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder={t('Search products')}
                         maxLength={100}
-                        className="border-input bg-background focus-visible:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                        className="border-input bg-background focus-visible:ring-ring h-9 w-full min-w-0 rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none sm:max-w-sm"
                     />
-                    <Button type="submit" size="sm">
+                    <Button type="submit" size="sm" className="h-9 shrink-0">
                         {t('Search')}
                     </Button>
                 </form>
                 {sorts.length > 0 && (
-                    <label className="text-muted-foreground flex items-center gap-2 text-sm">
-                        {t('Sort by')}
+                    <label className="text-muted-foreground flex w-full items-center gap-2 text-sm sm:w-auto">
+                        <span className="shrink-0">{t('Sort by')}</span>
                         <select
                             value={filters.sort ?? 'newest'}
                             onChange={(event) => router.visit(shopUrl({ sort: event.target.value }), { preserveScroll: true })}
-                            className="border-input bg-background text-foreground h-9 rounded-md border px-2 text-sm"
+                            className="border-input bg-background text-foreground h-9 min-w-0 flex-1 rounded-md border px-2 text-sm sm:flex-none"
                         >
                             {sorts.map((sort) => (
                                 <option key={sort.key} value={sort.key}>

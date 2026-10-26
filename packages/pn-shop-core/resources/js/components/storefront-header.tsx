@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useTranslations } from '@/hooks/use-translations';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, LayoutDashboard, LogIn, Menu, ShoppingBag, Store } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, LogIn, Menu, ShoppingBag, Store, UserPlus, UserRound } from 'lucide-react';
 
 export function StorefrontHeader() {
     const { auth, cartCount, menus } = usePage<SharedData>().props;
@@ -17,11 +17,11 @@ export function StorefrontHeader() {
 
     return (
         <header className="border-sidebar-border/80 bg-background/95 sticky top-0 z-40 border-b backdrop-blur">
-            <div className="mx-auto flex h-16 items-center gap-4 px-4 md:max-w-7xl">
+            <div className="mx-auto flex h-16 items-center gap-2 px-4 sm:gap-4 md:max-w-7xl">
                 <div className="lg:hidden">
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-[34px] w-[34px]">
+                            <Button variant="ghost" size="icon" className="h-[34px] w-[34px]" aria-label={t('Navigation Menu')}>
                                 <Menu className="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
@@ -63,7 +63,10 @@ export function StorefrontHeader() {
                                             <LogIn className="h-4 w-4" />
                                             {t('Log in')}
                                         </Link>
-                                        <Link href={route('register')}>{t('Register')}</Link>
+                                        <Link href={route('register')} className="flex items-center gap-2">
+                                            <UserPlus className="h-4 w-4" />
+                                            {t('Register')}
+                                        </Link>
                                     </>
                                 )}
                             </div>
@@ -71,7 +74,7 @@ export function StorefrontHeader() {
                     </Sheet>
                 </div>
 
-                <Link href={route('home')} className="flex items-center space-x-2">
+                <Link href={route('home')} className="flex min-w-0 items-center space-x-2">
                     <AppLogo />
                 </Link>
 
@@ -115,9 +118,9 @@ export function StorefrontHeader() {
                     )}
                 </nav>
 
-                <div className="ml-auto flex items-center gap-2">
-                    <Button variant="ghost" asChild>
-                        <Link href={route('cart.index')} className="relative">
+                <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+                    <Button variant="ghost" asChild className="px-2 sm:px-4">
+                        <Link href={route('cart.index')} className="relative" aria-label={t('Cart (:count)', { count: cartCount })}>
                             <ShoppingBag className="h-5 w-5" />
                             <span className="hidden sm:inline">{t('Cart')}</span>
                             {cartCount > 0 && (
@@ -130,15 +133,24 @@ export function StorefrontHeader() {
                     <LanguageSwitcher />
                     <AppearanceToggleDropdown />
                     {auth.user ? (
-                        <Button variant="outline" asChild>
-                            <Link href={route('dashboard')}>{t('Dashboard')}</Link>
+                        <Button variant="outline" asChild className="w-9 px-0 sm:w-auto sm:px-4">
+                            <Link href={route('dashboard')} aria-label={t('Dashboard')}>
+                                <LayoutDashboard className="h-4 w-4 sm:hidden" />
+                                <span className="hidden sm:inline">{t('Dashboard')}</span>
+                            </Link>
                         </Button>
                     ) : (
                         <>
-                            <Button variant="ghost" asChild>
+                            {/* Phones: one account icon; Register is in the menu and on the sign-in page. */}
+                            <Button variant="ghost" size="icon" asChild className="sm:hidden">
+                                <Link href={route('login')} aria-label={t('Log in')}>
+                                    <UserRound className="h-5 w-5" />
+                                </Link>
+                            </Button>
+                            <Button variant="ghost" asChild className="hidden sm:inline-flex">
                                 <Link href={route('login')}>{t('Log in')}</Link>
                             </Button>
-                            <Button asChild>
+                            <Button asChild className="hidden sm:inline-flex">
                                 <Link href={route('register')}>{t('Register')}</Link>
                             </Button>
                         </>
