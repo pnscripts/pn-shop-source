@@ -142,8 +142,8 @@ Shipped with 1.11, off until installed and enabled. Each has a README with its l
 | `pnshop/withdrawal` | The online withdrawal function required from 2026 (Directive 2023/2673; ЗЗП чл. 52а): a "Withdraw from contract here" link, a two-step statement, a dated email confirmation, and Sales → Withdrawals for staff. |
 | `pnshop/bg-euro` | Euro check for Bulgarian shops after the changeover, and optional lev amounts next to euro prices at 1.95583. |
 | `pnshop/bg-n18` | Наредба Н-18 alternative regime for e-shops: numbered sale documents with QR code, documents for cash on delivery as a postal money order, and the monthly NRA audit file (Приложение 38). |
-| `pnshop/econt` | Econt Express prices to an address or office, office picker at checkout, demo and production. |
-| `pnshop/speedy` | Speedy prices to an address or office, office picker at checkout. |
+| `pnshop/econt` | Econt Express prices to an address or office (with the cash-on-delivery fee), office picker at checkout, waybills from the admin, demo and production. |
+| `pnshop/speedy` | Speedy prices to an address or office (with the cash-on-delivery fee), office picker at checkout, waybills from the admin with the PDF kept on the shipment. |
 
 ## Stripe
 
@@ -239,7 +239,7 @@ Loaded from the plugin folder when present:
   - payment gateways (`PaymentGatewayManager`), shipping carriers (`ShippingCarrierManager`) and the tax provider (`TaxProvider`);
   - CMS blocks (`BlockRegistry`);
   - pipelines `cart.totals`, `cart.summary`, `catalog.price` (see [Pricing](../ecommerce/pricing.md#for-plugin-authors)) and `seo.meta`;
-  - return labels for carriers (`ProvidesReturnLabels`, see [Returns](../ecommerce/returns.md#return-labels));
+  - return labels for carriers (`ProvidesReturnLabels`, see [Returns](../ecommerce/returns.md#return-labels)) and waybills (`ProvidesShippingLabels`, see [Shipping](../ecommerce/shipping.md#shipments));
   - channels: `Channels::current()`, amounts from settings converted with `CurrencyConverter` (see [Channels](../ecommerce/channels.md#for-plugin-and-theme-authors));
   - the invoice renderer (`InvoiceRenderer`) and the CAPTCHA verifier (`CaptchaVerifier`);
   - events: `OrderPlaced`, `OrderStateChanged`, `ShipmentCreated`, `RefundCompleted`, and `OrderReopening` (inside the reopening transaction; throw an `OrderException` to refuse).

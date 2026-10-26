@@ -5729,6 +5729,12 @@
                                             "integer",
                                             "null"
                                         ]
+                                    },
+                                    "payment_method_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
                                     }
                                 },
                                 "required": [

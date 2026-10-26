@@ -4,7 +4,7 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 
 ## Unreleased (1.11.0)
 
-No core migrations (the new plugins bring their own). See the [upgrade notes](docs/upgrades/2026-10-release-1.11.md).
+One core migration (waybill fields on `shipments`; the new plugins bring their own). See the [upgrade notes](docs/upgrades/2026-10-release-1.11.md).
 
 ### Added
 
@@ -13,13 +13,15 @@ No core migrations (the new plugins bring their own). See the [upgrade notes](do
 - **Money decorators:** plugins can change the formatted text of storefront and API amounts (`MoneyDecorators`), e.g. to show a second currency.
 - **Plugin settings rules:** settings in `pnshop.json` may declare extra validation `rules`.
 - **Town in delivery quotes:** `ShippingRequest` has an optional `city`; checkout quotes (storefront and Store API `city`) and orders pass it, for couriers whose towns share postcode ranges.
+- **Waybills from the admin:** carriers that implement `ProvidesShippingLabels` book the parcel from *Create shipment* (on by default): the waybill number becomes the tracking number, the PDF or the courier's link is kept with the shipment (*Waybill* in the shipments list), and shipments recorded without one get *Create waybill*. Cash-on-delivery orders: the courier collects what is still due, never twice across parcels. Contract kit `ShippingLabelContractTests`.
+- **Cash-on-delivery fees in quotes:** checkout and Store API quotes take `payment_method_id`; with cash on delivery, `ShippingRequest::$cashOnDelivery` is set so couriers add their fee, and the placed order's delivery line includes it.
 - **Checkout slot data:** `checkout.before_submit` also gets the chosen shipping method and the address being entered.
 - **New plugins** (off until enabled; see [compliance and delivery plugins](docs/extensions/plugins.md#compliance-and-delivery-plugins-bulgaria-and-the-eu)):
   - `pnshop/prior-price`: the lowest price of the 30 days before a sale as the struck-through price.
   - `pnshop/withdrawal`: the online withdrawal function ("Withdraw from contract here", two steps, dated email confirmation, admin list).
   - `pnshop/bg-euro`: euro check and optional lev amounts at the fixed rate.
   - `pnshop/bg-n18`: Наредба Н-18 sale documents with QR code, cash-on-delivery documents and the monthly NRA audit file.
-  - `pnshop/econt` and `pnshop/speedy`: live courier prices to an address or an office, office picker at checkout.
+  - `pnshop/econt` and `pnshop/speedy`: live courier prices to an address or an office (with the cash-on-delivery fee), office picker at checkout, waybills from the admin.
 
 ### Fixed
 
