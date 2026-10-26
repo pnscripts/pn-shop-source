@@ -150,20 +150,25 @@ class SpeedyPluginTest extends ShippedPluginTestCase
         $this->post(route('checkout.store'), $data)->assertSessionMissing('error');
 
         $order = Order::query()->sole();
-        // 3.90 for the parcel + 1.20 Speedy charges for collecting cash on delivery.
-        $this->assertSame(510, collect($order->totals)->firstWhere('code', 'shipping')['amount'] ?? null);
+        // The test store sells in USD: Speedy collects cash on delivery in euro only, so no fee.
+        $this->assertSame(390, collect($order->totals)->firstWhere('code', 'shipping')['amount'] ?? null);
         $this->assertSame('ПЛОВДИВ - ЦЕНТЪР', DB::table('pnshop_speedy_order_offices')->where('order_id', $order->id)->value('office_name'));
     }
 
     public function test_cash_on_delivery_adds_speedys_fee_to_the_price(): void
     {
-        $this->fakeSpeedy('6.20');
-        $request = $this->request();
-        $cod = new ShippingRequest($request->items, $request->subtotal, 'BG', '4000', cashOnDelivery: Money::of('40.00', 'USD'));
+        $this->fakeSpeedy('6.20', 'EUR');
+        $item = new CartItemDTO(1, 1, 'Mug', 'mug', '', null, Money::of('20.00', 'EUR'), null, null, null, 2, 1200);
+        $cod = new ShippingRequest(collect([$item]), Money::of('40.00', 'EUR'), 'BG', '4000', cashOnDelivery: Money::of('40.00', 'EUR'));
 
         $this->assertSame('7.40', (string) app(SpeedyCarrier::class)->quote($cod, $this->method('address'))?->getAmount());
         Http::assertSent(fn (Request $sent) => str_ends_with($sent->url(), '/calculate')
-            && ($sent['service']['additionalServices'] ?? null) === ['cod' => ['amount' => 40.0, 'currencyCode' => 'USD', 'processingType' => 'CASH']]);
+            && ($sent['service']['additionalServices'] ?? null) == ['cod' => ['amount' => 40, 'currencyCode' => 'EUR', 'processingType' => 'CASH']]);
+
+        // Speedy collects in euro only.
+        $to = PostalAddress::fromArray(['first_name' => 'Ana', 'last_name' => 'Petrova', 'line1' => 'x', 'city' => 'Plovdiv', 'postcode' => '4000', 'country_code' => 'BG']);
+        $this->expectExceptionMessage('Speedy collects cash on delivery in euro; this order is in USD.');
+        app(SpeedyCarrier::class)->shippingLabel(new ShippingLabelRequest('1', $to, null, [], Money::of('10.00', 'USD')), $this->method('address'));
     }
 
     public function test_waybills_book_the_shipment_and_keep_its_pdf(): void
@@ -189,7 +194,7 @@ class SpeedyPluginTest extends ShippedPluginTestCase
             && $request['userName'] === 'api-user');
     }
 
-    public function test_a_refused_print_reaches_staff(): void
+    public function test_a_failed_print_keeps_the_booked_parcel(): void
     {
         Http::fake([
             self::API.'location/site' => Http::response(['sites' => [['id' => 56784, 'name' => 'ПЛОВДИВ']]]),
@@ -198,7 +203,11 @@ class SpeedyPluginTest extends ShippedPluginTestCase
         ]);
         $to = PostalAddress::fromArray(['first_name' => 'Ana', 'last_name' => 'Petrova', 'line1' => 'x', 'city' => 'Plovdiv', 'postcode' => '4000', 'country_code' => 'BG']);
 
-        $this->expectExceptionMessage('Speedy did not return the waybill: Parcel not found');
-        app(SpeedyCarrier::class)->shippingLabel(new ShippingLabelRequest('1', $to, null, []), $this->method('address'));
+        // The parcel is booked: staff get its number (and print the waybill on Speedy's site)
+        // instead of an error that would make them book it again.
+        $label = app(SpeedyCarrier::class)->shippingLabel(new ShippingLabelRequest('1', $to, null, []), $this->method('address'));
+
+        $this->assertSame('61234567890', $label->trackingNumber);
+        $this->assertNull($label->pdf);
     }
 }

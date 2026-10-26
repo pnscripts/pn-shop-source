@@ -3,13 +3,18 @@
 namespace PnShop\Shipping;
 
 use Brick\Money\Money;
+use Closure;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use PnShop\Catalog\Models\ProductVariant;
 use PnShop\Customer\PostalAddress;
 use PnShop\Inventory\Models\StockLocation;
 use PnShop\Payment\Gateways\CashOnDelivery;
+use PnShop\Payment\Models\Payment;
 use PnShop\Payment\PaymentService;
+use PnShop\Payment\PaymentState;
 use PnShop\Sales\Exceptions\OrderException;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\Models\OrderAddress;
@@ -26,8 +31,12 @@ use Symfony\Component\HttpFoundation\Response;
  * Waybills from the order's carrier (ProvidesShippingLabels): booked when staff create a
  * shipment, or later for a shipment recorded without one.
  *
- * For cash-on-delivery orders the courier collects what is still due, minus what earlier
- * parcels of the order already collect, so a split order is never charged twice.
+ * For cash-on-delivery orders the courier collects what is still due, minus what parcels
+ * still out for collection will bring in, so a split order is never charged twice. Staff
+ * can change the amount (e.g. when a refused parcel is sent again).
+ *
+ * Booking runs under a lock per order: two staff members (or two tabs) cannot book the
+ * same parcel twice.
  */
 class Waybills
 {
@@ -48,7 +57,8 @@ class Waybills
 
     /**
      * What the courier collects with the next parcel: the amount still due on a
-     * cash-on-delivery order minus what earlier parcels collect; null when nothing is.
+     * cash-on-delivery order minus what parcels still out for collection will bring in;
+     * null when nothing is.
      */
     public function cashOnDelivery(Order $order): ?Money
     {
@@ -56,10 +66,51 @@ class Waybills
             return null;
         }
 
-        $collected = (int) $order->shipments()->sum('cash_on_delivery');
-        $left = $this->payments->amountDue($order)->minus(Money::ofMinor($collected, $order->currency));
+        $left = $this->payments->amountDue($order)->minus($this->outForCollection($order));
 
         return $left->isPositive() ? $left : null;
+    }
+
+    /**
+     * The most a waybill may collect: what is still due on the order (null when the order
+     * is not paid cash on delivery).
+     */
+    public function maximumCashOnDelivery(Order $order): ?Money
+    {
+        return CashOnDelivery::collects($order->paymentMethod) ? $this->payments->amountDue($order) : null;
+    }
+
+    /**
+     * Cash that waybills ask couriers to collect and that is not recorded as paid yet.
+     */
+    private function outForCollection(Order $order): Money
+    {
+        $asked = Money::ofMinor((int) $order->shipments()->sum('cash_on_delivery'), $order->currency);
+        $collected = $order->payments()->where('gateway', CashOnDelivery::CODE)->whereIn('status', [PaymentState::Paid, PaymentState::PartiallyRefunded, PaymentState::Refunded])->get()
+            ->reduce(fn (Money $sum, Payment $payment) => $sum->plus($payment->amount), Money::zero($order->currency));
+
+        $out = $asked->minus($collected);
+
+        return $out->isPositive() ? $out : Money::zero($order->currency);
+    }
+
+    /**
+     * Run $callback while holding the order's waybill lock.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $callback
+     * @return T
+     *
+     * @throws OrderException when another waybill of the order is being booked.
+     */
+    public function exclusively(Order $order, Closure $callback): mixed
+    {
+        try {
+            return Cache::lock('pnshop.waybills.order.'.$order->id, 60)->block(5, $callback);
+        } catch (LockTimeoutException) {
+            throw new OrderException(__('Another parcel of this order is being booked. Try again in a moment.'));
+        }
     }
 
     /**
@@ -140,29 +191,55 @@ class Waybills
      */
     public function canCreateFor(Shipment $shipment): bool
     {
-        return ! $shipment->hasWaybill() && $shipment->order !== null && $this->carrier($shipment->order) !== null;
+        return ! $shipment->hasWaybill() && $shipment->tracking_number === null && $shipment->order !== null && $this->carrier($shipment->order) !== null;
     }
 
     /**
      * Create the waybill of a shipment recorded without one (its lines, from its location).
+     * Without $cashOnDelivery, the courier collects what cashOnDelivery() suggests.
      *
      * @throws OrderException
      */
-    public function createFor(Shipment $shipment, ?Model $actor = null): Shipment
+    public function createFor(Shipment $shipment, ?Model $actor = null, ?Money $cashOnDelivery = null, bool $suggested = true): Shipment
     {
-        if ($shipment->hasWaybill()) {
-            throw new OrderException(__('This shipment already has a waybill.'));
+        $order = $shipment->order()->firstOrFail();
+
+        return $this->exclusively($order, function () use ($shipment, $order, $actor, $cashOnDelivery, $suggested) {
+            $shipment->refresh();
+
+            if ($shipment->hasWaybill() || $shipment->tracking_number !== null) {
+                throw new OrderException(__('This shipment already has a waybill.'));
+            }
+
+            $cash = $this->checkedCash($order, $suggested ? $this->cashOnDelivery($order) : $cashOnDelivery);
+            $quantities = $shipment->lines()->get()->mapWithKeys(fn (ShipmentLine $line) => [$line->order_item_id => $line->quantity])->all();
+            $label = $this->book($order, $quantities, $shipment->location, $cash);
+
+            $this->attach($shipment, $label, $cash);
+            $this->workflow->addNote($order, __('Waybill :number created.', ['number' => $label->trackingNumber]), $actor);
+
+            return $shipment;
+        });
+    }
+
+    /**
+     * The amount staff chose to collect, checked: never more than is due.
+     *
+     * @throws OrderException
+     */
+    public function checkedCash(Order $order, ?Money $cash): ?Money
+    {
+        if ($cash === null || ! $cash->isPositive()) {
+            return null;
         }
 
-        $order = $shipment->order()->firstOrFail();
-        $cash = $this->cashOnDelivery($order);
-        $quantities = $shipment->lines()->get()->mapWithKeys(fn (ShipmentLine $line) => [$line->order_item_id => $line->quantity])->all();
-        $label = $this->book($order, $quantities, $shipment->location, $cash);
+        $maximum = $this->maximumCashOnDelivery($order);
 
-        $this->attach($shipment, $label, $cash);
-        $this->workflow->addNote($order, __('Waybill :number created.', ['number' => $label->trackingNumber]), $actor);
+        if ($maximum === null || $cash->isGreaterThan($maximum)) {
+            throw new OrderException(__('The courier can collect at most :amount on this order.', ['amount' => ($maximum ?? Money::zero($order->currency))->formatToLocale(app()->getLocale())]));
+        }
 
-        return $shipment;
+        return $cash;
     }
 
     /**
@@ -171,7 +248,9 @@ class Waybills
     public function download(Shipment $shipment): ?Response
     {
         if ($shipment->label_path !== null && Storage::disk('local')->exists($shipment->label_path)) {
-            return Storage::disk('local')->download($shipment->label_path, 'waybill-'.($shipment->tracking_number ?? $shipment->id).'.pdf', ['Content-Type' => 'application/pdf']);
+            $name = preg_replace('/[^A-Za-z0-9_-]/', '', (string) $shipment->tracking_number) ?: (string) $shipment->id;
+
+            return Storage::disk('local')->download($shipment->label_path, 'waybill-'.$name.'.pdf', ['Content-Type' => 'application/pdf']);
         }
 
         return $shipment->label_url !== null ? redirect()->away($shipment->label_url) : null;

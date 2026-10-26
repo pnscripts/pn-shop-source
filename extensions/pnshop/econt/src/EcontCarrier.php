@@ -34,6 +34,9 @@ final class EcontCarrier extends Carrier implements ProvidesShippingLabels
 {
     public const CODE = 'econt';
 
+    /** Econt collects cash on delivery in Bulgaria's currency. */
+    private const COD_CURRENCY = 'EUR';
+
     /** Fixed lev rate, for old answers in leva. */
     private const LEV_RATE = '1.95583';
 
@@ -156,6 +159,10 @@ final class EcontCarrier extends Carrier implements ProvidesShippingLabels
      */
     public function waybillFor(ShippingLabelRequest $request, ShippingMethod $method): array
     {
+        if ($request->cashOnDelivery !== null && $request->cashOnDelivery->getCurrency()->getCurrencyCode() !== self::COD_CURRENCY) {
+            throw new EcontException('Econt collects cash on delivery in euro; this order is in '.$request->cashOnDelivery->getCurrency()->getCurrencyCode().'.');
+        }
+
         $to = $request->to;
         $label = [
             ...$this->sender(),
@@ -222,13 +229,13 @@ final class EcontCarrier extends Carrier implements ProvidesShippingLabels
 
     /**
      * Econt's cash-on-delivery service ("наложен платеж"): Econt collects the amount from
-     * the receiver and charges a fee for it, which the price then includes.
+     * the receiver and charges a fee for it, which the price then includes. Euro only.
      *
      * @return array<string, mixed>
      */
     private function cashOnDelivery(?Money $amount): array
     {
-        if ($amount === null || ! $amount->isPositive()) {
+        if ($amount === null || ! $amount->isPositive() || $amount->getCurrency()->getCurrencyCode() !== self::COD_CURRENCY) {
             return [];
         }
 

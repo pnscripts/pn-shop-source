@@ -32,7 +32,7 @@ A **shipping method** belongs to a zone and uses a **carrier**, which prices the
 - **Live quotes:**
   - while the customer enters the address, the page asks `POST /checkout/quote` for the zone's options, cheapest first, and the updated totals;
   - it's a POST, so postcodes stay out of URLs and logs;
-  - it also sends the chosen payment method (`payment_method_id`; the Store API's `POST /checkout/quote` takes the same field). With cash on delivery, couriers that charge for collecting the money (Econt, Speedy) add their fee, priced on the order value before delivery, so the customer sees the final delivery price before placing the order.
+  - it also sends the chosen payment method (`payment_method_id`; the Store API's `POST /checkout/quote` takes the same field). With cash on delivery, couriers that charge for collecting the money (Econt, Speedy) add their fee, priced on the products after discounts that gift cards and store credit leave to pay (`CashOnDeliveryAmount`), so the customer sees the final delivery price before placing the order and the order gets the same fee.
 - **Placing the order:**
   - the method is checked again against the address and cart;
   - its price is added by the `cart.totals` pipeline (stage `ApplyShipping`, priority 200);
@@ -43,8 +43,10 @@ A **shipping method** belongs to a zone and uses a **carrier**, which prices the
 *Create shipment* on the order page ships some or all of the remaining lines, with an optional tracking number and note.
 
 - **Waybills:** when the order's carrier issues them (`pnshop/econt`, `pnshop/speedy`, or any carrier implementing `ProvidesShippingLabels`), the form has *Create the waybill with …*, on by default. The parcel is booked with the courier first; its number becomes the tracking number, and the waybill is kept with the shipment (*Waybill* in the shipments list downloads it). When the courier refuses, nothing is shipped and staff see the courier's reason. Switch it off to record a parcel booked elsewhere with your own tracking number.
-- **Cash on delivery:** for orders paid with the cash-on-delivery method, the waybill asks the courier to collect what is still due, minus what earlier parcels of the order already collect, so a split order is never collected twice. The amount is shown in the form and in the shipments list (*Collects*).
-- **Later:** a shipment recorded without a waybill gets *Create waybill* in the shipments list.
+- **Cash on delivery:** for orders paid with the cash-on-delivery method, the form suggests what is still due, minus what parcels on their way will collect (cash recorded as paid is not counted twice), so a split order is never collected twice. Staff can change it, for example when a refused parcel goes out again, but never above what is due. The amount is shown in the shipments list (*Collects*).
+- **One booking at a time:** booking runs under a lock per order, so two staff members or two tabs cannot book the same parcel twice.
+- **No document:** when a courier books the parcel but does not send the waybill (Speedy's print failed), the shipment keeps the number and staff print the waybill on the courier's website; the parcel is never booked again.
+- **Later:** a shipment recorded without a waybill or tracking number gets *Create waybill* in the shipments list.
 - **Storage:** waybill PDFs returned by the courier are kept on the private `local` disk (`storage/app/private/pnshop/waybills`) and are downloaded only by staff who can view the order; couriers that host the PDF (Econt) are linked instead.
 
 - **Stock:** shipped units leave the shelf when they ship (`order_fulfilled` movements). Partial shipments are never taken twice.

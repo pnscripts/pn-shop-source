@@ -9,14 +9,15 @@ use PnShop\Cart\CartItemDTO;
 use PnShop\Cart\ShoppingCartService;
 use PnShop\Cart\Totals\ThresholdSubtotal;
 use PnShop\Catalog\Models\ProductVariant;
+use PnShop\Channel\Channels;
 use PnShop\Credit\CartBalances;
 use PnShop\Customer\Models\User;
 use PnShop\Customer\PostalAddress;
 use PnShop\Inventory\InventoryService;
 use PnShop\Money\MoneyPresenter;
-use PnShop\Payment\Gateways\CashOnDelivery;
 use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Shipping\Carriers\StorePickup;
+use PnShop\Shipping\CashOnDeliveryAmount;
 use PnShop\Shipping\ShippingQuote;
 use PnShop\Shipping\ShippingRequest;
 use PnShop\Shipping\ShippingService;
@@ -46,10 +47,12 @@ class DeliveryQuote
     public function for(array $data, ?User $customer): array
     {
         $address = PostalAddress::fromArray($data);
-        // With cash on delivery, couriers that charge for collecting add their fee.
+        $base = $this->cart->totals(['user' => $customer]);
+        // With cash on delivery, couriers that charge for collecting the money add their fee.
         $payment = isset($data['payment_method_id']) ? PaymentMethod::query()->active()->find((int) $data['payment_method_id']) : null;
-        $subtotal = app(ThresholdSubtotal::class)->of($this->cart->totals(['user' => $customer]));
-        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), $subtotal, $address->country_code, $address->postcode, $customer, $address->city, CashOnDelivery::collects($payment) ? $subtotal : null));
+        $payment = $payment !== null && app(Channels::class)->allows('payment_method_ids', $payment->id) ? $payment : null;
+        $cash = CashOnDeliveryAmount::of($base, $payment);
+        $quotes = $this->shipping->quotes(new ShippingRequest($this->cart->getCartItems(), app(ThresholdSubtotal::class)->of($base), $address->country_code, $address->postcode, $customer, $address->city, $cash));
 
         $selected = $quotes->first(fn (ShippingQuote $quote) => $quote->method->id === (int) ($data['shipping_method_id'] ?? 0)) ?? $quotes->first();
 

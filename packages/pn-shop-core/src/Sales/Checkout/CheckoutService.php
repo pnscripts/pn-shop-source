@@ -181,7 +181,7 @@ class CheckoutService
                 'shipping_address' => $shipping,
                 'billing_address' => $billing,
                 'shipping_method' => $shippingMethod,
-                // Cash on delivery: couriers that charge for collecting add their fee.
+                // Cash on delivery: couriers that charge for collecting the money add their fee.
                 'payment_method' => $method,
                 'user' => $user,
                 'email' => $data['email'],

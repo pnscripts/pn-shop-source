@@ -392,9 +392,11 @@
     "{1} Issued 1 gift card and emailed it.|[2,*] Issued :count gift cards and emailed them.": "{1} Издаден е 1 ваучер и е изпратен по имейл.|[2,*] Издадени са :count ваучера и са изпратени по имейл.",
     "Gift card :card had been used: :left of :amount was left when it was cancelled.": "Ваучер :card е бил използван: при анулирането са оставали :left от :amount.",
     "Loading…": "Зареждане…",
-    "The carrier of this order cannot create waybills.": "Куриерът на тази поръчка не създава товарителници.",
+    "The carrier of this order cannot create waybills.": "Куриерът на тази поръчка не може да създава товарителници.",
     "This order has no shipping address.": "Поръчката няма адрес за доставка.",
     "The carrier did not create the waybill: :message": "Куриерът не създаде товарителницата: :message",
     "This shipment already has a waybill.": "Пратката вече има товарителница.",
-    "Waybill :number created.": "Създадена е товарителница :number."
+    "Waybill :number created.": "Създадена е товарителница :number.",
+    "Another parcel of this order is being booked. Try again in a moment.": "В момента се заявява друга пратка по тази поръчка. Опитайте отново след малко.",
+    "The courier can collect at most :amount on this order.": "Куриерът може да събере най-много :amount по тази поръчка."
 }

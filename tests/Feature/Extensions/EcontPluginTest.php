@@ -217,22 +217,29 @@ class EcontPluginTest extends ShippedPluginTestCase
         $this->post(route('checkout.store'), $this->checkoutData($payment->id, ['shipping_method_id' => $method->id, 'shipping' => ['postcode' => '4000', 'city' => 'Plovdiv']]))->assertSessionMissing('error');
 
         $order = Order::query()->sole();
-        // 4.10 for the parcel + 1.50 Econt charges for collecting cash on delivery.
-        $this->assertSame('5.60', (string) Money::ofMinor(collect($order->totals)->firstWhere('code', 'shipping')['amount'] ?? 0, $order->currency)->getAmount());
+        // The test store sells in USD: Econt collects cash on delivery in euro only, so no fee.
+        $this->assertSame('4.10', (string) Money::ofMinor(collect($order->totals)->firstWhere('code', 'shipping')['amount'] ?? 0, $order->currency)->getAmount());
         $this->assertSame('Пловдив Тракия', DB::table('pnshop_econt_order_offices')->where('order_id', $order->id)->value('office_name'));
     }
 
     public function test_cash_on_delivery_adds_econts_fee_to_the_price(): void
     {
-        $this->fakeEcont('7.40', 'USD');
+        $this->fakeEcont('7.40', 'EUR');
         $method = $this->method('address');
-        $request = $this->request('4000');
-        $cod = new ShippingRequest($request->items, $request->subtotal, 'BG', '4000', cashOnDelivery: Money::of('40.00', 'USD'));
+        $item = new CartItemDTO(1, 1, 'Mug', 'mug', '', null, Money::of('20.00', 'EUR'), null, null, null, 2, 1200);
+        $plain = new ShippingRequest(collect([$item]), Money::of('40.00', 'EUR'), 'BG', '4000');
+        $cod = new ShippingRequest(collect([$item]), Money::of('40.00', 'EUR'), 'BG', '4000', cashOnDelivery: Money::of('40.00', 'EUR'));
 
-        $this->assertSame('7.40', (string) app(EcontCarrier::class)->quote($request, $method)?->getAmount());
+        $this->assertSame('7.40', (string) app(EcontCarrier::class)->quote($plain, $method)?->getAmount());
         $this->assertSame('8.90', (string) app(EcontCarrier::class)->quote($cod, $method)?->getAmount());
         Http::assertSent(fn (Request $sent) => str_ends_with($sent->url(), 'createLabel.json')
-            && ($sent['label']['services'] ?? null) == ['cdAmount' => 40, 'cdType' => 'get', 'cdCurrency' => 'USD']);
+            && ($sent['label']['services'] ?? null) == ['cdAmount' => 40, 'cdType' => 'get', 'cdCurrency' => 'EUR']);
+
+        // Econt collects in euro only: a store selling in dollars gets no cash-on-delivery service.
+        $this->assertSame('7.40', (string) app(EcontCarrier::class)->quote(new ShippingRequest($this->request()->items, Money::of('40.00', 'USD'), 'BG', '4000', cashOnDelivery: Money::of('40.00', 'USD')), $method)?->getAmount());
+        $to = PostalAddress::fromArray(['first_name' => 'Ana', 'last_name' => 'Petrova', 'line1' => 'x', 'city' => 'Plovdiv', 'postcode' => '4000', 'country_code' => 'BG']);
+        $this->expectExceptionMessage('Econt collects cash on delivery in euro; this order is in USD.');
+        app(EcontCarrier::class)->shippingLabel(new ShippingLabelRequest('1', $to, null, [], Money::of('10.00', 'USD')), $method);
     }
 
     public function test_waybills_are_created_with_the_receiver_and_the_amount_to_collect(): void

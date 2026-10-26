@@ -7,14 +7,14 @@ use PnShop\Cart\Totals\CartTotals;
 use PnShop\Cart\Totals\ThresholdSubtotal;
 use PnShop\Cart\Totals\TotalLine;
 use PnShop\Customer\PostalAddress;
-use PnShop\Payment\Gateways\CashOnDelivery;
 use PnShop\Payment\Models\PaymentMethod;
 use PnShop\Shipping\Models\ShippingMethod;
 
 /**
  * cart.totals stage: adds the chosen shipping method's price once checkout knows the
  * address (context `shipping_address`) and the method (context `shipping_method`). With a
- * cash-on-delivery payment method (context `payment_method`), couriers add their fee.
+ * cash-on-delivery payment method (context `payment_method`), couriers add their fee for
+ * collecting the amount (CashOnDeliveryAmount).
  */
 class ApplyShipping
 {
@@ -28,17 +28,16 @@ class ApplyShipping
         $method = $totals->context['shipping_method'] ?? null;
 
         if ($address instanceof PostalAddress && $method instanceof ShippingMethod && $address->country_code !== '') {
-            $subtotal = app(ThresholdSubtotal::class)->of($totals);
             $payment = $totals->context['payment_method'] ?? null;
 
             $quote = $this->shipping->quote($method, new ShippingRequest(
                 $totals->items,
-                $subtotal,
+                app(ThresholdSubtotal::class)->of($totals),
                 $address->country_code,
                 $address->postcode,
                 $totals->context['user'] ?? null,
                 $address->city,
-                $payment instanceof PaymentMethod && CashOnDelivery::collects($payment) ? $subtotal : null,
+                CashOnDeliveryAmount::of($totals, $payment instanceof PaymentMethod ? $payment : null),
             ));
 
             if ($quote !== null) {

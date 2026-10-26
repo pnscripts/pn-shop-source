@@ -35,6 +35,9 @@ final class SpeedyCarrier extends Carrier implements ProvidesShippingLabels
 
     private const LEV_RATE = '1.95583';
 
+    /** Speedy collects cash on delivery in Bulgaria's currency. */
+    private const COD_CURRENCY = 'EUR';
+
     public function __construct(private SpeedyClient $client, private SpeedyLocations $locations, private SelectedOffice $selected, private Settings $settings) {}
 
     public function code(): string
@@ -138,10 +141,17 @@ final class SpeedyCarrier extends Carrier implements ProvidesShippingLabels
             throw new SpeedyException('Speedy did not return a shipment number.');
         }
 
-        $pdf = $this->client->pdf('print', [
-            'paperSize' => $method->setting('waybill_paper') === 'A6' ? 'A6' : 'A4',
-            'parcels' => array_map(fn (string $id) => ['parcel' => ['id' => $id]], $parcels === [] ? [$number] : $parcels),
-        ]);
+        // The parcel is booked now: a failed print must not lose it (staff would book it
+        // again). Without the PDF, staff print the waybill on Speedy's website.
+        try {
+            $pdf = $this->client->pdf('print', [
+                'paperSize' => $method->setting('waybill_paper') === 'A6' ? 'A6' : 'A4',
+                'parcels' => array_map(fn (string $id) => ['parcel' => ['id' => $id]], $parcels === [] ? [$number] : $parcels),
+            ]);
+        } catch (SpeedyException $e) {
+            Log::warning('Speedy booked the parcel but did not return the waybill.', ['shipment' => $number, 'error' => $e->getMessage()]);
+            $pdf = null;
+        }
 
         $currency = $request->cashOnDelivery?->getCurrency()->getCurrencyCode() ?? 'EUR';
         $price = is_array($answer['price'] ?? null) ? $this->price(['calculations' => [['price' => $answer['price']]]], $currency) : null;
@@ -158,6 +168,10 @@ final class SpeedyCarrier extends Carrier implements ProvidesShippingLabels
      */
     public function shipmentFor(ShippingLabelRequest $request, ShippingMethod $method): array
     {
+        if ($request->cashOnDelivery !== null && $request->cashOnDelivery->getCurrency()->getCurrencyCode() !== self::COD_CURRENCY) {
+            throw new SpeedyException('Speedy collects cash on delivery in euro; this order is in '.$request->cashOnDelivery->getCurrency()->getCurrencyCode().'.');
+        }
+
         $to = $request->to;
         $company = $to->company !== null && $to->company !== '';
         $phone = trim((string) preg_replace('/[^\d+ ]/', '', (string) $to->phone));
@@ -226,13 +240,13 @@ final class SpeedyCarrier extends Carrier implements ProvidesShippingLabels
 
     /**
      * Speedy's cash-on-delivery service: Speedy collects the amount in cash and charges a
-     * fee for it, which the price then includes.
+     * fee for it, which the price then includes. Euro only.
      *
      * @return array<string, mixed>
      */
     private function cashOnDelivery(?Money $amount): array
     {
-        if ($amount === null || ! $amount->isPositive()) {
+        if ($amount === null || ! $amount->isPositive() || $amount->getCurrency()->getCurrencyCode() !== self::COD_CURRENCY) {
             return [];
         }
 

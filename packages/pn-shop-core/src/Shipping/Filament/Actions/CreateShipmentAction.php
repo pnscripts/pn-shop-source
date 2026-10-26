@@ -2,6 +2,8 @@
 
 namespace PnShop\Shipping\Filament\Actions;
 
+use Brick\Math\RoundingMode;
+use Brick\Money\Money;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -45,8 +47,11 @@ class CreateShipmentAction
                 $held = app(StockAllocations::class)->heldByLocation($record);
                 $location = self::busiest($held);
 
+                $cash = app(Waybills::class)->cashOnDelivery($record);
+
                 return [
                     'waybill' => app(Waybills::class)->carrier($record) !== null,
+                    'cash_on_delivery' => $cash === null ? '0' : (string) $cash->getAmount(),
                     'location' => $location,
                     'quantities' => $remaining($record)->mapWithKeys(fn (OrderItem $item) => [
                         $item->id => count($held) > 1 ? ($held[$location][$item->id] ?? 0) : $item->quantityToShip(),
@@ -80,15 +85,16 @@ class CreateShipmentAction
                         ->all()),
                 Toggle::make('waybill')
                     ->label(fn () => 'Create the waybill with '.($record->shippingMethod?->carrierInstance()?->label() ?? 'the carrier'))
-                    ->helperText(function () use ($record): string {
-                        $cash = app(Waybills::class)->cashOnDelivery($record);
-
-                        return $cash === null
-                            ? 'Its number becomes the tracking number.'
-                            : 'Its number becomes the tracking number. The courier collects '.$cash->formatToLocale(app()->getLocale()).' on delivery.';
-                    })
+                    ->helperText('Its number becomes the tracking number.')
                     ->live()
                     ->visible(fn () => app(Waybills::class)->carrier($record) !== null),
+                TextInput::make('cash_on_delivery')
+                    ->label('Cash on delivery')
+                    ->numeric()
+                    ->minValue(0)
+                    ->prefix($record->currency)
+                    ->helperText(fn () => 'What the courier collects with this parcel: what is still due, less what parcels on their way will collect. At most '.app(Waybills::class)->maximumCashOnDelivery($record)?->formatToLocale(app()->getLocale()).'.')
+                    ->visible(fn (Get $get) => $get('waybill') && app(Waybills::class)->maximumCashOnDelivery($record)?->isPositive()),
                 TextInput::make('tracking_number')->maxLength(100)->visible(fn (Get $get) => ! $get('waybill')),
                 Textarea::make('note')->rows(2)->maxLength(1000),
             ])
@@ -112,36 +118,55 @@ class CreateShipmentAction
                 $label = null;
                 $cash = null;
 
-                if (($data['waybill'] ?? false) && $waybills->carrier($record) !== null) {
-                    try {
-                        $cash = $waybills->cashOnDelivery($record);
-                        $label = $waybills->book($record, $quantities, $location, $cash);
-                    } catch (OrderException $e) {
-                        Notification::make()->danger()->title($e->getMessage())->body('Nothing was shipped. Fix the order or the carrier settings and try again, or switch the waybill off to record the parcel yourself.')->persistent()->send();
-                        $action->halt();
-                    }
-                }
-
-                $tracking = $label !== null ? $label->trackingNumber : ($data['tracking_number'] ?? null);
+                $withWaybill = ($data['waybill'] ?? false) && $waybills->carrier($record) !== null;
 
                 try {
-                    $shipment = app(ShipmentService::class)->ship($record, $quantities, $tracking, $data['note'] ?? null, auth('admin')->user(), $location);
+                    // One booking at a time per order: two tabs cannot book the same parcel twice.
+                    [$shipment, $label] = $waybills->exclusively($record, function () use ($record, $data, $quantities, $location, $waybills, $withWaybill): array {
+                        $label = null;
+                        $cash = null;
+
+                        if ($withWaybill) {
+                            $entered = trim((string) ($data['cash_on_delivery'] ?? ''));
+                            $cash = $waybills->checkedCash($record, $entered === '' ? null : Money::of($entered, $record->currency, roundingMode: RoundingMode::HalfUp));
+
+                            try {
+                                $label = $waybills->book($record, $quantities, $location, $cash);
+                            } catch (OrderException $e) {
+                                throw new OrderException($e->getMessage().' '.'Nothing was shipped. Fix the order or the carrier settings and try again, or switch the waybill off to record the parcel yourself.');
+                            }
+                        }
+
+                        $tracking = $label !== null ? $label->trackingNumber : ($data['tracking_number'] ?? null);
+
+                        try {
+                            $shipment = app(ShipmentService::class)->ship($record, $quantities, $tracking, $data['note'] ?? null, auth('admin')->user(), $location);
+                        } catch (OrderException $e) {
+                            throw new OrderException($label === null ? $e->getMessage() : $e->getMessage().' Waybill '.$label->trackingNumber.' was created at the carrier, but the shipment was not recorded. Cancel the waybill with the carrier, or record the shipment with that tracking number.');
+                        }
+
+                        if ($label !== null) {
+                            $waybills->attach($shipment, $label, $cash);
+                        }
+
+                        return [$shipment, $label];
+                    });
                 } catch (OrderException $e) {
-                    Notification::make()->danger()->title($e->getMessage())
-                        ->body($label === null ? null : 'Waybill '.$label->trackingNumber.' was created at the carrier, but the shipment was not recorded. Cancel the waybill with the carrier, or record the shipment with that tracking number.')
-                        ->persistent()->send();
+                    Notification::make()->danger()->title($e->getMessage())->persistent()->send();
                     $action->halt();
 
                     return;
                 }
 
-                if ($label !== null) {
-                    $waybills->attach($shipment, $label, $cash);
-                }
-
                 $record->refresh();
 
-                Notification::make()->success()->title($label === null ? 'Shipment created.' : 'Shipment created with waybill '.$label->trackingNumber.'.')->send();
+                if ($label === null) {
+                    Notification::make()->success()->title('Shipment created.')->send();
+                } elseif (! $shipment->hasWaybill()) {
+                    Notification::make()->warning()->title('Shipment created with waybill '.$label->trackingNumber.'.')->body('The carrier did not send the document: print the waybill on the carrier\'s website.')->persistent()->send();
+                } else {
+                    Notification::make()->success()->title('Shipment created with waybill '.$label->trackingNumber.'.')->send();
+                }
             });
     }
 
