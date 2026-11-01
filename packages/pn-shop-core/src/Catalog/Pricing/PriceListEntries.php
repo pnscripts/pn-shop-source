@@ -101,7 +101,13 @@ class PriceListEntries
             }
 
             $cells = str_getcsv($line);
-            $rows[] = array_combine($header, array_pad(array_slice($cells, 0, count($header)), count($header), ''));
+            $row = array_combine($header, array_pad(array_slice($cells, 0, count($header)), count($header), ''));
+
+            if (isset($row['sku'])) {
+                $row['sku'] = self::unescapeCell((string) $row['sku']);
+            }
+
+            $rows[] = $row;
         }
 
         return $this->apply($list, $rows);
@@ -121,7 +127,7 @@ class PriceListEntries
             ->orderBy('product_variant_id')
             ->orderBy('min_quantity')
             ->each(function (PriceListEntry $entry) use ($handle): void {
-                fputcsv($handle, [(string) $entry->variant?->sku, $entry->min_quantity, (string) $entry->price->getAmount()]);
+                fputcsv($handle, [self::escapeCell((string) $entry->variant?->sku), $entry->min_quantity, (string) $entry->price->getAmount()]);
             });
 
         rewind($handle);
@@ -129,5 +135,20 @@ class PriceListEntries
         fclose($handle);
 
         return $csv;
+    }
+
+    /**
+     * A cell a spreadsheet would run as a formula (=, +, -, @, tab, CR) gets a leading
+     * apostrophe, so an exported SKU like "=HYPERLINK(...)" stays text in Excel or Calc.
+     */
+    public static function escapeCell(string $value): string
+    {
+        return $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) ? "'".$value : $value;
+    }
+
+    /** Undoes escapeCell() on import, so an exported file can be imported again. */
+    public static function unescapeCell(string $value): string
+    {
+        return strlen($value) > 1 && $value[0] === "'" && in_array($value[1], ['=', '+', '-', '@', "\t", "\r"], true) ? substr($value, 1) : $value;
     }
 }

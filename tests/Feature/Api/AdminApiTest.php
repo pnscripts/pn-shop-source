@@ -66,6 +66,19 @@ class AdminApiTest extends TestCase
         $this->withHeaders($headers)->getJson(self::API.'/me')->assertOk()->assertJsonPath('data.token.abilities', ['catalog.products.view']);
     }
 
+    public function test_token_limits_hold_for_permission_models_and_ids_too(): void
+    {
+        $admin = AdminUser::factory()->withPermissions(['catalog.products.view', 'sales.orders.view'])->create();
+        $token = app(StaffTokens::class)->issue($admin, 'narrow', ['catalog.products.view']);
+        $admin->withAccessToken($token->accessToken);
+        $orders = app(\Spatie\Permission\PermissionRegistrar::class)->getPermissionClass()::findByName('sales.orders.view', 'admin');
+
+        $this->assertTrue($admin->hasPermissionTo('catalog.products.view'));
+        $this->assertFalse($admin->hasPermissionTo('sales.orders.view'));
+        $this->assertFalse($admin->hasPermissionTo($orders));
+        $this->assertFalse($admin->hasPermissionTo($orders->getKey()));
+    }
+
     public function test_a_token_never_exceeds_its_owner(): void
     {
         $owner = AdminUser::factory()->withPermissions(['catalog.products.view'])->create();
@@ -163,6 +176,12 @@ class AdminApiTest extends TestCase
         // The stock fields of the product and variant endpoints need it too.
         $this->withHeaders($headers)->patchJson(self::API."/products/{$product->id}", ['stock' => 99])->assertForbidden();
         $this->withHeaders($headers)->patchJson(self::API.'/variants/'.$product->defaultVariant()->id, ['stock' => 99])->assertForbidden();
+        // Switching stock control off is a stock change too.
+        $this->withHeaders($headers)->patchJson(self::API.'/variants/'.$product->defaultVariant()->id, ['track_inventory' => false])->assertForbidden();
+        $this->withHeaders($headers)->patchJson(self::API.'/variants/'.$product->defaultVariant()->id, ['allow_backorder' => true])->assertForbidden();
+        $this->withHeaders($headers)->postJson(self::API."/products/{$product->id}/variants", ['price' => 5, 'track_inventory' => false])->assertForbidden();
+        $this->assertTrue($product->defaultVariant()->fresh()->track_inventory);
+        $this->assertFalse($product->defaultVariant()->fresh()->allow_backorder);
         $this->withHeaders($headers)->patchJson(self::API."/products/{$product->id}", ['price' => '9.50'])->assertOk();
 
         $this->assertNotSame(99, (int) $product->defaultVariant()->stockLevels()->sum('on_hand'));

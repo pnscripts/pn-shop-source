@@ -17,6 +17,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Permission\Contracts\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -82,7 +83,15 @@ class AdminUser extends Authenticatable implements FilamentUser, HasName
      */
     public function hasPermissionTo($permission, ?string $guardName = null): bool
     {
-        if (is_string($permission) && ! $this->tokenAllows($permission)) {
+        // Whatever form the permission comes in (name, enum, model or id), the token must carry it.
+        $name = match (true) {
+            is_string($permission) => $permission,
+            $permission instanceof \BackedEnum => (string) $permission->value,
+            $permission instanceof Permission => data_get($permission, 'name'),
+            default => app(PermissionRegistrar::class)->getPermissionClass()::query()->whereKey($permission)->value('name'),
+        };
+
+        if (! is_string($name) || ! $this->tokenAllows($name)) {
             return false;
         }
 

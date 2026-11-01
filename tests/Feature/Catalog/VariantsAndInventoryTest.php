@@ -5,6 +5,7 @@ namespace Tests\Feature\Catalog;
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
 use PnShop\Catalog\Exceptions\InvalidVariant;
+use PnShop\Acl\Models\AdminUser;
 use PnShop\Catalog\Filament\Resources\Options\Pages\CreateOption;
 use PnShop\Catalog\Filament\Resources\Products\Pages\EditProduct;
 use PnShop\Catalog\Filament\Resources\Products\RelationManagers\StockHistoryRelationManager;
@@ -199,6 +200,19 @@ class VariantsAndInventoryTest extends AdminTestCase
 
         $this->assertSame('14.00', (string) $large->fresh()->price->getAmount());
         $this->assertSame(6, $large->fresh()->available());
+    }
+
+    public function test_product_editors_without_inventory_rights_cannot_switch_stock_control_off(): void
+    {
+        $this->actingAs(AdminUser::factory()->withPermissions(['catalog.products.view', 'catalog.products.update'])->create(), 'admin');
+        [$product, $small] = $this->tShirt();
+
+        Livewire::test(VariantsRelationManager::class, ['ownerRecord' => $product->fresh(), 'pageClass' => EditProduct::class])
+            ->callTableAction('edit', $small, ['option_'.$product->options->first()->id => $small->optionValues->first()->id, 'price' => '31.00', 'is_active' => true, 'track_inventory' => false, 'allow_backorder' => true]);
+
+        $this->assertSame('31.00', (string) $small->fresh()->price->getAmount());
+        $this->assertTrue($small->fresh()->track_inventory);
+        $this->assertFalse($small->fresh()->allow_backorder);
     }
 
     public function test_duplicate_option_combinations_are_rejected(): void

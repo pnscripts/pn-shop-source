@@ -253,7 +253,12 @@ class Waybills
             return Storage::disk('local')->download($shipment->label_path, 'waybill-'.$name.'.pdf', ['Content-Type' => 'application/pdf']);
         }
 
-        return $shipment->label_url !== null ? redirect()->away($shipment->label_url) : null;
+        // Only to a secure web address the carrier gave (never javascript:, data: or http:).
+        $url = (string) $shipment->label_url;
+
+        return str_starts_with(strtolower($url), 'https://') && filter_var($url, FILTER_VALIDATE_URL) !== false
+            ? redirect()->away($url)
+            : null;
     }
 
     private function senderAddress(?StockLocation $location): ?PostalAddress

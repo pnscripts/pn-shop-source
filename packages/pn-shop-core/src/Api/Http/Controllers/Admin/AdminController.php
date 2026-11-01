@@ -21,12 +21,13 @@ use PnShop\Localization\Models\Language;
 abstract class AdminController extends ApiController
 {
     /**
-     * Setting stock through a product or variant field needs the same permission as the
-     * stock endpoint, not only the right to edit the product.
+     * Setting stock, or switching stock control off (track_inventory, allow_backorder),
+     * through a product or variant field needs the same permission as the stock endpoint,
+     * not only the right to edit the product.
      */
     protected function authorizeStock(Request $request): void
     {
-        if ($request->has('stock')) {
+        if ($request->hasAny(['stock', 'track_inventory', 'allow_backorder'])) {
             Gate::authorize('catalog.inventory.manage');
         }
     }

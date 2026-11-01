@@ -373,6 +373,18 @@ class WaybillsTest extends AdminTestCase
         $this->assertFalse(app(Waybills::class)->canCreateFor($shipment));
     }
 
+    public function test_the_waybill_link_opens_only_secure_web_addresses(): void
+    {
+        $order = $this->order();
+        $shipment = fn (string $url) => Shipment::query()->create(['order_id' => $order->id, 'label_url' => $url]);
+
+        $this->assertSame('https://courier.example/waybills/1.pdf', app(Waybills::class)->download($shipment('https://courier.example/waybills/1.pdf'))?->headers->get('Location'));
+
+        foreach (['javascript:alert(1)', 'http://courier.example/1.pdf', 'data:text/html,<b>x</b>', '//evil.example/1.pdf'] as $url) {
+            $this->assertNull(app(Waybills::class)->download($shipment($url)), $url);
+        }
+    }
+
     public function test_no_fee_when_gift_cards_or_store_credit_leave_nothing_to_collect(): void
     {
         $mug = Product::factory()->active()->create(['price' => '10.00', 'sale_price' => null, 'stock' => 5]);

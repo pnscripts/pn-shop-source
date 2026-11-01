@@ -58,6 +58,27 @@ class PriceListAdminTest extends AdminTestCase
         $this->assertSame(2, $list->entries()->count());
     }
 
+    public function test_the_export_keeps_formula_like_skus_as_text_and_imports_them_back(): void
+    {
+        $this->actingAsStaff(['catalog.prices.manage']);
+        $this->product('=HYPERLINK("https://example.test","x")', '10.00');
+        $this->product('-LAMP', '10.00');
+        $list = PriceList::query()->create(['name' => 'Trade', 'currency' => 'USD', 'is_active' => true]);
+
+        app(PriceListEntries::class)->importCsv($list, "sku,min_quantity,price\n\"=HYPERLINK(\"\"https://example.test\"\",\"\"x\"\")\",1,8\n-LAMP,1,7\n");
+        $this->assertSame(2, $list->entries()->count());
+
+        $export = app(PriceListEntries::class)->exportCsv($list);
+        $this->assertStringContainsString("\"'=HYPERLINK(", $export);
+        $this->assertStringContainsString("'-LAMP,1,7.00", $export);
+        $this->assertStringNotContainsString("\n=", $export);
+
+        // The exported file imports again unchanged.
+        $result = app(PriceListEntries::class)->importCsv($list, $export);
+        $this->assertSame([], $result['errors'] ?? []);
+        $this->assertSame(2, $list->entries()->count());
+    }
+
     public function test_the_import_reports_rows_it_cannot_use(): void
     {
         $this->product('LAMP-1', '100.00');

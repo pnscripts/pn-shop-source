@@ -74,8 +74,13 @@ class VariantsRelationManager extends RelationManager
                 ->dehydrated(fn () => ProductForm::canManageStock())
                 ->helperText('Changes are recorded in the stock history.'),
             Toggle::make('is_active')->label('Available')->default(true),
-            Toggle::make('track_inventory')->label('Track stock')->default(true),
-            Toggle::make('allow_backorder')->label('Sell when out of stock'),
+            // Switching stock control off is a stock change too (catalog.inventory.manage).
+            Toggle::make('track_inventory')->label('Track stock')->default(true)
+                ->disabled(fn () => ! ProductForm::canManageStock())
+                ->dehydrated(fn () => ProductForm::canManageStock()),
+            Toggle::make('allow_backorder')->label('Sell when out of stock')
+                ->disabled(fn () => ! ProductForm::canManageStock())
+                ->dehydrated(fn () => ProductForm::canManageStock()),
             TextInput::make('low_stock_threshold')->label('Low stock at')->integer()->minValue(0)
                 ->placeholder((string) LowStockProducts::THRESHOLD)
                 ->helperText('The dashboard lists the variant when this many units or fewer are left. Empty: '.LowStockProducts::THRESHOLD.'.'),
