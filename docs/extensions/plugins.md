@@ -28,6 +28,7 @@ Plugins add features without changing PN Shop's own code. The extension manager 
     "autoload": { "psr-4": { "Acme\\StoreNotice\\": "src/" } },
     "permissions": [{ "key": "store_notice.manage", "label": "Manage the store notice" }],
     "settings": [{ "key": "text", "type": "text", "label": "Notice", "default": "" }],
+    "settings_permission": "store_notice.manage",
     "author": "Acme Ltd",
     "license": "MIT"
 }
@@ -41,6 +42,7 @@ Plugins add features without changing PN Shop's own code. The extension manager 
   - permission keys are dotted;
   - setting types are known.
 - **Settings:** they appear as a tab in Admin → Settings, stored under `plugin.<vendor_name>` (e.g. `plugin.acme_store_notice.text`).
+- **Who edits the settings (since 1.11.1):** `settings_permission` names a permission staff need besides *Manage settings* to see and change the tab, in the admin and the Admin API. Payment gateways use `store.payment_methods.manage`, couriers `store.shipping.manage`. A plugin with `secret` settings that names none needs `system.extensions.manage`, so a settings editor can never swap the shop's API keys for their own.
 - **Permissions:** they join the role editor like core permissions.
 
 ## Lifecycle

@@ -2,6 +2,19 @@
 
 All notable changes to PN Shop. The project follows [semantic versioning](https://semver.org/): breaking changes to plugin and theme contracts come only in major versions and are announced one minor version ahead.
 
+## 1.11.1 (2026-11-01)
+
+No migrations; update with `composer update pnscripts/pn-shop-core` and copy the updated plugins (`paypal` 1.0.2, `stripe` 1.0.4, `econt` 1.0.1, `speedy` 1.0.1) from the released skeleton into `extensions/pnshop/`. Fixes from an independent security review.
+
+### Security
+
+- **PayPal webhooks** (plugin 1.0.2): a signed capture event is only a hint; the capture is read back from PayPal's API before an order is marked paid. The signing certificate is fetched only from PayPal's API hosts, never through a redirect, and must be a valid certificate issued to a paypal.com name.
+- **Payment and courier credentials:** the settings tabs of Stripe and PayPal also need *Manage payment methods*, those of Econt and Speedy *Manage shipping*, in the admin and the Admin API. Before, any staff account with *Manage settings* could replace a gateway's keys with its own. Plugins name the permission with `settings_permission`; a plugin with secret settings that names none needs *Manage extensions*.
+- **Stock control:** *Track stock* and *Sell when out of stock* need *Manage inventory*, like the stock fields (admin and Admin API `track_inventory` / `allow_backorder`).
+- **Price list export:** SKUs that a spreadsheet would run as a formula are exported as text (leading apostrophe); the import reads them back unchanged.
+- **Waybill links:** the download opens a courier's link only when it is an `https` address.
+- **API tokens:** a token's limits also apply when code checks a permission by model, enum or id, not only by name.
+
 ## 1.11.0 (2026-10-26)
 
 One core migration (waybill fields on `shipments`; the new plugins bring their own). See the [upgrade notes](docs/upgrades/2026-10-release-1.11.md).

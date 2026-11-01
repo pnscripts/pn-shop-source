@@ -11,8 +11,9 @@ How PN Shop protects the shop, and the settings that matter in production.
   - Staff can only give what they hold themselves: they cannot assign roles or add permissions beyond their own.
   - Staff who manage accounts can only change (email, password, roles) or delete accounts that hold nothing they do not hold themselves. Only administrators can change administrator accounts.
   - **Strict authorization:** the admin panel runs in Filament's strict authorization mode. Every resource and relation manager (core and plugins) has a policy; payments, refunds, shipments, order history, stock movements, ledgers and the activity log use read-only policies and change only through their services. A screen or action without a policy fails closed. `tests/Feature/Security/AdminAuthorizationCoverageTest.php` walks every registered screen.
-  - Stock changes need `catalog.inventory.manage`, in the product and variant forms and in the Admin API's `stock` fields as well as its stock endpoint.
-- **API tokens:** Admin API tokens carry a chosen subset of their owner's permissions, and every call also checks the owner's current permissions.
+  - Stock changes need `catalog.inventory.manage`, in the product and variant forms and in the Admin API's `stock` fields as well as its stock endpoint. Switching stock control off (*Track stock*, *Sell when out of stock*) counts as a stock change.
+  - Payment and courier credentials need the matching store permission besides *Manage settings*: Stripe and PayPal `store.payment_methods.manage`, Econt and Speedy `store.shipping.manage`, other plugins with secrets `system.extensions.manage` unless they name one (`settings_permission`).
+- **API tokens:** Admin API tokens carry a chosen subset of their owner's permissions, and every call also checks the owner's current permissions, however the permission is checked (name, model or id).
   - Store API tokens are customer-only.
   - Both APIs use bearer tokens only, never cookies, so there is no CSRF exposure.
 - **New passwords:** changing or resetting a customer's password signs out their other browsers and "remember me" logins and revokes their Store API tokens. Deleting an account revokes its tokens.
