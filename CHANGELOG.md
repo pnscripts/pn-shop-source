@@ -14,6 +14,7 @@ No migrations; update with `composer update pnscripts/pn-shop-core` and copy the
 - **Price list export:** SKUs that a spreadsheet would run as a formula are exported as text (leading apostrophe); the import reads them back unchanged.
 - **Waybill links:** the download opens a courier's link only when it is an `https` address.
 - **API tokens:** a token's limits also apply when code checks a permission by model, enum or id, not only by name.
+- **Dependency:** symfony/mime 8.1.10 (CVE-2026-45070, email header injection through MIME parameter names).
 
 ## 1.11.0 (2026-10-26)
 
