@@ -56,27 +56,54 @@ class PayPalClient
         return $this->send('get', $path, [], []);
     }
 
+    /** The hosts PayPal serves its webhook signing certificates from. */
+    public const CERT_HOSTS = ['api.paypal.com', 'api.sandbox.paypal.com', 'api-m.paypal.com', 'api-m.sandbox.paypal.com'];
+
     /**
-     * The PEM certificate PayPal signs a webhook with, from PayPal's own domain only;
-     * cached for a day.
+     * The PEM certificate PayPal signs a webhook with: only from PayPal's API hosts, never
+     * through a redirect, and only a certificate issued to a paypal.com name; cached for a day.
      */
     public function certificate(string $url): ?string
     {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
 
-        if (parse_url($url, PHP_URL_SCHEME) !== 'https' || ! ($host === 'paypal.com' || str_ends_with($host, '.paypal.com'))) {
+        if (parse_url($url, PHP_URL_SCHEME) !== 'https' || ! in_array($host, self::CERT_HOSTS, true)
+            || parse_url($url, PHP_URL_PORT) !== null || parse_url($url, PHP_URL_USER) !== null) {
             return null;
         }
 
         return Cache::remember('pnshop.paypal.cert.'.sha1($url), now()->addDay(), function () use ($url) {
             try {
-                $response = Http::timeout(10)->get($url);
+                $response = Http::timeout(10)->withoutRedirecting()->get($url);
             } catch (ConnectionException) {
                 return null;
             }
 
-            return $response->successful() && str_contains($response->body(), 'BEGIN CERTIFICATE') ? $response->body() : null;
+            $pem = $response->status() === 200 ? $response->body() : '';
+
+            return self::issuedToPayPal($pem) ? $pem : null;
         });
+    }
+
+    /** A parseable, currently valid certificate whose common name is a paypal.com host. */
+    public static function issuedToPayPal(string $pem): bool
+    {
+        if (! str_contains($pem, 'BEGIN CERTIFICATE')) {
+            return false;
+        }
+
+        $info = @openssl_x509_parse($pem);
+
+        if (! is_array($info)) {
+            return false;
+        }
+
+        $name = strtolower((string) ($info['subject']['CN'] ?? ''));
+        $now = time();
+
+        return str_ends_with($name, '.paypal.com')
+            && (int) ($info['validFrom_time_t'] ?? PHP_INT_MAX) <= $now
+            && (int) ($info['validTo_time_t'] ?? 0) >= $now;
     }
 
     /**

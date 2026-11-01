@@ -67,7 +67,7 @@ class PayPalController
             match ((string) ($event['event_type'] ?? '')) {
                 // Approved but the customer never came back: capture it now.
                 'CHECKOUT.ORDER.APPROVED' => $this->approved($resource, $confirmation),
-                'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DECLINED', 'PAYMENT.CAPTURE.DENIED' => $this->captured($resource, $confirmation),
+                'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DECLINED', 'PAYMENT.CAPTURE.DENIED' => $this->captured($resource, $paypal, $confirmation),
                 default => null,
             };
         } catch (PayPalException $e) {
@@ -93,15 +93,32 @@ class PayPalController
     }
 
     /**
-     * @param  array<string, mixed>  $capture
+     * A capture event is only a hint: the capture itself is read back from PayPal's API
+     * (authenticated), so a forged or replayed event can never mark an order paid.
+     *
+     * @param  array<string, mixed>  $event
      */
-    private function captured(array $capture, PayPalConfirmation $confirmation): void
+    private function captured(array $event, PayPalClient $paypal, PayPalConfirmation $confirmation): void
     {
-        $payment = Payment::query()->where('gateway', 'paypal')->find((int) ($capture['custom_id'] ?? 0));
+        $captureId = (string) ($event['id'] ?? '');
+
+        if (preg_match('/^[A-Z0-9]{5,40}$/', $captureId) !== 1) {
+            return;
+        }
+
+        $payment = Payment::query()->where('gateway', 'paypal')->find((int) ($event['custom_id'] ?? 0));
+
+        if ($payment === null) {
+            return;
+        }
+
+        $capture = $paypal->get('/v2/payments/captures/'.$captureId);
         $orderId = $capture['supplementary_data']['related_ids']['order_id'] ?? null;
 
         // The capture belongs to the PayPal order of this payment (or is its recorded capture).
-        if ($payment !== null && ($payment->reference === $orderId || $payment->reference === ($capture['id'] ?? null))) {
+        if (($capture['id'] ?? null) === $captureId
+            && (string) ($capture['custom_id'] ?? '') === (string) $payment->id
+            && ($payment->reference === $orderId || $payment->reference === $captureId)) {
             $confirmation->apply($payment, $capture, 'webhook');
         }
     }

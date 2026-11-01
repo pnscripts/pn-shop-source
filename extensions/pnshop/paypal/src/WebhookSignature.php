@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 /**
  * PayPal's webhook signature, checked locally: an RSA-SHA256 signature over
  * "transmission id|transmission time|webhook id|CRC32 of the raw body", made with the
- * certificate at PAYPAL-CERT-URL (accepted from paypal.com only).
+ * certificate at PAYPAL-CERT-URL (only from PayPal's API hosts, see PayPalClient::certificate()).
  */
 class WebhookSignature
 {

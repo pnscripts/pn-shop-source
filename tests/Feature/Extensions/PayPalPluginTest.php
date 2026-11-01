@@ -199,10 +199,55 @@ class PayPalPluginTest extends AdminTestCase
             'custom_id' => (string) $payment->id,
             'supplementary_data' => ['related_ids' => ['order_id' => self::ORDER_ID]],
         ]]);
+        $this->fakeCaptureLookup($payment, 'COMPLETED', '24.00');
         $this->webhook((string) $body)->assertOk();
 
         $this->assertSame(PaymentState::Paid, $payment->fresh()->status);
         $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+        Http::assertSent(fn (Request $request) => $request->method() === 'GET' && $request->url() === self::API.'/v2/payments/captures/'.self::CAPTURE_ID);
+    }
+
+    public function test_a_capture_event_is_checked_against_paypal_before_it_pays(): void
+    {
+        $order = $this->checkout();
+        $payment = $order->payments()->sole();
+        $this->fakeCapture($payment, status: 'PENDING');
+        $this->get('/paypal/return/'.$payment->id.'?token='.self::ORDER_ID);
+
+        // A correctly signed event claims completion, but PayPal still reports the capture pending.
+        $this->fakeCaptureLookup($payment, 'PENDING', '24.00');
+        $body = json_encode(['id' => 'WH-3', 'event_type' => 'PAYMENT.CAPTURE.COMPLETED', 'resource' => [
+            ...$this->capture('COMPLETED', '24.00'),
+            'custom_id' => (string) $payment->id,
+            'supplementary_data' => ['related_ids' => ['order_id' => self::ORDER_ID]],
+        ]]);
+        $this->webhook((string) $body)->assertOk();
+
+        $this->assertSame(PaymentState::Pending, $payment->fresh()->status);
+        $this->assertNotSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+    }
+
+    public function test_the_signing_certificate_comes_only_from_paypal_api_hosts_without_redirects(): void
+    {
+        $paypal = app(PayPalClient::class);
+
+        $this->assertNull($paypal->certificate('https://www.paypal.com/v1/notifications/certs/CERT-1'));
+        $this->assertNull($paypal->certificate('https://evil.paypal.com.example/cert'));
+        $this->assertNull($paypal->certificate('http://api.paypal.com/v1/notifications/certs/CERT-1'));
+        $this->assertNull($paypal->certificate('https://api.paypal.com:8443/v1/notifications/certs/CERT-1'));
+
+        $redirecting = 'https://api.paypal.com/v1/notifications/certs/CERT-redirect';
+        Http::fake([$redirecting => Http::response('', 302, ['Location' => 'https://evil.example/cert.pem'])]);
+        $this->assertNull($paypal->certificate($redirecting));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'evil.example'));
+
+        $foreign = 'https://api.paypal.com/v1/notifications/certs/CERT-foreign';
+        $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        openssl_x509_export(openssl_csr_sign(openssl_csr_new(['commonName' => 'attacker.example'], $key), null, $key, 1), $pem);
+        Http::fake([$foreign => Http::response($pem)]);
+        $this->assertNull($paypal->certificate($foreign));
+
+        $this->assertNotNull($paypal->certificate(self::CERT_URL));
     }
 
     public function test_refunds_go_to_paypal(): void
@@ -267,6 +312,15 @@ class PayPalPluginTest extends AdminTestCase
             'status' => $status === 'COMPLETED' ? 'COMPLETED' : 'APPROVED',
             'purchase_units' => [['custom_id' => (string) $payment->id, 'payments' => ['captures' => [$this->capture($status, $value)]]]],
         ], 201)]);
+    }
+
+    private function fakeCaptureLookup(Payment $payment, string $status, string $value): void
+    {
+        Http::fake([self::API.'/v2/payments/captures/'.self::CAPTURE_ID => Http::response([
+            ...$this->capture($status, $value),
+            'custom_id' => (string) $payment->id,
+            'supplementary_data' => ['related_ids' => ['order_id' => self::ORDER_ID]],
+        ])]);
     }
 
     /** @return array<string, mixed> */
