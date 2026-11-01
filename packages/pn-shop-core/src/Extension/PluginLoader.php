@@ -159,7 +159,7 @@ final class PluginLoader
         ));
 
         if ($manifest->settings !== []) {
-            $this->app->make(SettingsRegistry::class)->register(new SettingsSchema(
+            $schema = new SettingsSchema(
                 'plugin.'.$manifest->key(),
                 $manifest->name,
                 ...array_map(fn (array $setting) => new SettingDefinition(
@@ -173,7 +173,11 @@ final class PluginLoader
                     // Extra validation rules, e.g. ["date_format:Y-m-d"] (since 1.11).
                     rules: array_values(array_filter((array) ($setting['rules'] ?? []), 'is_string')),
                 ), $manifest->settings),
-            ));
+            );
+
+            $schema->requires(self::settingsPermission($manifest));
+
+            $this->app->make(SettingsRegistry::class)->register($schema);
         }
 
         $this->app->register($provider);
@@ -191,6 +195,18 @@ final class PluginLoader
     public function manifestFor(string $provider): ?Manifest
     {
         return $this->byProvider[$provider] ?? null;
+    }
+
+    /**
+     * Who may edit a plugin's settings tab besides system.settings.manage: the manifest's
+     * settings_permission, else, for a plugin with secrets (API keys, passwords), only staff
+     * who may manage extensions.
+     */
+    public static function settingsPermission(Manifest $manifest): ?string
+    {
+        $hasSecrets = collect($manifest->settings)->contains(fn (array $setting) => ($setting['type'] ?? null) === SettingType::Secret->value);
+
+        return $manifest->settingsPermission ?? ($hasSecrets ? 'system.extensions.manage' : null);
     }
 
     /**

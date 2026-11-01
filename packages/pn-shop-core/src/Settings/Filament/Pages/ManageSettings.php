@@ -17,6 +17,7 @@ use PnShop\Settings\Filament\SettingField;
 use PnShop\Settings\SettingDefinition;
 use PnShop\Settings\Settings;
 use PnShop\Settings\SettingsRegistry;
+use PnShop\Settings\SettingsSchema;
 use UnitEnum;
 
 /**
@@ -49,10 +50,8 @@ class ManageSettings extends Page
         $settings = app(Settings::class);
         $state = [];
 
-        foreach (app(SettingsRegistry::class)->all() as $namespace => $schema) {
-            if (! $schema->isHidden()) {
-                $state[self::stateKey($namespace)] = $settings->namespace($namespace);
-            }
+        foreach (self::editableSchemas() as $namespace => $schema) {
+            $state[self::stateKey($namespace)] = $settings->namespace($namespace);
         }
 
         $this->form->fill($state);
@@ -63,7 +62,7 @@ class ManageSettings extends Page
         $tabs = [];
 
         // Core settings first, then the plugins' tabs.
-        $schemas = collect(app(SettingsRegistry::class)->all())->reject(fn ($settingsSchema) => $settingsSchema->isHidden())->sortBy(fn ($settingsSchema, string $namespace) => str_starts_with($namespace, 'plugin.') ? 1 : 0, SORT_NUMERIC);
+        $schemas = collect(self::editableSchemas())->sortBy(fn ($settingsSchema, string $namespace) => str_starts_with($namespace, 'plugin.') ? 1 : 0, SORT_NUMERIC);
 
         foreach ($schemas as $namespace => $settingsSchema) {
             $tabs[] = Tab::make($settingsSchema->label)
@@ -98,11 +97,7 @@ class ManageSettings extends Page
         $state = $this->form->getState();
         $settings = app(Settings::class);
 
-        foreach (app(SettingsRegistry::class)->all() as $namespace => $schema) {
-            if ($schema->isHidden()) {
-                continue;
-            }
-
+        foreach (self::editableSchemas() as $namespace => $schema) {
             $values = $state[self::stateKey($namespace)] ?? [];
 
             if ($values !== []) {
@@ -113,6 +108,22 @@ class ManageSettings extends Page
         activity('settings')->log('Settings updated');
 
         Notification::make()->success()->title('Settings saved.')->send();
+    }
+
+    /**
+     * The visible groups this staff account may change: a payment gateway's keys, for
+     * example, also need store.payment_methods.manage.
+     *
+     * @return array<string, SettingsSchema>
+     */
+    private static function editableSchemas(): array
+    {
+        $admin = auth('admin')->user();
+
+        return array_filter(
+            app(SettingsRegistry::class)->all(),
+            fn (SettingsSchema $schema) => ! $schema->isHidden() && $schema->editableBy($admin),
+        );
     }
 
     private static function stateKey(string $namespace): string

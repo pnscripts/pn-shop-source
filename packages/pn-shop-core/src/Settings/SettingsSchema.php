@@ -2,6 +2,7 @@
 
 namespace PnShop\Settings;
 
+use Illuminate\Contracts\Auth\Access\Authorizable;
 use InvalidArgumentException;
 
 /**
@@ -14,6 +15,9 @@ final class SettingsSchema
 
     /** Internal state kept out of the settings page (e.g. the active theme). */
     private bool $hidden = false;
+
+    /** A permission needed, besides system.settings.manage, to see and change this group. */
+    private ?string $permission = null;
 
     public function __construct(
         public readonly string $namespace,
@@ -34,6 +38,26 @@ final class SettingsSchema
         $this->hidden = true;
 
         return $this;
+    }
+
+    public function requires(?string $permission): self
+    {
+        $this->permission = $permission;
+
+        return $this;
+    }
+
+    public function permission(): ?string
+    {
+        return $this->permission;
+    }
+
+    /** Whether this staff account may see and change the group in the admin and the Admin API. */
+    public function editableBy(?Authorizable $admin): bool
+    {
+        return $admin !== null
+            && $admin->can('system.settings.manage')
+            && ($this->permission === null || $admin->can($this->permission));
     }
 
     public function isHidden(): bool

@@ -2,11 +2,12 @@
     "id": "pnshop/stripe",
     "name": "Stripe",
     "description": "Card and wallet payments with Stripe Checkout: redirect to Stripe, confirmation by webhook, refunds from the admin.",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "type": "plugin",
     "requires": { "pnshop": "^1.0", "php": ">=8.4" },
     "provider": "PnShop\\Plugins\\Stripe\\StripePlugin",
     "autoload": { "psr-4": { "PnShop\\Plugins\\Stripe\\": "src/" } },
+    "settings_permission": "store.payment_methods.manage",
     "settings": [
         { "key": "secret_key", "type": "secret", "label": "Secret key", "help": "From the Stripe dashboard → Developers → API keys. Use a test key (sk_test_…) until you go live." },
         { "key": "webhook_secret", "type": "secret", "label": "Webhook signing secret", "help": "Create a webhook to https://your-shop/stripe/webhook for checkout.session.* events and paste its whsec_… secret." }

@@ -32,7 +32,7 @@ class SettingsController extends AdminController
 
         return ['data' => array_values(array_map(
             fn (SettingsSchema $schema) => $this->present($schema),
-            array_filter($this->registry->all(), fn (SettingsSchema $schema) => ! $schema->isHidden()),
+            array_filter($this->registry->all(), fn (SettingsSchema $schema) => ! $schema->isHidden() && $schema->editableBy(request()->user())),
         ))];
     }
 
@@ -80,6 +80,8 @@ class SettingsController extends AdminController
         $schema = $this->registry->schema($namespace);
 
         abort_if($schema === null || $schema->isHidden(), 404);
+        // E.g. a payment gateway's keys also need store.payment_methods.manage.
+        abort_unless($schema->editableBy(request()->user()), 403);
 
         return $schema;
     }

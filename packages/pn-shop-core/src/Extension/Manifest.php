@@ -20,6 +20,7 @@ use Throwable;
  *       "autoload": { "psr-4": { "Acme\\StoreNotice\\": "src/" } },
  *       "permissions": [{ "key": "store_notice.manage", "label": "Manage the store notice" }],
  *       "settings": [{ "key": "text", "type": "string", "label": "Notice text" }],
+ *       "settings_permission": "store_notice.manage",
  *       "storefront": "dist/storefront.js"
  *     }
  *
@@ -54,6 +55,7 @@ final readonly class Manifest
         public ?string $author = null,
         public ?string $license = null,
         public ?string $storefront = null,
+        public ?string $settingsPermission = null,
     ) {}
 
     /**
@@ -169,6 +171,13 @@ final readonly class Manifest
             $settings[] = $setting;
         }
 
+        // The permission (besides system.settings.manage) that edits this plugin's settings
+        // tab, e.g. "store.payment_methods.manage" for a gateway's keys (since 1.11.1).
+        $settingsPermission = $string('settings_permission');
+        if ($settingsPermission !== null && preg_match('/^[a-z0-9_]+(\.[a-z0-9_]+)+$/', $settingsPermission) !== 1) {
+            $errors[] = 'settings_permission must be a dotted permission key (e.g. "store.payment_methods.manage").';
+        }
+
         $storefront = $string('storefront');
         // In a folder of its own (e.g. dist/), which is published to public/: never the plugin root.
         if ($storefront !== null && (! str_ends_with($storefront, '.js') || ! str_contains($storefront, '/') || str_contains($storefront, '..') || str_starts_with($storefront, '/') || ! is_file(rtrim($path, '/').'/'.$storefront) && $path !== 'archive')) {
@@ -195,6 +204,7 @@ final readonly class Manifest
             author: is_string($data['author'] ?? null) ? $data['author'] : null,
             license: $string('license'),
             storefront: $storefront,
+            settingsPermission: $settingsPermission,
         );
     }
 
