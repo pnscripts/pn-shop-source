@@ -19,6 +19,7 @@ use PnShop\Returns\ReturnService;
 use PnShop\Sales\Models\Order;
 use PnShop\Sales\States\OrderStatus;
 use PnShop\Settings\Settings;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class AdminApiTest extends TestCase
@@ -71,7 +72,7 @@ class AdminApiTest extends TestCase
         $admin = AdminUser::factory()->withPermissions(['catalog.products.view', 'sales.orders.view'])->create();
         $token = app(StaffTokens::class)->issue($admin, 'narrow', ['catalog.products.view']);
         $admin->withAccessToken($token->accessToken);
-        $orders = app(\Spatie\Permission\PermissionRegistrar::class)->getPermissionClass()::findByName('sales.orders.view', 'admin');
+        $orders = app(PermissionRegistrar::class)->getPermissionClass()::findByName('sales.orders.view', 'admin');
 
         $this->assertTrue($admin->hasPermissionTo('catalog.products.view'));
         $this->assertFalse($admin->hasPermissionTo('sales.orders.view'));

@@ -4,8 +4,8 @@ namespace Tests\Feature\Catalog;
 
 use Inertia\Testing\AssertableInertia as Assert;
 use Livewire\Livewire;
-use PnShop\Catalog\Exceptions\InvalidVariant;
 use PnShop\Acl\Models\AdminUser;
+use PnShop\Catalog\Exceptions\InvalidVariant;
 use PnShop\Catalog\Filament\Resources\Options\Pages\CreateOption;
 use PnShop\Catalog\Filament\Resources\Products\Pages\EditProduct;
 use PnShop\Catalog\Filament\Resources\Products\RelationManagers\StockHistoryRelationManager;
