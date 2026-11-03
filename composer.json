@@ -13,6 +13,13 @@
         "pn-shop"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "PN Scripts",
+            "email": "office@pnscripts.com",
+            "homepage": "https://pnscripts.com"
+        }
+    ],
     "require": {
         "php": "^8.4",
         "pnscripts/pn-shop-core": "^1.1@dev",
