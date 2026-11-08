@@ -3,6 +3,7 @@
 namespace PnShop\Storefront\Http\Middleware;
 
 use Closure;
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PnShop\Customer\CustomerAccounts;
@@ -20,6 +21,9 @@ class KeepCustomersInTheirChannel
 
     public function handle(Request $request, Closure $next): Response
     {
+        // The host application decides which driver the "web" guard uses, so only a guard that
+        // can sign out a single device (the session guard) is asked to.
+        /** @var Guard $guard */
         $guard = Auth::guard('web');
         $customer = $guard->user();
 
