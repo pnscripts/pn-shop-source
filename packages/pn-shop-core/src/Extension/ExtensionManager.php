@@ -435,11 +435,11 @@ class ExtensionManager
                 continue;
             }
 
-            // The migrator resolves anonymous and named migration classes alike.
+            // The migrator resolves anonymous and named migration classes alike, always to an object.
             $instance = (fn (string $path) => $this->resolvePath($path))->call($this->migrator, $files[$migration]);
 
             try {
-                if (is_object($instance) && method_exists($instance, 'down')) {
+                if (method_exists($instance, 'down')) {
                     $instance->down();
                 }
             } finally {
