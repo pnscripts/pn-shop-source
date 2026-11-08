@@ -23,7 +23,7 @@
         "@types/react": "^19.0.3",
         "@types/react-dom": "^19.0.2",
         "@vitejs/plugin-react": "^6.1.1",
-        "concurrently": "^10.0.5",
+        "concurrently": "^10.0.7",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-react": "^7.37.3",
@@ -35,8 +35,8 @@
         "prettier-plugin-tailwindcss": "^0.8.1",
         "tailwindcss": "^4.0.0",
         "typescript": "^5.7.2",
-        "typescript-eslint": "^8.71.0",
-        "vite": "^8.3.2"
+        "typescript-eslint": "^8.72.1",
+        "vite": "^8.3.6"
     },
     "dependencies": {
         "@headlessui/react": "^2.2.0",
@@ -65,5 +65,10 @@
     "optionalDependencies": {
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
+    },
+    "overrides": {
+        "@typescript-eslint/typescript-estree": {
+            "minimatch": "^11.0.1"
+        }
     }
 }

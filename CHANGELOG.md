@@ -7,6 +7,7 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 ### Dependencies
 
 - laravel/framework 13.40, phpunit 13.4.6, larastan 3.14, telescope 5.27, scramble 0.13.53; @inertiajs/react 3.11, lucide-react 1.70, the Radix UI packages updated together; setup-php 2.40.0 and setup-node 7.1.0 in CI.
+- Development tools: vite 8.3.6, concurrently 10.0.7 (shell-quote 1.12), typescript-eslint 8.72 with minimatch 11 (pinned through `overrides` until typescript-eslint allows it), zod 4.6.7. CI now audits the development tools too (`npm audit --audit-level=high`) and the shipped packages at moderate level; `scripts/release/check.sh` runs every CI check locally.
 - Dependabot proposes minor and patch updates once a week in one pull request per ecosystem, and security updates as soon as they are published.
 
 ### Fixed

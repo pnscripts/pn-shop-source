@@ -35,6 +35,8 @@ In the PN Scripts DEV workspace, read the shared AI Brain first: the router [`..
 
 ## Checks before a change is done
 
+`scripts/release/check.sh` runs everything the lint and tests workflows check, in the same order; run it before every push.
+
 ```bash
 ./vendor/bin/phpunit
 vendor/bin/pint --test
