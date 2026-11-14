@@ -24,7 +24,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
     };
 
     return (
-        <AuthLayout title={t('Forgot password')} description={t('Enter your email to receive a password reset link')}>
+        <AuthLayout title={t('Forgot password')} description={t("Type your account's email and we will send you a link to choose a new password")}>
             <Head title={t('Forgot password')} />
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}

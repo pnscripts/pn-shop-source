@@ -38,7 +38,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title={t('Log in to your account')} description={t('Enter your email and password below to log in')}>
+        <AuthLayout title={t('Log in to your account')} description={t('Use the email and password of your account')}>
             <Head title={t('Log in')} />
 
             <form className="flex flex-col gap-6" onSubmit={submit}>

@@ -34,11 +34,11 @@ export default function DeleteUser() {
 
     return (
         <div className="space-y-6">
-            <HeadingSmall title={t('Delete account')} description={t('Delete your account and all of its resources')} />
+            <HeadingSmall title={t('Delete account')} description={t('Close your account and sign out of this shop')} />
             <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                 <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
                     <p className="font-medium">{t('Warning')}</p>
-                    <p className="text-sm">{t('Please proceed with caution, this cannot be undone.')}</p>
+                    <p className="text-sm">{t('A deleted account cannot be restored.')}</p>
                 </div>
 
                 <Dialog>
@@ -46,7 +46,7 @@ export default function DeleteUser() {
                         <Button variant="destructive">{t('Delete account')}</Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>{t('Are you sure you want to delete your account?')}</DialogTitle>
+                        <DialogTitle>{t('Delete your account for good?')}</DialogTitle>
                         <DialogDescription>
                             {t(
                                 'Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.',

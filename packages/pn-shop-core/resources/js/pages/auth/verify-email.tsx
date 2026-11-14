@@ -19,7 +19,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
     };
 
     return (
-        <AuthLayout title={t('Verify email')} description={t('Please verify your email address by clicking on the link we just emailed to you.')}>
+        <AuthLayout title={t('Verify email')} description={t('We have sent you an email. Open the link in it to confirm your address.')}>
             <Head title={t('Email verification')} />
 
             {status === 'verification-link-sent' && (

@@ -38,7 +38,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
     };
 
     return (
-        <AuthLayout title={t('Reset password')} description={t('Please enter your new password below')}>
+        <AuthLayout title={t('Reset password')} description={t('Choose a new password for your account')}>
             <Head title={t('Reset password')} />
 
             <form onSubmit={submit}>

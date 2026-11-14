@@ -49,7 +49,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title={t('Profile information')} description={t('Update your name and email address')} />
+                    <HeadingSmall title={t('Profile information')} description={t('The name and email address on your account')} />
 
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid gap-2">

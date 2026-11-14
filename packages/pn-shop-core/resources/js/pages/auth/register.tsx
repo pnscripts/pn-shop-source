@@ -37,7 +37,7 @@ export default function Register({ botTrap }: { botTrap: BotTrapData }) {
     };
 
     return (
-        <AuthLayout title={t('Create an account')} description={t('Enter your details below to create your account')}>
+        <AuthLayout title={t('Create an account')} description={t('With an account you can follow your orders and check out faster')}>
             <Head title={t('Register')} />
             <form className="relative flex flex-col gap-6" onSubmit={submit}>
                 <BotTrapFields value={data.contact_website} onChange={(value) => setData('contact_website', value)} error={formError} />

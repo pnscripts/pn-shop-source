@@ -10,6 +10,10 @@ All notable changes to PN Shop. The project follows [semantic versioning](https:
 - Development tools: vite 8.3.6, concurrently 10.0.7 (shell-quote 1.12), typescript-eslint 8.72 with minimatch 11 (pinned through `overrides` until typescript-eslint allows it), zod 4.6.7. CI now audits the development tools too (`npm audit --audit-level=high`) and the shipped packages at moderate level; `scripts/release/check.sh` runs every CI check locally.
 - Dependabot proposes minor and patch updates once a week in one pull request per ecosystem, and security updates as soon as they are published.
 
+### Changed
+
+- Sign-in, registration, password and account settings pages describe themselves in PN Shop's own words (English and Bulgarian) instead of the sentences of the starter kit the storefront began from. Themes that override these pages keep working; a theme or site that translated the old English sentences should translate the new ones. A test keeps the old sentences out and checks that every account and sign-in text has a Bulgarian translation.
+
 ### Fixed
 
 - Larastan 3.13 checks: the extension rollback no longer re-checks that a resolved migration is an object, and the channel middleware treats the `web` guard as whatever driver the host application configured, signing out only through a guard that supports single-device sign-out.
